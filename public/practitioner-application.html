@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply to Become a ClearTrack Practitioner</title>
+  <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
+  <link rel="stylesheet" href="/css/ct-theme.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fa;
+      color: #1f2933;
+    }
+
+    header {
+      background: #0b7285;
+      color: #fff;
+      padding: 1.5rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    nav a {
+      color: #e0fbff;
+      margin-left: 1rem;
+      font-size: 0.95rem;
+      text-decoration: none;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      color: #0b7285;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #334e68;
+      font-size: 0.9rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.75rem;
+      border: 1px solid #cbd2e1;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    button[type="submit"] {
+      background: #0b7285;
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    button[type="submit"]:hover {
+      background: #095a69;
+    }
+
+    button[type="submit"]:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .note {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    @media (max-width: 640px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand"><img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo" style="height:40px; filter: brightness(0) invert(1);"></div>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#who-for">Who it's for</a>
+      <a href="/practitioner-application.html">For Practitioners</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/login.html">Login</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="card">
+      <h1>Apply to Become a ClearTrack Practitioner</h1>
+      <p class="subtitle">
+        Join ClearTrack as a tax practitioner to help clients manage their SARS-compliant travel logbooks and tax documents.
+      </p>
+
+      <div id="feedback" class="alert"></div>
+
+      <form id="applicationForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name *</label>
+            <input type="text" id="firstName" name="firstName" required>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input type="text" id="lastName" name="lastName" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number *</label>
+            <input type="tel" id="phone" name="phone" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="practiceName">Practice Name *</label>
+          <input type="text" id="practiceName" name="practiceName" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="practiceNumber">Practice Number</label>
+            <input type="text" id="practiceNumber" name="practiceNumber">
+            <p class="note">Your professional practice registration number (if applicable)</p>
+          </div>
+          <div class="form-group">
+            <label for="sarsNumber">SARS Practitioner Number</label>
+            <input type="text" id="sarsNumber" name="sarsNumber">
+            <p class="note">Your SARS practitioner registration number</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="yearsExperience">Years of Experience *</label>
+          <input type="number" id="yearsExperience" name="yearsExperience" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label for="qualifications">Qualifications *</label>
+          <textarea id="qualifications" name="qualifications" required placeholder="List your professional qualifications, certifications, and relevant education"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Specializations *</label>
+          <p class="note">Select all that apply to your practice</p>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="specializations" value="Individual Tax Returns">
+              <span>Individual Tax Returns</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="specializations" value="Small Business Tax">
+              <span>Small Business Tax</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="specializations" value="SARS Compliance">
+              <span>SARS Compliance</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="specializations" value="Corporate Tax">
+              <span>Corporate Tax</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="specializations" value="Tax Planning">
+              <span>Tax Planning</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="specializations" value="VAT">
+              <span>VAT</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="specializations" value="Payroll Tax">
+              <span>Payroll Tax</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="specializations" value="Estate Planning">
+              <span>Estate Planning</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bio">Professional Bio</label>
+          <textarea id="bio" name="bio" placeholder="Tell us about your practice and experience (optional)"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="message">Additional Information</label>
+          <textarea id="message" name="message" placeholder="Any additional information you'd like to share (optional)"></textarea>
+        </div>
+
+        <button type="submit" id="submitBtn">Submit Application</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+
+  <script src="firebase-config.js"></script>
+  <script src="firebase-init.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('applicationForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const feedback = document.getElementById('feedback');
+
+      function showFeedback(message, type) {
+        feedback.textContent = message;
+        feedback.className = `alert alert-${type} show`;
+        setTimeout(() => {
+          feedback.classList.remove('show');
+        }, 5000);
+      }
+
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validate specializations
+        const specializations = Array.from(document.querySelectorAll('input[name="specializations"]:checked'))
+          .map(cb => cb.value);
+        
+        if (specializations.length === 0) {
+          showFeedback('Please select at least one specialization.', 'error');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        // Validate required fields before submission
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const practiceName = document.getElementById('practiceName').value.trim();
+        const yearsExperienceValue = document.getElementById('yearsExperience').value.trim();
+        const qualifications = document.getElementById('qualifications').value.trim();
+
+        // Validate required fields
+        if (!firstName || !lastName || !email || !phone || !practiceName || !qualifications) {
+          showFeedback('Please fill in all required fields (marked with *).', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Application';
+          return;
+        }
+
+        // Validate years of experience
+        if (!yearsExperienceValue) {
+          showFeedback('Please enter years of experience.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Application';
+          return;
+        }
+
+        const yearsExperience = parseInt(yearsExperienceValue);
+        if (isNaN(yearsExperience) || yearsExperience < 0) {
+          showFeedback('Years of experience must be a valid number (0 or greater).', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Application';
+          return;
+        }
+
+        const formData = {
+          firstName,
+          lastName,
+          email,
+          phone,
+          practiceName,
+          practiceNumber: document.getElementById('practiceNumber').value.trim() || null,
+          sarsNumber: document.getElementById('sarsNumber').value.trim() || null,
+          yearsExperience,
+          qualifications,
+          specializations: specializations,
+          bio: document.getElementById('bio').value.trim() || null,
+          message: document.getElementById('message').value.trim() || null
+        };
+
+        try {
+          // Check if running from file:// protocol - use direct Firestore save
+          if (window.location.protocol === 'file:' || !firebase.functions) {
+            // Fallback: Save directly to Firestore when Cloud Functions not available
+            if (!window.firebaseDb) {
+              throw new Error('Firebase not initialized. Please ensure firebase-init.js is loaded.');
+            }
+
+            // Save directly to Firestore
+            const applicationRef = window.firebaseDb.collection('practitionerApplications').doc();
+            const applicationData = {
+              ...formData,
+              applicationId: applicationRef.id,
+              status: 'pending',
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            await applicationRef.set(applicationData);
+
+            showFeedback('Application submitted successfully! We will review your application and contact you soon.', 'success');
+            form.reset();
+
+            // Optionally redirect after a delay
+            setTimeout(() => {
+              if (window.location.protocol === 'file:') {
+                // If file://, just show success message
+                console.log('Application saved to Firestore. Application ID:', applicationRef.id);
+              } else {
+                window.location.href = '/index.html';
+              }
+            }, 3000);
+            return;
+          }
+
+          // Use Cloud Function if available (when served via HTTP/HTTPS)
+          const functions = firebase.functions();
+          const submitApplication = functions.httpsCallable('submitPractitionerApplication');
+
+          const result = await submitApplication(formData);
+
+          showFeedback('Application submitted successfully! We will review your application and contact you soon.', 'success');
+          form.reset();
+
+          // Optionally redirect after a delay
+          setTimeout(() => {
+            window.location.href = '/index.html';
+          }, 3000);
+
+        } catch (error) {
+          console.error('Error submitting application:', error);
+          
+          // Extract error message from Firebase Functions error
+          let errorMessage = 'Failed to submit application. Please try again or contact us directly.';
+          
+          if (error.code === 'functions/not-found') {
+            errorMessage = 'Cloud Function not found. Please ensure the functions are deployed.';
+          } else if (error.code === 'functions/invalid-argument') {
+            errorMessage = error.message || 'Please check that all required fields are filled correctly.';
+          } else if (error.code === 'functions/internal') {
+            errorMessage = error.message || 'An internal error occurred. Please try again or contact support.';
+          } else if (error.message) {
+            errorMessage = error.message;
+          } else if (error.details) {
+            errorMessage = error.details;
+          }
+          
+          showFeedback(errorMessage, 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Application';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+

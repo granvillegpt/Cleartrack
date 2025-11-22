@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <title>ClearTrack Login</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta
+
+    name="description"
+
+    content="Login to your ClearTrack account to manage your SARS-compliant travel logbook and documents."
+
+  />
+
+  <link rel="icon" type="image/png" href="assets/images/icon%20logo.png" />
+
+  <link rel="stylesheet" href="/css/ct-theme.css" />
+
+  <style>
+
+    body {
+
+      margin: 0;
+
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      background: #e5f3f7;
+
+      display: flex;
+
+      min-height: 100vh;
+
+      align-items: center;
+
+      justify-content: center;
+
+    }
+
+    .wrapper {
+
+      max-width: 420px;
+
+      width: 100%;
+
+      padding: 1.5rem;
+
+    }
+
+    .card {
+
+      background: #ffffff;
+
+      border-radius: 16px;
+
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+
+      padding: 1.75rem 1.5rem 1.5rem;
+
+    }
+
+    h1 {
+
+      font-size: 1.4rem;
+
+      margin: 0 0 0.5rem;
+
+      text-align: center;
+
+      color: #0b7285;
+
+    }
+
+    p.subtitle {
+
+      font-size: 0.9rem;
+
+      color: #6b7785;
+
+      text-align: center;
+
+      margin-bottom: 1.25rem;
+
+    }
+
+    label {
+
+      display: block;
+
+      margin-bottom: 0.25rem;
+
+      font-size: 0.9rem;
+
+      color: #334e68;
+
+    }
+
+    input[type="email"],
+
+    input[type="password"] {
+
+      width: 100%;
+
+      box-sizing: border-box;
+
+      padding: 0.6rem 0.7rem;
+
+      border-radius: 8px;
+
+      border: 1px solid #cbd2e1;
+
+      font-size: 0.95rem;
+
+      margin-bottom: 0.9rem;
+
+    }
+
+    button {
+
+      width: 100%;
+
+      padding: 0.75rem;
+
+      border-radius: 999px;
+
+      border: none;
+
+      cursor: pointer;
+
+      background: #0b7285;
+
+      color: #ffffff;
+
+      font-size: 0.95rem;
+
+      font-weight: 600;
+
+      margin-top: 0.25rem;
+
+    }
+
+    button:hover {
+
+      background: #095a69;
+
+    }
+
+    /* Submit button styles - Shadow/3D Effect */
+    button[type="submit"] {
+      border-radius: 8px;
+      border: 1px solid #0b7285;
+      box-shadow: 0 4px 8px rgba(11, 114, 133, 0.2);
+      transition: all 0.2s;
+    }
+
+    button[type="submit"]:hover {
+      border-color: #095a69;
+      box-shadow: 0 6px 12px rgba(11, 114, 133, 0.3);
+    }
+
+    button:disabled {
+
+      background: #95a5a6;
+
+      cursor: not-allowed;
+
+    }
+
+    .meta-text {
+
+      font-size: 0.8rem;
+
+      color: #6b7785;
+
+      margin-top: 0.75rem;
+
+      line-height: 1.4;
+
+    }
+
+    .meta-text a {
+
+      color: #0b7285;
+
+      text-decoration: none;
+
+    }
+
+    .meta-text a:hover {
+
+      text-decoration: underline;
+
+    }
+
+    .forgot-password-link {
+
+      color: #0b7285;
+
+      text-decoration: none;
+
+      font-size: 0.85rem;
+
+      text-align: right;
+
+      display: block;
+
+      margin-top: -0.5rem;
+
+      margin-bottom: 0.9rem;
+
+    }
+
+    .forgot-password-link:hover {
+
+      text-decoration: underline;
+
+    }
+
+    .brand {
+
+      text-align: center;
+
+      font-size: 0.85rem;
+
+      color: #6b7785;
+
+      margin-top: 0.75rem;
+
+    }
+
+    .brand a {
+
+      color: #0b7285;
+
+      text-decoration: none;
+
+    }
+
+    .brand a:hover {
+
+      text-decoration: underline;
+
+    }
+
+    .error {
+
+      color: #b00020;
+
+      font-size: 0.85rem;
+
+      margin-top: 0.5rem;
+
+      display: none;
+
+    }
+
+    .error.show {
+
+      display: block;
+
+    }
+
+    .success-notification {
+
+      border: 1px solid #10b981;
+
+      border-radius: 6px;
+
+      padding: 1rem;
+
+      color: #065f46;
+
+      font-size: 0.9rem;
+
+      margin-top: 0.5rem;
+
+      margin-bottom: 0.5rem;
+
+      display: none;
+
+      background: #ffffff;
+
+    }
+
+    .success-notification.show {
+
+      display: block;
+
+    }
+
+    /* Tab styles */
+    .tabs {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+
+    .tabs .tab {
+      flex: 0 1 auto !important;
+      width: auto !important;
+      padding: 0.5rem 0 !important;
+      background: none !important;
+      border: none !important;
+      border-bottom: 2px solid transparent !important;
+      border-radius: 0 !important;
+      color: #6b7280 !important;
+      font-size: 0.9rem !important;
+      font-weight: 500 !important;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      margin-bottom: -0.5rem !important;
+      margin-top: 0 !important;
+    }
+
+    .tabs .tab:hover {
+      color: #0b7285 !important;
+      background: none !important;
+    }
+
+    .tabs .tab.active {
+      color: #0b7285 !important;
+      border-bottom-color: #0b7285 !important;
+      background: none !important;
+    }
+
+    /* Form visibility */
+    .form-container {
+      display: none;
+    }
+
+    .form-container.active {
+      display: block;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.6rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid #cbd2e1;
+      font-size: 0.95rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .role-selector {
+      margin-bottom: 1rem;
+    }
+
+    .role-selector label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+    }
+
+    .role-selector input[type="radio"] {
+      width: auto;
+      margin: 0;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+
+    <div class="card">
+
+      <h1 id="formTitle" style="display:flex; flex-direction:column; align-items:center;">
+
+        <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo" style="height:60px; margin-bottom:12px;">
+
+        <span id="formTitleText">Login</span>
+
+      </h1>
+
+      <p id="formDescription" class="subtitle">
+
+        Sign in to your ClearTrack account to view your travel logbook, vehicles, and tax documents.
+
+      </p>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button id="signInTab" class="tab active">Sign In</button>
+        <button id="registerTab" class="tab">Create Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="form-container active">
+
+        <label for="email">Email address</label>
+
+        <input id="email" type="email" autocomplete="email" required />
+
+
+
+        <label for="password">Password</label>
+
+        <input id="password" type="password" autocomplete="current-password" required />
+
+        <a href="#" id="forgotPasswordLink" class="forgot-password-link">Forgot password?</a>
+
+        <div id="forgotPasswordSuccess" class="success-notification" style="display: none;">Password reset email sent! Please check your inbox and follow the instructions to reset your password.</div>
+
+        <button id="submitBtn" type="submit">Sign in</button>
+
+        <div id="errorMessage" class="error"></div>
+
+      </form>
+
+      <!-- Registration Form -->
+      <form id="registerForm" class="form-container">
+
+        <div class="form-row">
+          <div>
+            <label for="registerFirstName">First Name</label>
+            <input id="registerFirstName" type="text" autocomplete="given-name" required />
+          </div>
+          <div>
+            <label for="registerLastName">Last Name</label>
+            <input id="registerLastName" type="text" autocomplete="family-name" required />
+          </div>
+        </div>
+
+        <label for="registerEmail">Email address</label>
+        <input id="registerEmail" type="email" autocomplete="email" required />
+
+        <label for="registerPassword">Password</label>
+        <input id="registerPassword" type="password" autocomplete="new-password" required minlength="6" />
+
+        <button id="registerBtn" type="submit">Create Account</button>
+
+        <div id="successMessage" class="success-notification">Account successfully created! Please sign in to continue.</div>
+
+        <div id="errorMessage" class="error"></div>
+
+      </form>
+
+
+
+      <p class="meta-text">
+
+        <strong>Need a ClearTrack account?</strong><br>
+
+        Click "Create Account" above to get started. After signing up, you'll be guided through onboarding where you can either connect with your existing practitioner using their code, or request to be connected with a practitioner if you need one.
+
+      </p>
+
+      <p class="meta-text">
+
+        <strong>Are you a tax practitioner?</strong><br>
+
+        <a href="/practitioner-application.html">Apply to become a ClearTrack practitioner</a>
+
+      </p>
+
+    </div>
+
+
+
+    <div class="brand" id="backToHomeLink">
+
+      <a href="/index.html" class="back-link">← Back to ClearTrack home</a>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+  <!-- Config and Initialization -->
+  <script src="firebase-config.js"></script>
+  <script src="firebase-init.js"></script>
+  <!-- Page Logic - Uses Firebase directly, no wrapper needed -->
+  <script src="login.js"></script>
+
+  <script>
+    // Hide "Back to ClearTrack home" link on app.cleartrack.co.za
+    (function() {
+      const backLink = document.getElementById('backToHomeLink');
+      if (backLink && window.location.hostname === 'app.cleartrack.co.za') {
+        backLink.style.display = 'none';
+      }
+    })();
+  </script>
+
+</body>
+
+</html>

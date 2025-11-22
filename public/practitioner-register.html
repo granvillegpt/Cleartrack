@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Practitioner Registration - ClearTrack</title>
+  <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
+  <link rel="stylesheet" href="/css/ct-theme.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5f3f7;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wrapper {
+      max-width: 500px;
+      width: 100%;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 0.5rem;
+      text-align: center;
+      color: #0b7285;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .info-box {
+      background: #e0f2fe;
+      border-left: 4px solid #0b7285;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-box p {
+      margin: 0.25rem 0;
+      font-size: 0.9rem;
+      color: #334e68;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #334e68;
+      font-size: 0.9rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.75rem;
+      border: 1px solid #cbd2e1;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #0b7285;
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    button[type="submit"]:hover {
+      background: #095a69;
+    }
+
+    button[type="submit"]:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .back-link a {
+      color: #0b7285;
+      text-decoration: none;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <h1>Complete Your Registration</h1>
+      <p class="subtitle">Welcome to ClearTrack! Please set your password to complete your practitioner account setup.</p>
+
+      <div id="feedback" class="alert"></div>
+
+      <div id="infoBox" class="info-box" style="display: none;">
+        <p><strong>Email:</strong> <span id="infoEmail"></span></p>
+        <p><strong>Name:</strong> <span id="infoName"></span></p>
+        <p><strong>Practice:</strong> <span id="infoPractice"></span></p>
+      </div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="code">Registration Code *</label>
+          <input type="text" id="code" name="code" required placeholder="Enter code from email" maxlength="8">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <input type="password" id="password" name="password" required minlength="6" placeholder="Minimum 6 characters">
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password *</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+        </div>
+
+        <button type="submit" id="submitBtn">Complete Registration</button>
+      </form>
+
+      <div class="back-link">
+        <a href="/login.html">← Back to Login</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+
+  <script src="firebase-config.js"></script>
+  <script src="firebase-init.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('registerForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const feedback = document.getElementById('feedback');
+      const infoBox = document.getElementById('infoBox');
+      const codeInput = document.getElementById('code');
+      const passwordInput = document.getElementById('password');
+      const confirmPasswordInput = document.getElementById('confirmPassword');
+
+      // Get token and code from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const codeFromUrl = urlParams.get('code');
+
+      let inviteData = null;
+
+      // Pre-fill code if in URL
+      if (codeFromUrl) {
+        codeInput.value = codeFromUrl;
+      }
+
+      function showFeedback(message, type) {
+        feedback.textContent = message;
+        feedback.className = `alert alert-${type} show`;
+      }
+
+      // Verify invite on page load if token is present
+      async function verifyInvite() {
+        if (!token) {
+          showFeedback('Invalid registration link. Please use the link from your approval email.', 'error');
+          form.style.display = 'none';
+          return;
+        }
+
+        if (!window.firebaseApp || !firebase.functions) {
+          showFeedback('Firebase not initialized. Please refresh the page.', 'error');
+          return;
+        }
+
+        try {
+          const functions = firebase.functions();
+          const verifyInvite = functions.httpsCallable('verifyPractitionerInvite');
+
+          const result = await verifyInvite({ token, code: codeFromUrl || '' });
+
+          if (result.data && result.data.valid) {
+            inviteData = result.data;
+            // Show info box
+            document.getElementById('infoEmail').textContent = inviteData.email;
+            document.getElementById('infoName').textContent = `${inviteData.firstName} ${inviteData.lastName}`;
+            document.getElementById('infoPractice').textContent = inviteData.practiceName;
+            infoBox.style.display = 'block';
+          }
+        } catch (error) {
+          console.error('Error verifying invite:', error);
+          if (error.code === 'functions/not-found' || error.message.includes('Invalid')) {
+            showFeedback('Invalid or expired registration link. Please contact support.', 'error');
+            form.style.display = 'none';
+          } else {
+            // Don't block form if verification fails - let them try to submit
+            console.warn('Could not verify invite, but allowing form submission');
+          }
+        }
+      }
+
+      // Verify on load
+      if (token) {
+        verifyInvite();
+      } else {
+        showFeedback('Invalid registration link. Please use the link from your approval email.', 'error');
+        form.style.display = 'none';
+      }
+
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        if (!token) {
+          showFeedback('Invalid registration link.', 'error');
+          return;
+        }
+
+        const code = codeInput.value.trim().toUpperCase();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+
+        // Validation
+        if (!code || code.length !== 8) {
+          showFeedback('Please enter a valid 8-character registration code.', 'error');
+          return;
+        }
+
+        if (password.length < 6) {
+          showFeedback('Password must be at least 6 characters long.', 'error');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          showFeedback('Passwords do not match.', 'error');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating Account...';
+
+        try {
+          if (!window.firebaseApp || !firebase.functions) {
+            throw new Error('Firebase Functions not available');
+          }
+
+          const functions = firebase.functions();
+          const completeRegistration = functions.httpsCallable('completePractitionerRegistration');
+
+          const result = await completeRegistration({
+            token,
+            code,
+            password
+          });
+
+          showFeedback('Registration successful! Redirecting to login...', 'success');
+
+          // Auto-login and redirect
+          setTimeout(async () => {
+            try {
+              // Sign in with the new credentials
+              await window.firebaseAuth.signInWithEmailAndPassword(
+                inviteData ? inviteData.email : result.data.email,
+                password
+              );
+              
+              // Redirect to practitioner dashboard
+              window.location.href = '/practitioner-dashboard.html';
+            } catch (loginError) {
+              // If auto-login fails, redirect to login page
+              console.error('Auto-login failed:', loginError);
+              showFeedback('Account created! Please log in with your new credentials.', 'success');
+              setTimeout(() => {
+                window.location.href = '/login.html';
+              }, 2000);
+            }
+          }, 1500);
+
+        } catch (error) {
+          console.error('Error completing registration:', error);
+          let errorMessage = 'Failed to complete registration. Please try again.';
+          
+          if (error.code === 'functions/not-found') {
+            errorMessage = 'Invalid or expired registration link.';
+          } else if (error.code === 'functions/deadline-exceeded') {
+            errorMessage = 'This registration link has expired. Please contact support.';
+          } else if (error.code === 'functions/already-exists') {
+            errorMessage = 'An account with this email already exists. Please log in instead.';
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
+          showFeedback(errorMessage, 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Complete Registration';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+

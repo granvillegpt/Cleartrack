@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <title>ClearTrack – SARS Travel Logbook & Tax Companion</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta
+
+    name="description"
+
+    content="ClearTrack is a South African mileage and tax companion app that helps you keep a SARS-compliant travel logbook, upload supporting documents, and share reports with your tax practitioner."
+
+  />
+
+  <link rel="icon" type="image/png" href="assets/images/icon%20logo.png" />
+
+  <link rel="manifest" href="/manifest.json">
+
+  <meta name="theme-color" content="#1b6ca8">
+
+  <link rel="stylesheet" href="/css/ct-theme.css" />
+
+  <style>
+
+    body {
+
+      margin: 0;
+
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      color: #1f2933;
+
+      background: #f5f7fa;
+
+    }
+
+    header {
+
+      background: #0b7285;
+
+      color: #fff;
+
+      padding: 1.5rem 2.5rem;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+    }
+
+    .brand {
+
+      font-weight: 700;
+
+      letter-spacing: 0.04em;
+
+    }
+
+    nav a {
+
+      color: #e0fbff;
+
+      margin-left: 1rem;
+
+      font-size: 0.95rem;
+
+      text-decoration: none;
+
+    }
+
+    nav a:hover {
+
+      text-decoration: underline;
+
+    }
+
+    main {
+
+      max-width: 960px;
+
+      margin: 0 auto;
+
+      padding: 2rem 1.5rem 3rem;
+
+    }
+
+    .hero {
+
+      display: grid;
+
+      grid-template-columns: minmax(0, 3fr);
+
+      gap: 1.5rem;
+
+      margin-top: 2rem;
+
+    }
+
+    .hero h1 {
+
+      font-size: clamp(2rem, 3vw, 2.6rem);
+
+      margin-bottom: 1rem;
+
+    }
+
+    .hero p {
+
+      font-size: 1rem;
+
+      line-height: 1.6;
+
+      margin-bottom: 1.25rem;
+
+    }
+
+    .hero-actions {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 0.75rem;
+
+      margin-top: 0.5rem;
+
+    }
+
+    .btn-primary,
+
+    .btn-secondary {
+
+      padding: 0.75rem 1.3rem;
+
+      border-radius: 999px;
+
+      font-size: 0.95rem;
+
+      border: none;
+
+      cursor: pointer;
+
+      text-decoration: none;
+
+      display: inline-flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+    }
+
+    .btn-primary {
+
+      background: #0b7285;
+
+      color: #fff;
+
+    }
+
+    .btn-primary:hover {
+
+      background: #095a69;
+
+    }
+
+    .btn-secondary {
+
+      background: #e0f7fb;
+
+      color: #0b7285;
+
+    }
+
+    .btn-secondary:hover {
+
+      background: #c7edf4;
+
+      color: #095a69;
+
+    }
+
+    .section {
+
+      margin-top: 3rem;
+
+    }
+
+    .section h2 {
+
+      font-size: 1.3rem;
+
+      margin-bottom: 0.75rem;
+
+    }
+
+    .grid {
+
+      display: grid;
+
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+      gap: 1rem;
+
+    }
+
+    .card {
+
+      background: #ffffff;
+
+      border-radius: 12px;
+
+      padding: 1.25rem;
+
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+
+      font-size: 0.95rem;
+
+    }
+
+    .card h3 {
+
+      margin-top: 0;
+
+      margin-bottom: 0.5rem;
+
+      font-size: 1.05rem;
+
+    }
+
+    footer {
+
+      border-top: 1px solid #d8e2ec;
+
+      padding: 1rem 1.5rem 1.5rem;
+
+      font-size: 0.85rem;
+
+      background: #f9fbfd;
+
+      color: #6b7785;
+
+    }
+
+    footer a {
+
+      color: var(--ct-primary);
+
+      text-decoration: none;
+
+      margin-right: 1rem;
+
+    }
+
+    footer a:hover {
+
+      text-decoration: underline;
+
+    }
+
+  </style>
+
+  <script>
+    // Redirect app.cleartrack.co.za root/index.html to login.html
+    (function() {
+      if (window.location.hostname === "app.cleartrack.co.za") {
+        var path = window.location.pathname;
+        if (path === "/" || path === "/index.html") {
+          window.location.replace("/login.html");
+        }
+      }
+    })();
+  </script>
+
+</head>
+
+<body>
+
+  <header>
+
+    <div class="brand"><img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo" style="height:40px; filter: brightness(0) invert(1);"></div>
+
+    <nav>
+
+      <a href="#features">Features</a>
+
+      <a href="#who-for">Who it's for</a>
+
+      <a href="/practitioner-application.html">For Practitioners</a>
+
+      <a href="/contact.html">Contact</a>
+
+      <a href="/login.html">Login</a>
+
+    </nav>
+
+  </header>
+
+
+
+  <main>
+
+    <section class="hero">
+
+      <div>
+
+        <h1>SARS-compliant travel logbook & tax companion for South Africans</h1>
+
+        <p>
+
+          ClearTrack helps you keep a proper SARS travel logbook, store mileage and fuel records,
+
+          and securely share your information with your tax practitioner – without spreadsheets
+
+          or guesswork.
+
+        </p>
+
+        <div class="hero-actions">
+
+          <a class="btn-primary" href="/login.html">Log in to ClearTrack</a>
+
+          <a class="btn-secondary" href="#features">View features</a>
+
+        </div>
+
+        <p style="margin-top: 1rem; font-size: 0.85rem; color: #6b7785;">
+
+          ClearTrack is a private app built and operated by JellyBean Accounting in South Africa.
+
+          It does <strong>not</strong> ask for or use any SARS eFiling, banking, or employer login
+
+          credentials.
+
+        </p>
+
+      </div>
+
+    </section>
+
+
+
+    <section class="section" id="features">
+
+      <h2>Key features</h2>
+
+      <div class="grid">
+
+        <div class="card">
+
+          <h3>Mileage logbook</h3>
+
+          <p>Capture trips with dates, odometer readings, business purpose and route details that match SARS guidelines.</p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Vehicle & expense tracking</h3>
+
+          <p>Link trips to specific vehicles and keep records of fuel, services and repairs for audit support.</p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Document storage</h3>
+
+          <p>Upload supporting documents (logbooks, IRP5s, invoices, etc.) so everything is in one place at tax time.</p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Practitioner-friendly export</h3>
+
+          <p>Share SARS-style summaries and exports with your tax practitioner or accountant securely.</p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <section class="section" id="who-for">
+
+      <h2>Who ClearTrack is for</h2>
+
+      <div class="grid">
+
+        <div class="card">
+
+          <h3>Employees with travel allowances</h3>
+
+          <p>Keep a compliant logbook for code 3701/3702 travel allowances and avoid surprises when SARS assesses your return.</p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Commission earners & sales reps</h3>
+
+          <p>Track business vs private kilometres accurately and support claims against commission income.</p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Small business owners</h3>
+
+          <p>Manage multiple vehicles and keep an audit trail for travel-related expenses and logbooks.</p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Tax practitioners</h3>
+
+          <p>View client logbooks and supporting documents in a structured, exportable format built for SARS requirements.</p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <section class="section">
+
+      <h2>How ClearTrack works</h2>
+
+      <ol style="padding-left: 1.25rem; font-size: 0.95rem; line-height: 1.6;">
+
+        <li>Create an account and add your vehicle(s).</li>
+
+        <li>Capture trips or import your route list / call cycle.</li>
+
+        <li>Upload supporting documents such as fuel slips and IRP5s.</li>
+
+        <li>Share exports with your practitioner when it is time to file.</li>
+
+      </ol>
+
+    </section>
+
+
+
+
+
+
+    <section class="section" id="contact">
+
+      <h2>Contact</h2>
+
+      <p>For support or questions about ClearTrack, please <a href="/contact.html">contact JellyBean Accounting</a>.</p>
+
+    </section>
+
+  </main>
+
+
+
+  <footer>
+
+    <div>© <span id="year"></span> ClearTrack · Built by JellyBean Accounting (South Africa)</div>
+
+    <div style="margin-top: 0.35rem;">
+
+      <a href="/privacy.html">Privacy Policy</a>
+
+      <a href="/terms.html">Terms of Service</a>
+
+      <a href="#contact">Contact</a>
+
+    </div>
+
+    <div style="margin-top: 0.35rem;">
+
+      This site will never ask for your SARS eFiling, banking, or employer login details.
+
+                    </div>
+
+  </footer>
+
+
+
+  <script>
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    </script>
+    
+</body>
+
+</html>

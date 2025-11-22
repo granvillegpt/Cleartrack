@@ -1,0 +1,101 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function userRole(uid) {
+      let doc = userDoc(uid);
+      return doc != null && doc.exists ? doc.data.role : null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userRole(request.auth.uid) == "admin";
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // USERS
+    match /users/{uid} {
+      // Read: user can read own doc, admin can read all
+      allow read: if isOwner(uid) || isAdmin();
+
+      // Create: user can create their own doc with role='user', admin can create any
+      allow create: if 
+        isAdmin() ||
+        (isOwner(uid) && 
+         (!('role' in request.resource.data) || request.resource.data.role == 'user'));
+
+      // Update: admin can edit any user doc, user can edit their own doc EXCEPT the role field
+      allow update: if
+        isAdmin() ||
+        (
+          isOwner(uid) &&
+          (!resource.exists || !('role' in request.resource.data.diff(resource.data).changedKeys()))
+        );
+
+      // Delete: only admin
+      allow delete: if isAdmin();
+    }
+
+    // Subcollections under /users/{uid}
+    match /users/{uid}/{subpath=**} {
+      allow read, write: if isOwner(uid) || isAdmin();
+    }
+
+    // Practitioner applications - anyone can create, admin can read
+    match /practitionerApplications/{applicationId} {
+      allow create: if true;
+      allow read: if isAdmin();
+    }
+
+    // Practitioner invites - admin can create, anyone can read with token
+    match /practitionerInvites/{inviteId} {
+      allow create: if isAdmin();
+      allow read: if true; // Token-based access handled in function
+    }
+
+    // Client invites - practitioners can create, users can read their own
+    match /clientInvites/{inviteId} {
+      allow create: if isSignedIn() && userRole(request.auth.uid) == "practitioner";
+      allow read: if isSignedIn() && (
+        userRole(request.auth.uid) == "practitioner" || 
+        isAdmin() ||
+        (resource.data.clientUid != null && resource.data.clientUid == request.auth.uid)
+      );
+      allow update: if isSignedIn() && (
+        userRole(request.auth.uid) == "practitioner" ||
+        isAdmin() ||
+        (resource.data.clientUid != null && resource.data.clientUid == request.auth.uid)
+      );
+    }
+
+    // Client requests - clients can create, practitioners can read assigned ones, admin can read all
+    match /clientRequests/{requestId} {
+      allow create: if isSignedIn(); // Any authenticated user can create a request
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.clientUid == request.auth.uid) ||
+        (resource.data.assignedPractitionerId == request.auth.uid && userRole(request.auth.uid) == "practitioner")
+      );
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.assignedPractitionerId == request.auth.uid && userRole(request.auth.uid) == "practitioner")
+      );
+    }
+
+    // Everything else: closed by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

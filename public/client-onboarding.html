@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>ClearTrack - Get Started</title>
+    <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
+    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="/css/ct-theme.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f5f7fa;
+            color: #1f2933;
+            margin: 0;
+        }
+        
+        header {
+            background: #0b7285;
+            color: #fff;
+            padding: 1.5rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .logo img {
+            height: 32px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+        
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 3rem;
+            background: #ffffff;
+        }
+        
+        .onboarding-card {
+            margin-top: 0;
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+        }
+        
+        .onboarding-card h2 {
+            font-size: 2rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: #0b7285;
+        }
+        
+        .onboarding-card > p {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+        
+        .onboarding-section {
+            margin-top: 2.5rem;
+            padding-top: 2.5rem;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .onboarding-section:first-of-type {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+        
+        .onboarding-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #111827;
+        }
+        
+        .onboarding-section > p {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #0b7285;
+            box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1);
+        }
+        
+        #onboarding-questionnaire-section .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        #onboarding-questionnaire-section .checkbox-label {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f9fafb;
+            gap: 0.625rem;
+            width: 100%;
+        }
+        
+        #onboarding-questionnaire-section .checkbox-label:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        
+        #onboarding-questionnaire-section .checkbox-input {
+            width: 16px !important;
+            height: 16px !important;
+            cursor: pointer;
+            accent-color: #0b7285;
+            flex-shrink: 0;
+            margin: 0 !important;
+            display: inline-block !important;
+            vertical-align: middle;
+        }
+        
+        #onboarding-questionnaire-section .checkbox-label:has(input:checked) {
+            background: #ffffff;
+            border-color: #0b7285;
+        }
+        
+        #onboarding-questionnaire-section .attachment-text {
+            font-size: 0.9rem;
+            color: #374151;
+            user-select: none;
+            line-height: 1.4;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #0b7285;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #095a69;
+        }
+        
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+        
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+        
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+        
+        .mt-3 {
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            main {
+                padding: 1.5rem 1rem 2rem;
+            }
+            
+            .onboarding-card h2 {
+                font-size: 1.5rem;
+            }
+            
+            .onboarding-section h3 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
+        </div>
+    </header>
+    
+    <main>
+        <div class="onboarding-card" style="padding: 0; margin: 0;">
+            <h2>Welcome to ClearTrack</h2>
+            <p>Please connect with your practitioner to get started.</p>
+            
+            <!-- Option A: already invited -->
+            <section id="onboarding-invite-section" class="onboarding-section">
+                <h3>Already invited by a practitioner?</h3>
+                <p>Enter your mobile number and the verification code you received.</p>
+                
+                <div class="form-group">
+                    <label for="onboarding-invite-mobile">Your Mobile Number</label>
+                    <input id="onboarding-invite-mobile" type="tel" placeholder="Your mobile number" class="form-control" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="onboarding-invite-code">Invite Code</label>
+                    <input id="onboarding-invite-code" type="text" placeholder="Invite code" class="form-control" />
+                </div>
+                
+                <button id="onboarding-invite-verify-btn" class="btn btn-primary">Connect</button>
+                <div id="onboarding-invite-feedback" class="mt-3"></div>
+            </section>
+            
+            <!-- Option B: questionnaire -->
+            <section id="onboarding-questionnaire-section" class="onboarding-section">
+                <h3>New to ClearTrack?</h3>
+                <p>Tell us a bit about your situation so we can match you with the right practitioner.</p>
+                
+                <div class="form-group">
+                    <label>Select what applies to you:</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="Individual Tax Returns" class="checkbox-input" />
+                            <span class="attachment-text">Individual Tax Returns</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="Small Business Tax" class="checkbox-input" />
+                            <span class="attachment-text">Small Business Tax</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="SARS Compliance" class="checkbox-input" />
+                            <span class="attachment-text">SARS Compliance</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="Corporate Tax" class="checkbox-input" />
+                            <span class="attachment-text">Corporate Tax</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="Tax Planning" class="checkbox-input" />
+                            <span class="attachment-text">Tax Planning</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="VAT Returns" class="checkbox-input" />
+                            <span class="attachment-text">VAT Returns</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="Payroll Tax" class="checkbox-input" />
+                            <span class="attachment-text">Payroll Tax</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="Tax Audits" class="checkbox-input" />
+                            <span class="attachment-text">Tax Audits</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="Estate Planning" class="checkbox-input" />
+                            <span class="attachment-text">Estate Tax</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" data-need-tag="Dispute" class="checkbox-input" />
+                            <span class="attachment-text">Disputes / Verifications</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="onboarding-questionnaire-message">Anything else we should know? (Optional)</label>
+                    <textarea id="onboarding-questionnaire-message" placeholder="Optional message to your practitioner" class="form-control" rows="4"></textarea>
+                </div>
+                
+                <button id="onboarding-questionnaire-submit-btn" class="btn btn-primary">Send Request</button>
+                <div id="onboarding-questionnaire-feedback" class="mt-3"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Firebase SDKs (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+
+    <!-- My Firebase wiring -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-init.js"></script>
+    <script src="firebase-api.js"></script>
+    <script src="js/client-linking.js"></script>
+    <!-- Note: dashboard-auth.js is NOT included here to avoid conflicts -->
+    
+    <script>
+        // Setup handlers immediately - no auth check on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup handlers right away so form works
+            setupOnboardingHandlers();
+            
+            // Check auth status in background (non-blocking) after page is fully loaded
+            // This allows the page to stay visible for styling/testing
+            window.addEventListener('load', function() {
+                setTimeout(() => {
+                    checkAuthStatusBackground();
+                }, 2000); // Wait 2 seconds after page load
+            });
+        });
+        
+        // Background auth check - only redirects if absolutely necessary
+        async function checkAuthStatusBackground() {
+            try {
+                if (!window.firebaseAuth) {
+                    console.log('Firebase not ready - page will work without auth check');
+                    return;
+                }
+                
+                // Check if user is logged in
+                const currentUser = window.firebaseAuth.currentUser;
+                
+                if (!currentUser) {
+                    // Not logged in - but don't redirect immediately
+                    // Let them see the page, they'll be redirected when they try to submit
+                    console.log('User not logged in - will redirect on form submission');
+                    return;
+                }
+                
+                // User is logged in - check if they already have practitioner
+                if (!window.firebaseDb) {
+                    return;
+                }
+                
+                const userDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const practitionerId = userData.practitionerId || userData.connectedPractitioner || null;
+                    
+                    if (practitionerId) {
+                        // Already linked - redirect to dashboard
+                        console.log('User already has practitioner, redirecting to dashboard');
+                        window.location.href = '/user-dashboard.html';
+                        return;
+                    }
+                }
+                
+                // Setup real-time listener for when practitioner gets linked
+                setupPractitionerIdListener(currentUser.uid);
+            } catch (error) {
+                console.error('Error in background auth check:', error);
+                // Don't redirect on error
+            }
+        }
+        
+        // Set up real-time listener for practitionerId changes
+        function setupPractitionerIdListener(uid) {
+            if (!window.firebaseDb) return;
+            
+            const userRef = window.firebaseDb.collection('users').doc(uid);
+            userRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    const practitionerId = userData.practitionerId || userData.connectedPractitioner || null;
+                    
+                    // If practitioner was just linked, redirect to dashboard
+                    if (practitionerId && userData.role === 'client') {
+                        window.location.href = '/user-dashboard.html';
+                    }
+                }
+            }, (error) => {
+                console.error('Error setting up practitionerId listener:', error);
+            });
+        }
+        
+        // Setup onboarding handlers
+        function setupOnboardingHandlers() {
+            // Check for invite link parameters and pre-fill form
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                const codeInput = document.getElementById('onboarding-invite-code');
+                if (codeInput) {
+                    codeInput.value = code;
+                }
+            }
+            
+            // Invite verification handler
+            const inviteBtn = document.getElementById('onboarding-invite-verify-btn');
+            const inviteMobileInput = document.getElementById('onboarding-invite-mobile');
+            const inviteCodeInput = document.getElementById('onboarding-invite-code');
+            const inviteFeedback = document.getElementById('onboarding-invite-feedback');
+            
+            if (inviteBtn && inviteMobileInput && inviteCodeInput) {
+                inviteBtn.addEventListener('click', async () => {
+                    // Check auth before submitting
+                    if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                        inviteFeedback.innerHTML = '<div class="alert alert-error">Please log in first. Redirecting to login page...</div>';
+                        setTimeout(() => {
+                            window.location.href = '/login.html';
+                        }, 2000);
+                        return;
+                    }
+                    
+                    const mobile = inviteMobileInput.value.trim();
+                    const code = inviteCodeInput.value.trim();
+                    
+                    if (!mobile || !code) {
+                        inviteFeedback.innerHTML = '<div class="alert alert-error">Mobile number and code are required</div>';
+                        return;
+                    }
+                    
+                    if (!window.CTClientLinking) {
+                        inviteFeedback.innerHTML = '<div class="alert alert-error">Client linking module not loaded</div>';
+                        return;
+                    }
+                    
+                    try {
+                        inviteBtn.disabled = true;
+                        inviteBtn.textContent = 'Verifying...';
+                        inviteFeedback.innerHTML = '';
+                        
+                        await window.CTClientLinking.verifyClientInvite(mobile, code);
+                        
+                        inviteFeedback.innerHTML = '<div class="alert alert-success">You are now connected to your practitioner. Redirecting to your dashboard…</div>';
+                        
+                        // Redirect to dashboard after successful verification
+                        setTimeout(() => {
+                            window.location.href = '/user-dashboard.html';
+                        }, 1500);
+                    } catch (err) {
+                        inviteFeedback.innerHTML = `<div class="alert alert-error">${err.message || 'Could not verify invite. Please check your details.'}</div>`;
+                        inviteBtn.disabled = false;
+                        inviteBtn.textContent = 'Connect';
+                    }
+                });
+            }
+            
+            // Questionnaire handler
+            const questionnaireBtn = document.getElementById('onboarding-questionnaire-submit-btn');
+            const questionnaireFeedback = document.getElementById('onboarding-questionnaire-feedback');
+            const questionnaireMessage = document.getElementById('onboarding-questionnaire-message');
+            
+            if (questionnaireBtn) {
+                questionnaireBtn.addEventListener('click', async () => {
+                    // Check auth before submitting
+                    if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                        questionnaireFeedback.innerHTML = '<div class="alert alert-error">Please log in first. Redirecting to login page...</div>';
+                        setTimeout(() => {
+                            window.location.href = '/login.html';
+                        }, 2000);
+                        return;
+                    }
+                    
+                    questionnaireFeedback.innerHTML = '';
+                    
+                    if (!window.CTClientLinking) {
+                        questionnaireFeedback.innerHTML = '<div class="alert alert-error">Client linking module not loaded</div>';
+                        return;
+                    }
+                    
+                    const needCheckboxes = document.querySelectorAll('#onboarding-questionnaire-section input[type="checkbox"][data-need-tag]');
+                    const needs = Array.from(needCheckboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.getAttribute('data-need-tag'))
+                        .filter(tag => tag); // Filter out any null/empty values
+                    
+                    if (needs.length === 0) {
+                        questionnaireFeedback.innerHTML = '<div class="alert alert-error">Please select at least one option</div>';
+                        return;
+                    }
+                    
+                    const message = questionnaireMessage ? questionnaireMessage.value.trim() : '';
+                    
+                    try {
+                        questionnaireBtn.disabled = true;
+                        questionnaireBtn.textContent = 'Sending...';
+                        
+                        await window.CTClientLinking.createClientRequest(needs, message);
+                        
+                        questionnaireFeedback.innerHTML = '<div class="alert alert-success">Request sent successfully! A practitioner will review and accept your request. You will be redirected to your dashboard once connected.</div>';
+                        questionnaireBtn.disabled = false;
+                        questionnaireBtn.textContent = 'Send Request';
+                        
+                        // Optionally redirect after a delay, or wait for practitioner to accept
+                        // For now, we'll let them know to wait
+                    } catch (err) {
+                        questionnaireFeedback.innerHTML = `<div class="alert alert-error">${err.message || 'Could not send request. Please try again.'}</div>`;
+                        questionnaireBtn.disabled = false;
+                        questionnaireBtn.textContent = 'Send Request';
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+

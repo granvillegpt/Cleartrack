@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - ClearTrack</title>
+  <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
+  <link rel="stylesheet" href="/css/ct-theme.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fa;
+      color: #1f2933;
+    }
+
+    header {
+      background: #0b7285;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-left img {
+      height: 32px;
+      filter: brightness(0) invert(1);
+    }
+
+    .header-center {
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .header-right a, .header-right button {
+      color: #fff;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .header-right a:hover, .header-right button:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      margin: 0 0 0.5rem 0;
+      color: #0b7285;
+    }
+
+    .page-header p {
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0b7285;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    .filters {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filters select, .filters input {
+      padding: 0.5rem;
+      border: 1px solid #cbd2e1;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .applications-list {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .application-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1.5rem;
+      transition: background 0.2s;
+    }
+
+    .application-item:hover {
+      background: #f9fafb;
+    }
+
+    .application-item:last-child {
+      border-bottom: none;
+    }
+
+    .application-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 1rem;
+    }
+
+    .application-info h3 {
+      margin: 0 0 0.5rem 0;
+      color: #111827;
+    }
+
+    .application-meta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+
+    .application-status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .application-details {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: #6b7280;
+    }
+
+    .detail-value {
+      color: #111827;
+    }
+
+    .specializations {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .specialization-tag {
+      background: #e0f2fe;
+      color: #0b7285;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+
+    .application-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #0b7285;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #095a69;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: #6b7280;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #6b7280;
+    }
+
+    .empty-state h3 {
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
+      <span>ClearTrack</span>
+    </div>
+    <div class="header-center">
+      Admin Dashboard
+    </div>
+    <div class="header-right">
+      <span id="adminEmail"></span>
+      <button onclick="window.location.href='/login.html'">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <h1>Practitioner Applications</h1>
+      <p>Review and manage practitioner registration applications</p>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statPending">-</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statApproved">-</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statRejected">-</div>
+        <div class="stat-label">Rejected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statTotal">-</div>
+        <div class="stat-label">Total</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <label>
+        Status:
+        <select id="filterStatus">
+          <option value="all">All</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </label>
+      <label>
+        Search:
+        <input type="text" id="filterSearch" placeholder="Name, email, practice...">
+      </label>
+      <button class="btn btn-primary" onclick="loadApplications()">Refresh</button>
+    </div>
+
+    <div class="applications-list" id="applicationsList">
+      <div class="loading">Loading applications...</div>
+    </div>
+  </main>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+
+  <script src="firebase-config.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="firebase-api.js"></script>
+  <script src="dashboard-auth.js"></script>
+
+  <script>
+    let allApplications = [];
+
+    // Set admin email - dashboard-auth.js already handles authentication
+    async function initializeAdminDashboard() {
+      try {
+        // Wait for Firebase to be ready
+        if (!window.firebaseAuth || !window.firebaseDb) {
+          console.error('Firebase not initialized');
+          return false;
+        }
+
+        // Get current user
+        const user = window.firebaseAuth.currentUser;
+        if (user) {
+          document.getElementById('adminEmail').textContent = user.email;
+          return true;
+        }
+
+        // If no user yet, wait for auth state
+        return new Promise((resolve) => {
+          const unsubscribe = window.firebaseAuth.onAuthStateChanged(async (user) => {
+            unsubscribe(); // Only run once
+            if (user) {
+              document.getElementById('adminEmail').textContent = user.email;
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Error initializing admin dashboard:', error);
+        return false;
+      }
+    }
+
+    function showAlert(message, type) {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = `alert alert-${type} show`;
+      setTimeout(() => {
+        alert.classList.remove('show');
+      }, 5000);
+    }
+
+    async function loadApplications() {
+      try {
+        const listEl = document.getElementById('applicationsList');
+        listEl.innerHTML = '<div class="loading">Loading applications...</div>';
+
+        // Load from Firestore
+        const snapshot = await window.firebaseDb.collection('practitionerApplications')
+          .orderBy('createdAt', 'desc')
+          .get();
+
+        allApplications = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          allApplications.push({
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
+          });
+        });
+
+        updateStats();
+        renderApplications();
+      } catch (error) {
+        console.error('Error loading applications:', error);
+        document.getElementById('applicationsList').innerHTML = 
+          '<div class="empty-state"><h3>Error</h3><p>Failed to load applications. Please refresh.</p></div>';
+      }
+    }
+
+    function updateStats() {
+      const pending = allApplications.filter(a => a.status === 'pending').length;
+      const approved = allApplications.filter(a => a.status === 'approved').length;
+      const rejected = allApplications.filter(a => a.status === 'rejected').length;
+
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statApproved').textContent = approved;
+      document.getElementById('statRejected').textContent = rejected;
+      document.getElementById('statTotal').textContent = allApplications.length;
+    }
+
+    function renderApplications() {
+      const statusFilter = document.getElementById('filterStatus').value;
+      const searchFilter = document.getElementById('filterSearch').value.toLowerCase();
+
+      let filtered = allApplications;
+
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(a => a.status === statusFilter);
+      }
+
+      if (searchFilter) {
+        filtered = filtered.filter(a => 
+          a.firstName?.toLowerCase().includes(searchFilter) ||
+          a.lastName?.toLowerCase().includes(searchFilter) ||
+          a.email?.toLowerCase().includes(searchFilter) ||
+          a.practiceName?.toLowerCase().includes(searchFilter)
+        );
+      }
+
+      const listEl = document.getElementById('applicationsList');
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="empty-state"><h3>No applications found</h3><p>No applications match your filters.</p></div>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(app => `
+        <div class="application-item">
+          <div class="application-header">
+            <div class="application-info">
+              <h3>${app.firstName} ${app.lastName}</h3>
+              <div class="application-meta">
+                <span>${app.email}</span>
+                <span>${app.practiceName}</span>
+                <span>${app.createdAt.toLocaleDateString()}</span>
+              </div>
+            </div>
+            <span class="application-status status-${app.status}">${app.status}</span>
+          </div>
+          <div class="application-details">
+            <div class="detail-row">
+              <span class="detail-label">Phone:</span>
+              <span class="detail-value">${app.phone || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Practice Number:</span>
+              <span class="detail-value">${app.practiceNumber || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">SARS Number:</span>
+              <span class="detail-value">${app.sarsNumber || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Experience:</span>
+              <span class="detail-value">${app.yearsExperience} years</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Qualifications:</span>
+              <span class="detail-value">${app.qualifications || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Specializations:</span>
+              <div class="detail-value">
+                <div class="specializations">
+                  ${(app.specializations || []).map(s => `<span class="specialization-tag">${s}</span>`).join('')}
+                </div>
+              </div>
+            </div>
+            ${app.bio ? `
+            <div class="detail-row">
+              <span class="detail-label">Bio:</span>
+              <span class="detail-value">${app.bio}</span>
+            </div>
+            ` : ''}
+            ${app.message ? `
+            <div class="detail-row">
+              <span class="detail-label">Message:</span>
+              <span class="detail-value">${app.message}</span>
+            </div>
+            ` : ''}
+          </div>
+          ${app.status === 'pending' ? `
+          <div class="application-actions">
+            <button class="btn btn-primary" onclick="approveApplication('${app.id}')">Approve</button>
+            <button class="btn btn-danger" onclick="rejectApplication('${app.id}')">Reject</button>
+          </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function approveApplication(applicationId) {
+      if (!confirm('Are you sure you want to approve this application? A registration link will be sent to the applicant.')) {
+        return;
+      }
+
+      try {
+        const functions = firebase.functions();
+        const approveApp = functions.httpsCallable('approvePractitionerApplication');
+
+        const result = await approveApp({ applicationId });
+
+        showAlert('Application approved! Registration link has been sent to the applicant.', 'success');
+        await loadApplications();
+      } catch (error) {
+        console.error('Error approving application:', error);
+        showAlert(error.message || 'Failed to approve application. Please try again.', 'error');
+      }
+    }
+
+    async function rejectApplication(applicationId) {
+      if (!confirm('Are you sure you want to reject this application?')) {
+        return;
+      }
+
+      try {
+        const appRef = window.firebaseDb.collection('practitionerApplications').doc(applicationId);
+        await appRef.update({
+          status: 'rejected',
+          updatedAt: firebase.firestore.Timestamp.now()
+        });
+
+        showAlert('Application rejected.', 'success');
+        await loadApplications();
+      } catch (error) {
+        console.error('Error rejecting application:', error);
+        showAlert('Failed to reject application. Please try again.', 'error');
+      }
+    }
+
+    // Setup filters
+    document.getElementById('filterStatus').addEventListener('change', renderApplications);
+    document.getElementById('filterSearch').addEventListener('input', renderApplications);
+
+    // Initialize - dashboard-auth.js handles authentication, we just need to set email and load data
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Wait for auth to be ready (dashboard-auth.js will handle redirects)
+      const initSuccess = await initializeAdminDashboard();
+      if (initSuccess) {
+        await loadApplications();
+      }
+    });
+  </script>
+</body>
+</html>
+

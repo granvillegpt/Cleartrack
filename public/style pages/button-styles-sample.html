@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Button Style Samples - ClearTrack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5f3f7;
+      padding: 2rem;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #0b7285;
+      margin-bottom: 3rem;
+    }
+    
+    .sample-section {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .sample-title {
+      font-size: 1.2rem;
+      color: #334e68;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    
+    .sample-description {
+      color: #6b7785;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    /* Style 1: Current - Underline */
+    .style1 .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .style1 .tab {
+      flex: 1;
+      padding: 0.75rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #6b7280;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: -2px;
+    }
+    
+    .style1 .tab:hover {
+      color: #0b7285;
+    }
+    
+    .style1 .tab.active {
+      color: #0b7285;
+      border-bottom-color: #0b7285;
+    }
+    
+    /* Style 2: Pill/Rounded Buttons */
+    .style2 .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      background: #f1f5f9;
+      padding: 0.25rem;
+      border-radius: 999px;
+    }
+    
+    .style2 .tab {
+      flex: 1;
+      padding: 0.75rem;
+      background: transparent;
+      border: none;
+      border-radius: 999px;
+      color: #6b7280;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .style2 .tab:hover {
+      color: #0b7285;
+    }
+    
+    .style2 .tab.active {
+      color: #ffffff;
+      background: #0b7285;
+    }
+    
+    /* Style 3: Filled Buttons */
+    .style3 .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .style3 .tab {
+      flex: 1;
+      padding: 0.75rem;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 8px;
+      color: #6b7280;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .style3 .tab:hover {
+      background: #e2e8f0;
+      color: #0b7285;
+    }
+    
+    .style3 .tab.active {
+      background: #0b7285;
+      color: #ffffff;
+    }
+    
+    /* Style 4: Outlined Buttons */
+    .style4 .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .style4 .tab {
+      flex: 1;
+      padding: 0.75rem;
+      background: transparent;
+      border: 2px solid #cbd2e1;
+      border-radius: 8px;
+      color: #6b7280;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .style4 .tab:hover {
+      border-color: #0b7285;
+      color: #0b7285;
+    }
+    
+    .style4 .tab.active {
+      border-color: #0b7285;
+      background: #0b7285;
+      color: #ffffff;
+    }
+    
+    /* Style 5: Minimal with Top Border */
+    .style5 .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .style5 .tab {
+      flex: 1;
+      padding: 0.75rem;
+      background: none;
+      border: none;
+      border-top: 3px solid transparent;
+      color: #6b7280;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: -1px;
+    }
+    
+    .style5 .tab:hover {
+      color: #0b7285;
+      border-top-color: #cbd2e1;
+    }
+    
+    .style5 .tab.active {
+      color: #0b7285;
+      border-top-color: #0b7285;
+      background: #f0f9fa;
+    }
+    
+    /* Style 6: Shadow/3D Effect */
+    .style6 .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .style6 .tab {
+      flex: 1;
+      padding: 0.75rem;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      color: #6b7280;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .style6 .tab:hover {
+      border-color: #0b7285;
+      color: #0b7285;
+      box-shadow: 0 2px 4px rgba(11, 114, 133, 0.1);
+    }
+    
+    .style6 .tab.active {
+      background: #0b7285;
+      color: #ffffff;
+      border-color: #0b7285;
+      box-shadow: 0 4px 8px rgba(11, 114, 133, 0.2);
+    }
+    
+    /* Style 7: Gradient Style */
+    .style7 .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      padding: 0.25rem;
+      border-radius: 12px;
+    }
+    
+    .style7 .tab {
+      flex: 1;
+      padding: 0.75rem;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: #6b7280;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .style7 .tab:hover {
+      color: #0b7285;
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    .style7 .tab.active {
+      background: linear-gradient(135deg, #0b7285 0%, #095a69 100%);
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(11, 114, 133, 0.3);
+    }
+    
+    /* Style 8: Simple Text with Indicator */
+    .style8 .tabs {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+    
+    .style8 .tab {
+      flex: 0 1 auto;
+      padding: 0.5rem 0;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #6b7280;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      margin-bottom: -0.5rem;
+    }
+    
+    .style8 .tab:hover {
+      color: #0b7285;
+    }
+    
+    .style8 .tab.active {
+      color: #0b7285;
+      border-bottom-color: #0b7285;
+    }
+    
+    .style8 .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #0b7285;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Button Style Samples</h1>
+    <p style="text-align: center; color: #6b7785; margin-bottom: 3rem;">Click on the buttons to see the active state</p>
+    
+    <!-- Style 1: Current - Underline -->
+    <div class="sample-section style1">
+      <div class="sample-title">Style 1: Current - Underline</div>
+      <div class="sample-description">Your current style with bottom border underline</div>
+      <div class="tabs">
+        <button class="tab active">Sign In</button>
+        <button class="tab">Create Account</button>
+      </div>
+    </div>
+    
+    <!-- Style 2: Pill/Rounded Buttons -->
+    <div class="sample-section style2">
+      <div class="sample-title">Style 2: Pill/Rounded Buttons</div>
+      <div class="sample-description">Rounded pill-style buttons with background fill</div>
+      <div class="tabs">
+        <button class="tab active">Sign In</button>
+        <button class="tab">Create Account</button>
+      </div>
+    </div>
+    
+    <!-- Style 3: Filled Buttons -->
+    <div class="sample-section style3">
+      <div class="sample-title">Style 3: Filled Buttons</div>
+      <div class="sample-description">Square buttons with filled background</div>
+      <div class="tabs">
+        <button class="tab active">Sign In</button>
+        <button class="tab">Create Account</button>
+      </div>
+    </div>
+    
+    <!-- Style 4: Outlined Buttons -->
+    <div class="sample-section style4">
+      <div class="sample-title">Style 4: Outlined Buttons</div>
+      <div class="sample-description">Buttons with border outline that fills when active</div>
+      <div class="tabs">
+        <button class="tab active">Sign In</button>
+        <button class="tab">Create Account</button>
+      </div>
+    </div>
+    
+    <!-- Style 5: Minimal with Top Border -->
+    <div class="sample-section style5">
+      <div class="sample-title">Style 5: Minimal with Top Border</div>
+      <div class="sample-description">Clean style with top border indicator and subtle background</div>
+      <div class="tabs">
+        <button class="tab active">Sign In</button>
+        <button class="tab">Create Account</button>
+      </div>
+    </div>
+    
+    <!-- Style 6: Shadow/3D Effect -->
+    <div class="sample-section style6">
+      <div class="sample-title">Style 6: Shadow/3D Effect</div>
+      <div class="sample-description">Buttons with shadow effects for depth</div>
+      <div class="tabs">
+        <button class="tab active">Sign In</button>
+        <button class="tab">Create Account</button>
+      </div>
+    </div>
+    
+    <!-- Style 7: Gradient Style -->
+    <div class="sample-section style7">
+      <div class="sample-title">Style 7: Gradient Style</div>
+      <div class="sample-description">Gradient background container with gradient active button</div>
+      <div class="tabs">
+        <button class="tab active">Sign In</button>
+        <button class="tab">Create Account</button>
+      </div>
+    </div>
+    
+    <!-- Style 8: Simple Text with Indicator -->
+    <div class="sample-section style8">
+      <div class="sample-title">Style 8: Simple Text with Indicator</div>
+      <div class="sample-description">Minimal text-only style with bottom border indicator</div>
+      <div class="tabs">
+        <button class="tab active">Sign In</button>
+        <button class="tab">Create Account</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Add interactivity to all tabs
+    document.querySelectorAll('.tabs').forEach(tabsContainer => {
+      const tabs = tabsContainer.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+

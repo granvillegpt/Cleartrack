@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Firebase Email Template Setup Guide - ClearTrack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5f3f7;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #0b7285;
+      margin-bottom: 0.5rem;
+    }
+    
+    .section {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .section-title {
+      font-size: 1.3rem;
+      color: #0b7285;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      border-bottom: 2px solid #0b7285;
+      padding-bottom: 0.5rem;
+    }
+    
+    .step-number {
+      display: inline-block;
+      background: #0b7285;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .code-block {
+      background: #1f2933;
+      color: #e5e7eb;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      margin: 1rem 0;
+      border: 2px solid #0b7285;
+    }
+    
+    .copy-button {
+      background: #0b7285;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    
+    .copy-button:hover {
+      background: #095a69;
+    }
+    
+    .note {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+    
+    .note strong {
+      color: #92400e;
+    }
+    
+    .success-box {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+    
+    .warning-box {
+      background: #fee2e2;
+      border-left: 4px solid #ef4444;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+    
+    ol {
+      padding-left: 1.5rem;
+    }
+    
+    li {
+      margin: 0.75rem 0;
+    }
+    
+    .highlight {
+      background: #fef3c7;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Firebase Email Template Setup Guide</h1>
+    <p style="color: #6b7785; margin-bottom: 2rem; font-size: 1.1rem;">Follow these steps to configure your password reset email in Firebase Console</p>
+    
+    <!-- Step 1: Access Firebase Console -->
+    <div class="section">
+      <div class="section-title">
+        <span class="step-number">1</span>
+        Access Firebase Console
+      </div>
+      <ol>
+        <li>Go to <a href="https://console.firebase.google.com" target="_blank" style="color: #0b7285;">https://console.firebase.google.com</a></li>
+        <li>Select your <strong>ClearTrack</strong> project</li>
+        <li>In the left sidebar, click <strong>"Authentication"</strong></li>
+        <li>Click on the <strong>"Templates"</strong> tab at the top</li>
+        <li>Find and click on <strong>"Password reset"</strong> email template</li>
+      </ol>
+    </div>
+    
+    <!-- Step 2: Set Action URL -->
+    <div class="section">
+      <div class="section-title">
+        <span class="step-number">2</span>
+        Set the Action URL (Most Important!)
+      </div>
+      
+      <p>Find the <strong>"Action URL"</strong> field and paste this exact URL:</p>
+      
+      <div class="code-block" id="actionUrl">https://app.cleartrack.co.za/reset-password.html</div>
+      <button class="copy-button" onclick="copyToClipboard('actionUrl')">Copy Action URL</button>
+      
+      <div class="warning-box">
+        <strong>⚠️ Important:</strong> Do NOT include <code>?mode=resetPassword&oobCode=%LINK%</code> in the Action URL. Firebase automatically adds these parameters when it creates the reset link. Just use the base URL of your reset password page.
+      </div>
+      
+      <div class="success-box">
+        <strong>✓ How it works:</strong> When Firebase sends the email, it will automatically append the parameters, so the actual link in the email will be:<br>
+        <code style="font-size: 0.9rem; margin-top: 0.5rem; display: block;">https://app.cleartrack.co.za/reset-password.html?mode=resetPassword&oobCode=ACTUAL_TOKEN</code>
+      </div>
+      
+      <div class="note">
+        <strong>For Local Testing Only:</strong> If you're testing on your local machine, use this URL instead (but don't put this in Firebase Console for production):
+        <div class="code-block" style="margin-top: 0.5rem; font-size: 0.85rem;">http://localhost:PORT/reset-password.html</div>
+        Replace <code>PORT</code> with your local server port number (e.g., 3000, 8080, etc.)
+      </div>
+    </div>
+    
+    <!-- Step 3: Email Subject -->
+    <div class="section">
+      <div class="section-title">
+        <span class="step-number">3</span>
+        Set Email Subject Line
+      </div>
+      
+      <p>Find the <strong>"Subject"</strong> field and enter:</p>
+      
+      <div class="code-block" id="subject">Reset your ClearTrack password</div>
+      <button class="copy-button" onclick="copyToClipboard('subject')">Copy Subject</button>
+      
+      <p style="margin-top: 1.5rem;"><strong>Alternative subject lines (choose one):</strong></p>
+      <ul>
+        <li><code>Reset your password for ClearTrack</code></li>
+        <li><code>ClearTrack - Password Reset Request</code></li>
+        <li><code>Reset your ClearTrack account password</code></li>
+      </ul>
+    </div>
+    
+    <!-- Step 4: Email Body -->
+    <div class="section">
+      <div class="section-title">
+        <span class="step-number">4</span>
+        Set Email Body Content
+      </div>
+      
+      <p>Find the <strong>"Message body"</strong> or <strong>"Email body"</strong> field and paste this content:</p>
+      
+      <div class="code-block" id="emailBody">You requested to reset your password for your ClearTrack account.
+
+Click the button below to reset your password:
+
+%LINK%
+
+If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.
+
+This link will expire in 1 hour for security reasons.
+
+Need help? Contact us at support@cleartrack.co.za
+
+---
+ClearTrack
+SARS-compliant travel logbook & tax companion</div>
+      <button class="copy-button" onclick="copyToClipboard('emailBody')">Copy Email Body</button>
+      
+      <div class="warning-box" style="margin-top: 1rem;">
+        <strong>⚠️ Important:</strong> The <span class="highlight">%LINK%</span> placeholder in the email body is required! Firebase will automatically replace it with a clickable button/link that points to your reset-password.html page. Do NOT remove or modify it.
+      </div>
+      
+      <div class="note" style="margin-top: 1rem;">
+        <strong>Alternative Email Body (More Detailed):</strong> If you prefer a more detailed version, you can use this instead:
+        <div class="code-block" id="emailBodyAlt" style="margin-top: 0.5rem; font-size: 0.9rem;">Hello,
+
+You recently requested to reset your password for your ClearTrack account.
+
+To reset your password, click the link below:
+
+%LINK%
+
+This link will expire in 1 hour. If you didn't request a password reset, please ignore this email and your password will remain unchanged.
+
+For security reasons, if you didn't make this request, we recommend checking your account settings.
+
+If you have any questions or need assistance, please contact our support team.
+
+Best regards,
+The ClearTrack Team
+
+---
+ClearTrack
+Built by JellyBean Accounting (South Africa)
+SARS-compliant travel logbook & tax companion</div>
+        <button class="copy-button" onclick="copyToClipboard('emailBodyAlt')">Copy Alternative Email Body</button>
+      </div>
+    </div>
+    
+    <!-- Step 5: Save -->
+    <div class="section">
+      <div class="section-title">
+        <span class="step-number">5</span>
+        Save Your Changes
+      </div>
+      
+      <ol>
+        <li>Review all your settings:
+          <ul>
+            <li>✅ Action URL is set correctly</li>
+            <li>✅ Subject line is entered</li>
+            <li>✅ Email body contains <code>%LINK%</code> placeholder</li>
+          </ul>
+        </li>
+        <li>Click the <strong>"Save"</strong> or <strong>"Update"</strong> button at the bottom of the page</li>
+        <li>Wait for the confirmation message that your changes have been saved</li>
+      </ol>
+    </div>
+    
+    <!-- Step 6: Test -->
+    <div class="section">
+      <div class="section-title">
+        <span class="step-number">6</span>
+        Test Your Email Template
+      </div>
+      
+      <ol>
+        <li>Go to your login page: <code>https://app.cleartrack.co.za/login.html</code></li>
+        <li>Click the <strong>"Forgot password?"</strong> link</li>
+        <li>Enter your email address</li>
+        <li>Click the button to send the reset email</li>
+        <li>Check your email inbox (and spam folder if needed)</li>
+        <li>Open the password reset email</li>
+        <li>Click the reset link in the email</li>
+        <li>Verify that it takes you to: <code>https://app.cleartrack.co.za/reset-password.html</code></li>
+        <li>Test resetting your password</li>
+      </ol>
+      
+      <div class="success-box" style="margin-top: 1rem;">
+        <strong>✓ Success Checklist:</strong>
+        <ul style="margin-top: 0.5rem;">
+          <li>Email is received</li>
+          <li>Email contains the reset link</li>
+          <li>Clicking the link opens your custom reset-password.html page</li>
+          <li>Password reset form is visible and working</li>
+          <li>After resetting, success message appears</li>
+          <li>User is redirected to login page</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Troubleshooting -->
+    <div class="section">
+      <div class="section-title">Troubleshooting</div>
+      
+      <p><strong>Email not received?</strong></p>
+      <ul>
+        <li>Check your spam/junk folder</li>
+        <li>Wait a few minutes - emails can take 1-2 minutes to arrive</li>
+        <li>Verify the email address is correct</li>
+        <li>Check Firebase Console for any error messages</li>
+      </ul>
+      
+      <p style="margin-top: 1rem;"><strong>Link doesn't work?</strong></p>
+      <ul>
+        <li>Verify the Action URL in Firebase Console is: <code>https://app.cleartrack.co.za/reset-password.html</code> (without query parameters - Firebase adds them automatically)</li>
+        <li>Make sure your reset-password.html file is deployed to your server</li>
+        <li>Check that the URL parameters are correct (mode and oobCode)</li>
+      </ul>
+      
+      <p style="margin-top: 1rem;"><strong>Reset page shows error?</strong></p>
+      <ul>
+        <li>The link may have expired (links expire after 1 hour)</li>
+        <li>The link may have already been used</li>
+        <li>Request a new password reset email</li>
+      </ul>
+    </div>
+    
+    <!-- Quick Reference -->
+    <div class="section">
+      <div class="section-title">Quick Reference - Copy These Values</div>
+      
+      <p><strong>Action URL:</strong></p>
+      <div class="code-block" style="font-size: 0.9rem;">https://app.cleartrack.co.za/reset-password.html</div>
+      
+      <p style="margin-top: 1rem;"><strong>Subject:</strong></p>
+      <div class="code-block" style="font-size: 0.9rem;">Reset your ClearTrack password</div>
+      
+      <p style="margin-top: 1rem;"><strong>Email Body (with %LINK% placeholder):</strong></p>
+      <div class="code-block" style="font-size: 0.85rem; max-height: 200px; overflow-y: auto;">You requested to reset your password for your ClearTrack account.
+
+Click the button below to reset your password:
+
+%LINK%
+
+If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.
+
+This link will expire in 1 hour for security reasons.
+
+Need help? Contact us at support@cleartrack.co.za
+
+---
+ClearTrack
+SARS-compliant travel logbook & tax companion</div>
+    </div>
+    
+  </div>
+  
+  <script>
+    function copyToClipboard(elementId) {
+      const element = document.getElementById(elementId);
+      const text = element.textContent;
+      
+      navigator.clipboard.writeText(text).then(function() {
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = '✓ Copied!';
+        button.style.background = '#10b981';
+        
+        setTimeout(function() {
+          button.textContent = originalText;
+          button.style.background = '#0b7285';
+        }, 2000);
+      }).catch(function(err) {
+        alert('Failed to copy. Please select and copy manually.');
+      });
+    }
+  </script>
+</body>
+</html>
