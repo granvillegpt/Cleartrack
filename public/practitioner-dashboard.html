@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="global-styles.css">
     <link rel="stylesheet" href="whatsapp-messaging.css">
     <link rel="stylesheet" href="responsive-fixes.css">
-    <link rel="stylesheet" href="/css/ct-theme.css" />
+    <link rel="stylesheet" href="css/ct-theme.css" />
     <style>
         * {
             margin: 0;
@@ -30,6 +30,9 @@
             color: #333;
         }
         
+        /* ============================================
+           HEADER CONTAINER
+           ============================================ */
         .header {
             background: #0b7285;
             color: #fff;
@@ -39,8 +42,14 @@
             z-index: 100;
             width: 100%;
             box-sizing: border-box;
+            display: block;
+            visibility: visible;
+            opacity: 1;
         }
         
+        /* ============================================
+           HEADER TOP SECTION
+           ============================================ */
         .header-top {
             display: flex;
             justify-content: space-between;
@@ -51,7 +60,18 @@
             box-sizing: border-box;
         }
         
-        .logo {
+        /* ============================================
+           LOGOUT BUTTON - DESKTOP POSITIONING
+           ============================================ */
+        #desktopLogoutBtn {
+            display: block;
+            margin-left: auto;
+        }
+        
+        /* ============================================
+           LOGO
+           ============================================ */
+        .header .logo {
             display: flex;
             align-items: center;
             position: absolute;
@@ -59,16 +79,21 @@
             transform: translateX(-50%);
         }
         
-        .logo img {
+        .header .logo img {
             height: 48px;
             width: auto;
             filter: brightness(0) invert(1);
+            display: block;
         }
         
+        /* ============================================
+           NAVIGATION
+           ============================================ */
         .nav {
             display: flex;
             gap: 2rem;
             align-items: center;
+            justify-content: center;
             padding: 1rem 2rem;
             background: rgba(255, 255, 255, 0.2);
             border-top: 1px solid rgba(255, 255, 255, 0.3);
@@ -106,6 +131,247 @@
             color: #ffffff;
         }
         
+        /* ============================================
+           MENU TOGGLE BUTTON (Style 6)
+           ============================================ */
+        .menu-toggle-style6 {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #e0fbff;
+            cursor: pointer;
+            font-size: 1.3rem;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            transition: transform 0.3s ease;
+            padding: 0;
+        }
+        
+        .menu-toggle-style6:hover {
+            transform: scale(1.1);
+        }
+        
+        .menu-toggle-style6.active {
+            transform: rotate(90deg);
+        }
+        
+        /* ============================================
+           MOBILE NAVIGATION (nav-style6)
+           ============================================ */
+        .nav-style6 {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* ============================================
+           DESKTOP STYLES (min-width: 769px)
+           ============================================ */
+        @media (min-width: 769px) {
+            /* Hide mobile menu toggle on desktop */
+            .menu-toggle-style6 {
+                display: none;
+                visibility: hidden;
+                opacity: 0;
+                pointer-events: none;
+            }
+            
+            /* Desktop navigation */
+            .nav-style6 {
+                display: flex;
+                position: static;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 0;
+                box-shadow: none;
+                flex-direction: row;
+            }
+            
+            .nav-style6 a {
+                color: #e0fbff;
+                padding: 0.5rem 0;
+                width: auto;
+                display: inline-block;
+            }
+        }
+        
+        /* ============================================
+           MOBILE STYLES (max-width: 768px)
+           ============================================ */
+        @media (max-width: 768px) {
+            .header-top {
+                padding: 0.875rem 1rem;
+                width: 100%;
+                max-width: 100vw;
+                box-sizing: border-box;
+                min-height: 56px;
+            }
+            
+            /* Mobile menu toggle */
+            .header .menu-toggle-style6 {
+                display: flex;
+                flex-shrink: 0;
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
+                order: 1;
+                z-index: 2;
+                position: relative;
+                left: auto;
+            }
+            
+            .nav-style6 {
+                display: none;
+                position: absolute;
+                top: calc(100% + 0.5rem);
+                right: 1rem;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+                min-width: 220px;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease, opacity 0.3s ease;
+                opacity: 0;
+                z-index: 1000;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 0;
+                margin: 0;
+                border-top: none;
+            }
+            
+            .nav-style6.active {
+                display: flex;
+                max-height: 400px;
+                opacity: 1;
+            }
+            
+            .nav-style6 a {
+                width: 100%;
+                color: #1f2933;
+                padding: 0.75rem 1.25rem;
+                font-size: 0.95rem;
+                display: block;
+                transition: all 0.2s;
+                text-decoration: none;
+                border-bottom: none;
+            }
+            
+            .nav-style6 a:hover {
+                background: #f5f7fa;
+                color: #0b7285;
+                padding-left: 1.5rem;
+            }
+            
+            .nav-style6 a:first-child {
+                border-radius: 12px 12px 0 0;
+            }
+            
+            .nav-style6 a:last-child {
+                border-radius: 0 0 12px 12px;
+            }
+            
+            /* Center logo on mobile */
+            .header .logo {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: auto;
+                max-width: 140px;
+                z-index: 1;
+                pointer-events: auto;
+            }
+            
+            .header .logo img {
+                height: 32px;
+                max-width: 120px;
+                width: auto;
+                object-fit: contain;
+                display: block;
+            }
+            
+            /* Hide desktop navigation */
+            .nav {
+                display: none;
+            }
+            
+            /* Hide desktop logout button on mobile (handled by JavaScript) */
+            #desktopLogoutBtn {
+                display: none;
+            }
+        }
+        
+        /* ============================================
+           SMALL MOBILE STYLES (max-width: 480px)
+           ============================================ */
+        @media (max-width: 480px) {
+            /* Header top - same padding as 768px breakpoint */
+            .header-top {
+                padding: 0.875rem 1rem;
+            }
+            
+            /* Mobile menu toggle */
+            .header .menu-toggle-style6 {
+                display: flex;
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
+                color: #e0fbff;
+            }
+            
+            /* Adjust dropdown position */
+            .nav-style6.active {
+                right: 0.75rem;
+                min-width: 200px;
+            }
+            
+            .nav-style6 a {
+                font-size: 0.9rem;
+                padding: 0.625rem 1rem;
+            }
+            
+            /* Logo - same as 768px breakpoint */
+            .header .logo {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: auto;
+                max-width: 140px;
+                z-index: 1;
+                pointer-events: auto;
+            }
+            
+            .header .logo img {
+                height: 32px;
+                max-width: 120px;
+                width: auto;
+                object-fit: contain;
+                display: block;
+            }
+            
+            /* Hide desktop logout button on mobile */
+            #desktopLogoutBtn {
+                display: none;
+            }
+        }
+        
         .user-menu {
             display: flex;
             align-items: center;
@@ -129,29 +395,17 @@
         
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            position: relative;
         }
         
         .stat-card {
-            background: white;
+            background: #fff;
             border-radius: 8px;
             padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-left: 4px solid #0b7285;
-        }
-        
-        .stat-card.success {
-            border-left-color: #059669;
-        }
-        
-        .stat-card.warning {
-            border-left-color: #d97706;
-        }
-        
-        .stat-card.danger {
-            border-left-color: #dc2626;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         /* Clickable Tile Styles */
@@ -186,14 +440,13 @@
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #111827;
+            color: #0b7285;
             margin-bottom: 0.25rem;
         }
         
         .stat-label {
             color: #6b7280;
-            font-size: 0.875rem;
-            font-weight: 500;
+            font-size: 0.85rem;
         }
         
         .card {
@@ -220,18 +473,19 @@
         }
         
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.5rem;
+            padding: 0.5rem 1rem;
             border: none;
             border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
             cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
             transition: all 0.2s;
-            text-decoration: none;
-            gap: 0.5rem;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+            z-index: 10;
         }
         
         .btn-primary {
@@ -261,13 +515,13 @@
             background: #047857;
         }
         
-        .btn-outline {
+        .btn-outline:not(#desktopLogoutBtn) {
             background: transparent;
             border: 1px solid #d1d5db;
             color: #374151;
         }
         
-        .btn-outline:hover {
+        .btn-outline:not(#desktopLogoutBtn):hover {
             background: #f9fafb;
         }
         
@@ -827,21 +1081,41 @@
             .dashboard-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .stat-card {
+                padding: 0.75rem;
+                border-radius: 8px;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .stat-label {
+                font-size: 0.8rem;
+                font-weight: 500;
             }
         }
         
         @media (max-width: 480px) {
             .dashboard-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 0.75rem !important;
+                grid-template-columns: 1fr;
+                gap: 0.625rem;
             }
             
             .stat-card {
-                padding: 0.75rem !important;
+                padding: 0.625rem;
             }
             
             .stat-value {
-                font-size: 1.375rem !important;
+                font-size: 1.25rem;
+            }
+            
+            .stat-label {
+                font-size: 0.75rem;
             }
             
             /* Quick Actions buttons - REBUILT: side-by-side on mobile */
@@ -1829,19 +2103,13 @@
     <div class="app">
         <header class="header">
             <div class="header-top">
-                <button class="mobile-menu-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" style="color: #fff; background: none; border: none; cursor: pointer; padding: 8px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
+                <button class="menu-toggle-style6" id="menuToggle" onclick="toggleMenuStyle6()" aria-label="Toggle navigation menu">☰</button>
                 <div class="logo">
                     <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
                 </div>
-                <button class="btn btn-outline" data-ct-logout style="display: none; background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
+                <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
             </div>
-            <nav class="nav">
+            <nav class="nav nav-style6" id="mainNav">
                 <a href="#" class="nav-link active" onclick="handleNavClick('dashboard', event)">Dashboard</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('clients', event)">Clients</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('messages', event)">Messages</a>
@@ -1896,19 +2164,19 @@
                         <div class="tile-hint">Click to view all clients</div>
                     </div>
                     
-                    <div class="stat-card success clickable-tile" onclick="showActiveClientsModal()">
+                    <div class="stat-card clickable-tile" onclick="showActiveClientsModal()">
                         <div class="stat-value" id="activeClients">0</div>
                         <div class="stat-label">Active Clients</div>
                         <div class="tile-hint">Click to view active clients</div>
                     </div>
                     
-                    <div class="stat-card warning clickable-tile" onclick="showPendingReturnsModal()">
+                    <div class="stat-card clickable-tile" onclick="showPendingReturnsModal()">
                         <div class="stat-value" id="pendingReturns">0</div>
                         <div class="stat-label">Pending Returns</div>
                         <div class="tile-hint">Click to view pending returns</div>
                     </div>
                     
-                    <div class="stat-card danger clickable-tile" onclick="showCompletedReturnsModal()">
+                    <div class="stat-card clickable-tile" onclick="showCompletedReturnsModal()">
                         <div class="stat-value" id="completedReturns">0</div>
                         <div class="stat-label">Completed Returns</div>
                         <div class="tile-hint">Click to view completed returns</div>
@@ -6081,6 +6349,29 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         }
         
         // Mobile Navigation Functions
+        function toggleMenuStyle6() {
+            const menuToggle = document.getElementById('menuToggle');
+            const mainNav = document.getElementById('mainNav');
+            
+            if (menuToggle && mainNav) {
+                menuToggle.classList.toggle('active');
+                mainNav.classList.toggle('active');
+            }
+        }
+        
+        // Close Style 6 menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menuToggle = document.getElementById('menuToggle');
+            const mainNav = document.getElementById('mainNav');
+            
+            if (mainNav && mainNav.classList.contains('active')) {
+                if (!mainNav.contains(event.target) && !menuToggle.contains(event.target)) {
+                    menuToggle.classList.remove('active');
+                    mainNav.classList.remove('active');
+                }
+            }
+        });
+        
         function toggleMobileNav() {
             const mobileNav = document.getElementById('mobileNav');
             if (mobileNav) {
@@ -8612,17 +8903,17 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 
                 // Show/hide desktop logout button based on screen size
                 const desktopLogoutBtn = document.getElementById('desktopLogoutBtn');
-                const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+                const menuToggle = document.getElementById('menuToggle');
                 
                 function updateLogoutButtonVisibility() {
                     if (window.innerWidth > 768) {
                         // Desktop: show logout button, hide mobile menu toggle
                         if (desktopLogoutBtn) desktopLogoutBtn.style.display = 'block';
-                        if (mobileMenuToggle) mobileMenuToggle.style.display = 'none';
+                        if (menuToggle) menuToggle.style.display = 'none';
                     } else {
                         // Mobile: hide logout button, show mobile menu toggle
                         if (desktopLogoutBtn) desktopLogoutBtn.style.display = 'none';
-                        if (mobileMenuToggle) mobileMenuToggle.style.display = 'block';
+                        if (menuToggle) menuToggle.style.display = 'flex';
                     }
                 }
                 

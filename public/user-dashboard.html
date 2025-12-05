@@ -496,62 +496,23 @@
         
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            position: relative;
         }
         
         .stat-card {
-            background: white;
+            background: #fff;
             border-radius: 8px;
             padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-left: 4px solid #0b7285;
-        }
-        
-        .stat-card.success {
-            border-left-color: #059669;
-        }
-        
-        .stat-card.warning {
-            border-left-color: #d97706;
-        }
-        
-        .stat-card.danger {
-            border-left-color: #dc2626;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         @media (max-width: 768px) {
             .main {
                 padding: 1rem;
             }
-        }
-        
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-left: 4px solid #0b7285;
-        }
-        
-        .stat-card.success {
-            border-left-color: #059669;
-        }
-        
-        .stat-card.warning {
-            border-left-color: #d97706;
-        }
-        
-        .stat-card.danger {
-            border-left-color: #dc2626;
         }
         
         /* Clickable Tiles */
@@ -565,7 +526,6 @@
         .clickable-tile:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            border-left-width: 6px;
         }
         
         .clickable-tile:active {
@@ -599,14 +559,13 @@
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #111827;
+            color: #0b7285;
             margin-bottom: 0.25rem;
         }
         
         .stat-label {
             color: #6b7280;
-            font-size: 0.875rem;
-            font-weight: 500;
+            font-size: 0.85rem;
         }
         
         .card {
@@ -1337,20 +1296,20 @@
             }
             
             .dashboard-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 0.5rem !important;
+                grid-template-columns: 1fr;
+                gap: 0.625rem;
             }
             
             .stat-card {
-                padding: 0.75rem !important;
+                padding: 0.625rem;
             }
             
             .stat-value {
-                font-size: 1.25rem !important;
+                font-size: 1.25rem;
             }
             
             .stat-label {
-                font-size: 0.75rem !important;
+                font-size: 0.75rem;
             }
             
             .table {
@@ -2106,17 +2065,17 @@
                         <div class="stat-label">Documents Uploaded</div>
                     </div>
                     
-                    <div class="stat-card success clickable-tile" onclick="openVehiclesSection()">
+                    <div class="stat-card clickable-tile" onclick="openVehiclesSection()">
                         <div class="stat-value" id="vehicleCount">0</div>
                         <div class="stat-label">Vehicles Registered</div>
                     </div>
                     
-                    <div class="stat-card warning clickable-tile" onclick="openExpensesSection()">
+                    <div class="stat-card clickable-tile" onclick="openExpensesSection()">
                         <div class="stat-value" id="expenseCount">0</div>
                         <div class="stat-label">Expenses Recorded</div>
                     </div>
                     
-                    <div class="stat-card danger clickable-tile" onclick="openExpensesSection()">
+                    <div class="stat-card clickable-tile" onclick="openExpensesSection()">
                         <div class="stat-value" id="totalExpenses">R 0</div>
                         <div class="stat-label">Total Expenses</div>
                     </div>
