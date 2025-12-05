@@ -5,10 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Cleartrack - User Dashboard</title>
     <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
+    
+    <!-- PWA Features - Only on app.cleartrack.co.za -->
+    <script>
+      (function() {
+        if (window.location.hostname === 'app.cleartrack.co.za') {
+          // Use DOM manipulation instead of document.write to prevent blocking
+          const head = document.head || document.getElementsByTagName('head')[0];
+          
+          // Manifest
+          const manifest = document.createElement('link');
+          manifest.rel = 'manifest';
+          manifest.href = '/manifest.json';
+          head.appendChild(manifest);
+          
+          // Theme color
+          const themeColor = document.createElement('meta');
+          themeColor.name = 'theme-color';
+          themeColor.content = '#0b7285';
+          head.appendChild(themeColor);
+          
+          // Apple Touch Icons
+          const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+          iconSizes.forEach(size => {
+            const icon = document.createElement('link');
+            icon.rel = 'apple-touch-icon';
+            icon.sizes = size + 'x' + size;
+            icon.href = '/icons/cleartrack-' + size + '.png';
+            head.appendChild(icon);
+          });
+          
+          // PWA Meta Tags
+          const metaTags = [
+            { name: 'apple-mobile-web-app-capable', content: 'yes' },
+            { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+            { name: 'apple-mobile-web-app-title', content: 'ClearTrack' },
+            { name: 'mobile-web-app-capable', content: 'yes' }
+          ];
+          metaTags.forEach(tag => {
+            const meta = document.createElement('meta');
+            meta.name = tag.name;
+            meta.content = tag.content;
+            head.appendChild(meta);
+          });
+          
+          // iOS Splash Screens
+          const splashScreens = [
+            { media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
+            { media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
+            { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-xr.png' },
+            { media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs.png' },
+            { media: '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12.png' },
+            { media: '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro.png' },
+            { media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-8-plus.png' },
+            { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs-max.png' },
+            { media: '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12-pro-max.png' },
+            { media: '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro-max.png' },
+            { media: '(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-mini.png' },
+            { media: '(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad.png' },
+            { media: '(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-air.png' },
+            { media: '(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-11.png' },
+            { media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-12.png' }
+          ];
+          splashScreens.forEach(screen => {
+            const link = document.createElement('link');
+            link.rel = 'apple-touch-startup-image';
+            link.media = screen.media;
+            link.href = screen.href;
+            head.appendChild(link);
+          });
+        }
+      })();
+    </script>
+    
+    <!-- Service Worker Registration - Only on app.cleartrack.co.za -->
+    <script>
+      if (window.location.hostname === 'app.cleartrack.co.za') {
+        var script = document.createElement('script');
+        script.src = '/sw-register.js';
+        document.head.appendChild(script);
+      }
+    </script>
+    
+    <!-- CRITICAL: Define handleNavClick in head so it's available immediately -->
+    <script>
+      window.handleNavClick = function(sectionName, event) {
+        if (event) { 
+          event.preventDefault(); 
+          event.stopPropagation(); 
+        }
+        const clickedLink = event ? (event.target || event.currentTarget) : null;
+        if (window.showSection) { 
+          window.showSection(sectionName); 
+        } else {
+          // Fallback if showSection not loaded yet
+          document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
+          const t = document.getElementById(sectionName); 
+          if (t) t.classList.remove("hidden");
+        }
+        document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+        if (clickedLink) {
+          const link = clickedLink.closest(".nav-link") || clickedLink;
+          if (link && link.classList.contains("nav-link")) link.classList.add("active");
+        }
+        const nav = document.getElementById("mainNav");
+        const toggle = document.getElementById("menuToggle");
+        if (nav && toggle) { 
+          nav.classList.remove("active"); 
+          toggle.classList.remove("active"); 
+        }
+      };
+    </script>
+    
     <link rel="stylesheet" href="global-styles.css">
     <link rel="stylesheet" href="whatsapp-messaging.css">
     <link rel="stylesheet" href="responsive-fixes.css">
-    <link rel="stylesheet" href="/css/ct-theme.css" />
+    <link rel="stylesheet" href="css/ct-theme.css" />
     <style>
         * {
             margin: 0;
@@ -27,6 +139,9 @@
             color: #333;
         }
         
+        /* ============================================
+           HEADER CONTAINER
+           ============================================ */
         .header {
             background: #0b7285;
             color: #fff;
@@ -36,17 +151,34 @@
             z-index: 100;
             width: 100%;
             box-sizing: border-box;
+            display: block;
+            visibility: visible;
+            opacity: 1;
         }
         
+        /* ============================================
+           HEADER TOP SECTION
+           ============================================ */
         .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1.5rem 2.5rem;
             position: relative;
+            width: 100%;
+            box-sizing: border-box;
         }
         
-        .logo {
+        /* Logout Button - Desktop positioning */
+        #desktopLogoutBtn {
+            display: block;
+            margin-left: auto;
+        }
+        
+        /* ============================================
+           LOGO
+           ============================================ */
+        .header .logo {
             display: flex;
             align-items: center;
             position: absolute;
@@ -54,16 +186,21 @@
             transform: translateX(-50%);
         }
         
-        .logo img {
+        .header .logo img {
             height: 48px;
             width: auto;
             filter: brightness(0) invert(1);
+            display: block;
         }
         
+        /* ============================================
+           NAVIGATION
+           ============================================ */
         .nav {
             display: flex;
             gap: 2rem;
             align-items: center;
+            justify-content: center;
             padding: 1rem 2rem;
             background: rgba(255, 255, 255, 0.2);
             border-top: 1px solid rgba(255, 255, 255, 0.3);
@@ -101,16 +238,293 @@
             color: #ffffff;
         }
         
+        /* ============================================
+           USER MENU
+           ============================================ */
         .user-menu {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
         
+        /* ============================================
+           MOBILE MENU TOGGLE
+           ============================================ */
+        .menu-toggle-style6 {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #e0fbff;
+            cursor: pointer;
+            font-size: 1.3rem;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            transition: transform 0.3s ease;
+            padding: 0;
+        }
+        
+        .menu-toggle-style6:hover {
+            transform: scale(1.1);
+        }
+        
+        .menu-toggle-style6.active {
+            transform: rotate(90deg);
+        }
+        
+        /* ============================================
+           MOBILE NAVIGATION (nav-style6)
+           ============================================ */
+        .nav-style6 {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* ============================================
+           DESKTOP STYLES (min-width: 769px)
+           ============================================ */
+        @media (min-width: 769px) {
+            /* Hide mobile menu toggle on desktop */
+            .menu-toggle-style6 {
+                display: none;
+                visibility: hidden;
+                opacity: 0;
+                pointer-events: none;
+            }
+            
+            /* Desktop navigation */
+            .nav-style6 {
+                display: flex;
+                position: static;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 0;
+                box-shadow: none;
+                flex-direction: row;
+            }
+            
+            .nav-style6 a {
+                color: #e0fbff;
+                padding: 0.5rem 0;
+                width: auto;
+                display: inline-block;
+            }
+        }
+        
+        /* ============================================
+           MOBILE STYLES (max-width: 768px)
+           ============================================ */
+        @media (max-width: 768px) {
+            /* Header container */
+            .header {
+                display: block;
+                padding: 0;
+                width: 100%;
+                max-width: 100vw;
+                position: relative;
+            }
+            
+            /* Header top - reduced padding for mobile */
+            .header-top {
+                padding: 0.875rem 1rem;
+                width: 100%;
+                max-width: 100vw;
+                box-sizing: border-box;
+                min-height: 56px;
+            }
+            
+            /* Show mobile menu toggle */
+            .header .menu-toggle-style6 {
+                display: flex;
+                flex-shrink: 0;
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
+                order: 1;
+                z-index: 2;
+                position: relative;
+                left: auto;
+                background: transparent;
+                color: #e0fbff;
+            }
+            
+            /* Mobile dropdown navigation */
+            .nav-style6 {
+                display: none;
+                position: absolute;
+                top: calc(100% + 0.5rem);
+                right: 1rem;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+                min-width: 220px;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease, opacity 0.3s ease;
+                opacity: 0;
+                z-index: 1000;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 0;
+                margin: 0;
+                border-top: none;
+            }
+            
+            .nav-style6.active {
+                display: flex;
+                max-height: 400px;
+                opacity: 1;
+            }
+            
+            .nav-style6 a {
+                width: 100%;
+                color: #1f2933;
+                padding: 0.75rem 1.25rem;
+                font-size: 0.95rem;
+                display: block;
+                transition: all 0.2s;
+                text-decoration: none;
+                border-bottom: none;
+            }
+            
+            .nav-style6 a:hover {
+                background: #f5f7fa;
+                color: #0b7285;
+                padding-left: 1.5rem;
+            }
+            
+            .nav-style6 a:first-child {
+                border-radius: 12px 12px 0 0;
+            }
+            
+            .nav-style6 a:last-child {
+                border-radius: 0 0 12px 12px;
+            }
+            
+            /* Center logo on mobile */
+            .header .logo {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: auto;
+                max-width: 140px;
+                z-index: 1;
+                pointer-events: auto;
+            }
+            
+            .header .logo img {
+                height: 32px;
+                max-width: 120px;
+                width: auto;
+                object-fit: contain;
+                display: block;
+            }
+            
+            /* Hide desktop navigation */
+            .nav {
+                display: none;
+            }
+            
+            /* Hide desktop logout button on mobile (handled by JavaScript) */
+            #desktopLogoutBtn {
+                display: none;
+            }
+        }
+        
+        /* ============================================
+           SMALL MOBILE STYLES (max-width: 480px)
+           ============================================ */
+        @media (max-width: 480px) {
+            /* Header top - same padding as 768px breakpoint */
+            .header-top {
+                padding: 0.875rem 1rem;
+            }
+            
+            /* Mobile menu toggle */
+            .header .menu-toggle-style6 {
+                display: flex;
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
+                color: #e0fbff;
+            }
+            
+            /* Adjust dropdown position */
+            .nav-style6.active {
+                right: 0.75rem;
+                min-width: 200px;
+            }
+            
+            .nav-style6 a {
+                font-size: 0.9rem;
+                padding: 0.625rem 1rem;
+            }
+            
+            /* Logo - same as 768px breakpoint */
+            .header .logo {
+                display: flex;
+            }
+            
+            .header .logo img {
+                height: 32px;
+                max-width: 120px;
+                display: block;
+            }
+        }
+        
         .main {
             padding: 2rem;
             max-width: 1200px;
             margin: 0 auto;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #0b7285;
+        }
+        
+        .stat-card.success {
+            border-left-color: #059669;
+        }
+        
+        .stat-card.warning {
+            border-left-color: #d97706;
+        }
+        
+        .stat-card.danger {
+            border-left-color: #dc2626;
+        }
+        
+        @media (max-width: 768px) {
+            .main {
+                padding: 1rem;
+            }
         }
         
         .dashboard-grid {
@@ -219,18 +633,19 @@
         }
         
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.5rem;
+            padding: 0.5rem 1rem;
             border: none;
             border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
             cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
             transition: all 0.2s;
-            text-decoration: none;
-            gap: 0.5rem;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+            z-index: 10;
         }
         
         .btn-primary {
@@ -260,15 +675,6 @@
             background: #047857;
         }
         
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #d1d5db;
-            color: #374151;
-        }
-        
-        .btn-outline:hover {
-            background: #f9fafb;
-        }
         
         /* Clean Drag & Drop Styles */
         .file-drop-zone {
@@ -923,186 +1329,8 @@
             margin-bottom: 0.5rem;
         }
         
-        @media (max-width: 768px) {
-            .header {
-                padding: 0.5rem 1rem;
-            }
-            
-            .header-top {
-                padding: 0.75rem 1rem;
-            }
-            
-            .logo img {
-                height: 36px;
-            }
-            
-            .nav {
-                display: none;
-            }
-            
-            .main {
-                padding: 1rem;
-                width: 100%;
-                max-width: 100%;
-                overflow-x: hidden;
-            }
-            
-            .section {
-                width: 100%;
-                max-width: 100%;
-                overflow-x: hidden;
-            }
-            
-            .section h1 {
-                font-size: 1.5rem;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-            }
-            
-            .flex.justify-between {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: stretch !important;
-            }
-            
-            .flex.justify-between h1 {
-                margin-bottom: 0;
-            }
-            
-            .flex.justify-between button {
-                width: 100%;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .dashboard-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.75rem;
-            }
-            
-            .card {
-                width: 100%;
-                max-width: 100%;
-                overflow-x: hidden;
-            }
-            
-            .card-body {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            .table {
-                font-size: 0.875rem;
-                width: 100%;
-                min-width: 600px; /* Minimum width for table content - allows horizontal scroll */
-            }
-            
-            .table th,
-            .table td {
-                padding: 0.5rem 0.5rem;
-                white-space: normal;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-            }
-            
-            .btn {
-                font-size: 0.875rem;
-                padding: 0.5rem 0.75rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            
-            .btn-sm {
-                font-size: 0.75rem;
-                padding: 0.25rem 0.5rem;
-            }
-            
-            /* Messages/WhatsApp section fixes */
-            .whatsapp-messaging {
-                width: 100%;
-                max-width: 100%;
-                overflow-x: hidden;
-                height: calc(100vh - 200px) !important;
-                min-height: 400px;
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .whatsapp-main {
-                width: 100% !important;
-                max-width: 100% !important;
-                display: flex;
-                flex-direction: column;
-                height: 100%;
-            }
-            
-            .whatsapp-chat-header {
-                padding: 0.75rem;
-                font-size: 0.875rem;
-                flex-shrink: 0;
-            }
-            
-            .whatsapp-messages {
-                flex: 1;
-                overflow-y: auto;
-                padding-bottom: 1rem;
-                min-height: 0;
-            }
-            
-            .whatsapp-input-area {
-                flex-shrink: 0;
-                position: sticky;
-                bottom: 0;
-                background: #f0f2f5;
-                z-index: 10;
-                padding: 0.75rem;
-            }
-            
-            .whatsapp-message {
-                max-width: 85%;
-                font-size: 0.875rem;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-            }
-            
-            /* Modal fixes */
-            .modal {
-                width: 95% !important;
-                max-width: 95% !important;
-                margin: 1rem auto;
-                max-height: 90vh;
-                overflow-y: auto;
-            }
-            
-            .modal-body {
-                padding: 1rem;
-            }
-            
-            /* Form fixes */
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                font-size: 16px; /* Prevents zoom on iOS */
-                width: 100%;
-                max-width: 100%;
-            }
-        }
         
         @media (max-width: 480px) {
-            .header-top {
-                padding: 0.5rem;
-            }
-            
-            .logo img {
-                height: 32px;
-            }
-            
-            .main {
-                padding: 0.75rem;
-            }
             
             .section h1 {
                 font-size: 1.25rem;
@@ -1847,19 +2075,13 @@
     <div class="app">
         <header class="header">
             <div class="header-top">
-                <button class="mobile-menu-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" style="color: #fff; background: none; border: none; cursor: pointer; padding: 8px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
+                <button class="menu-toggle-style6" id="menuToggle" onclick="toggleMenuStyle6()" aria-label="Toggle navigation menu">☰</button>
                 <div class="logo">
                     <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
                 </div>
-                <button class="btn btn-outline" data-ct-logout style="display: none; background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
+                <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
             </div>
-            <nav class="nav">
+            <nav class="nav nav-style6" id="mainNav">
                 <a href="#" class="nav-link active" onclick="handleNavClick('dashboard', event)">Dashboard</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('documents', event)">Documents</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('vehicles', event)">Vehicles</a>
@@ -1869,35 +2091,6 @@
                 <a href="#" class="nav-link" onclick="handleNavClick('profile', event)">Profile</a>
             </nav>
         </header>
-        
-        <!-- Mobile Navigation -->
-        <div class="mobile-nav" id="mobileNav" onclick="closeMobileNavOnOverlay(event)">
-            <div class="mobile-nav-content">
-                <div class="mobile-nav-header">
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #111827;">Menu</h3>
-                        <span class="mobile-user-name" style="font-size: 0.875rem; color: #6b7280; font-weight: 500;">Welcome, User</span>
-                    </div>
-                    <button class="mobile-nav-close" onclick="closeMobileNav()" aria-label="Close navigation menu">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-                <div class="mobile-nav-links">
-                    <a href="#" class="nav-link active" onclick="handleNavClick('dashboard', event)">Dashboard</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('documents', event)">Documents</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('vehicles', event)">Vehicles</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('expenses', event)">Expenses</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('messages', event)">Messages</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('connect', event)">Connect</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('profile', event)">Profile</a>
-                    <div class="mobile-nav-divider"></div>
-                    <button class="btn btn-outline mobile-logout-btn" data-ct-logout>Logout</button>
-                </div>
-            </div>
-        </div>
         
         <main class="main">
             <!-- Client Dashboard Main (shown when practitioner is linked) -->
@@ -2580,6 +2773,7 @@
             </div> <!-- End client-dashboard-main -->
 
     <script src="shared-data.js"></script>
+    <script src="firestore-data.js"></script>
     <script>
         // Application state - now using real data storage
         let currentUser = null;
@@ -2614,21 +2808,49 @@
                 cleartrackData.setData(data);
             }
             // Clear any existing connections to allow fresh connections
-            initializeUser();
-            loadUserData();
-            updateDashboard();
-            setCurrentDate();
-            showCurrentConnection();
+            (async () => {
+                try {
+                    await initializeUser();
+                    
+                    // Load data with error handling
+                    try {
+                        loadUserData();
+                    } catch (error) {
+                        console.error('Error loading user data:', error);
+                        showUserNotification('Error loading some data. Please refresh if issues persist.', 'warning');
+                    }
+                    
+                    try {
+                        updateDashboard();
+                    } catch (error) {
+                        console.error('Error updating dashboard:', error);
+                    }
+                    
+                    try {
+                        setCurrentDate();
+                    } catch (error) {
+                        console.error('Error setting current date:', error);
+                    }
+                    
+                    try {
+                        showCurrentConnection();
+                    } catch (error) {
+                        console.error('Error showing current connection:', error);
+                    }
+                    
+                    // Debug: Check if user was initialized
+                    if (!currentUser) {
+                        console.error('User initialization failed!');
+                        showUserNotification('Unable to load user profile. Some features may be unavailable.', 'warning');
+                    }
+                } catch (error) {
+                    console.error('Error initializing application:', error);
+                    showUserNotification('Error initializing application. Please refresh the page.', 'error');
+                }
+            })();
             
             // Onboarding is now handled on separate page (client-onboarding.html)
             // No handlers needed here - users without practitioner are redirected
-            
-            // Debug: Check if user was initialized
-            if (!currentUser) {
-                console.error('User initialization failed!');
-                // Try to initialize again
-                initializeUser();
-            }
             
             // Close modals when clicking outside
             document.addEventListener('click', function(event) {
@@ -2648,41 +2870,263 @@
             
         });
         
+        // ============================================
+        // UTILITY FUNCTIONS - Error Handling & Common Patterns
+        // ============================================
+        
+        /**
+         * Safe async error handler wrapper
+         * @param {Function} asyncFn - Async function to wrap
+         * @param {string} errorMessage - User-friendly error message
+         * @param {Function} onError - Optional error callback
+         * @returns {Promise} Result of async function
+         */
+        async function safeAsync(asyncFn, errorMessage = 'An error occurred. Please try again.', onError = null) {
+            try {
+                return await asyncFn();
+            } catch (error) {
+                console.error('Error:', error);
+                if (onError) {
+                    onError(error);
+                } else {
+                    showUserNotification(errorMessage, 'error');
+                }
+                throw error; // Re-throw for caller to handle if needed
+            }
+        }
+        
+        /**
+         * Show user-friendly notification
+         * @param {string} message - Message to display
+         * @param {string} type - Type: 'success', 'error', 'warning', 'info'
+         * @param {number} duration - Duration in milliseconds (default: 3000)
+         */
+        function showUserNotification(message, type = 'info', duration = 3000) {
+            // Remove existing notifications
+            const existing = document.querySelectorAll('.user-notification');
+            existing.forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = 'user-notification';
+            const bgColor = {
+                'success': '#10b981',
+                'error': '#ef4444',
+                'warning': '#f59e0b',
+                'info': '#3b82f6'
+            }[type] || '#3b82f6';
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                max-width: 400px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Auto-remove after duration
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, duration);
+        }
+        
+        /**
+         * Sanitize user input to prevent XSS
+         * @param {string} input - Input string to sanitize
+         * @returns {string} Sanitized string
+         */
+        function sanitizeInput(input) {
+            if (typeof input !== 'string') return input;
+            const div = document.createElement('div');
+            div.textContent = input;
+            return div.innerHTML;
+        }
+        
+        /**
+         * Validate email format
+         * @param {string} email - Email to validate
+         * @returns {boolean} True if valid
+         */
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        /**
+         * Validate phone number (basic validation)
+         * @param {string} phone - Phone number to validate
+         * @returns {boolean} True if valid
+         */
+        function isValidPhone(phone) {
+            if (!phone) return true; // Optional field
+            const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+            return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
+        }
+        
+        /**
+         * Show confirmation dialog
+         * @param {string} message - Confirmation message
+         * @param {string} title - Dialog title
+         * @returns {Promise<boolean>} True if confirmed
+         */
+        function showConfirmation(message, title = 'Confirm Action') {
+            return new Promise((resolve) => {
+                const confirmed = confirm(`${title}\n\n${message}`);
+                resolve(confirmed);
+            });
+        }
+        
+        /**
+         * Set loading state for an element
+         * @param {HTMLElement|string} element - Element or selector
+         * @param {boolean} isLoading - Loading state
+         * @param {string} loadingText - Text to show while loading
+         */
+        function setLoadingState(element, isLoading, loadingText = 'Loading...') {
+            const el = typeof element === 'string' ? document.querySelector(element) : element;
+            if (!el) return;
+            
+            if (isLoading) {
+                el.disabled = true;
+                if (el.tagName === 'BUTTON') {
+                    el.dataset.originalText = el.textContent;
+                    el.textContent = loadingText;
+                }
+            } else {
+                el.disabled = false;
+                if (el.tagName === 'BUTTON' && el.dataset.originalText) {
+                    el.textContent = el.dataset.originalText;
+                }
+            }
+        }
+        
+        /**
+         * Add timeout to async operations
+         * @param {Promise} promise - Promise to add timeout to
+         * @param {number} timeoutMs - Timeout in milliseconds
+         * @param {string} errorMessage - Error message if timeout
+         * @returns {Promise} Promise with timeout
+         */
+        function withTimeout(promise, timeoutMs = 10000, errorMessage = 'Operation timed out. Please try again.') {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+                )
+            ]);
+        }
+        
+        // Add CSS for notifications
+        if (!document.getElementById('notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes slideOut {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // ============================================
+        // END UTILITY FUNCTIONS
+        // ============================================
+        
         // Initialize user from Firebase Auth and Firestore
         async function initializeUser() {
-            console.log('🔍 DEBUG: initializeUser() called');
-            
-            // Ensure data storage is properly initialized
-            if (!cleartrackData.getData()) {
-                console.log('🔍 DEBUG: Initializing data storage');
-                cleartrackData.initializeData();
-            }
-            
-            // Check if Firebase Auth is available
-            if (!window.firebaseAuth) {
-                console.error('🔍 DEBUG: Firebase Auth not available');
-                // Fallback to local storage
-                loadUserFromLocalStorage();
-                return;
-            }
-            
-            // Get current Firebase user
-            const firebaseUser = window.firebaseAuth.currentUser;
-            if (!firebaseUser) {
-                console.log('🔍 DEBUG: No Firebase user logged in, checking auth state...');
-                // Wait for auth state to be determined
-                window.firebaseAuth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        await loadUserFromFirestore(user.uid);
-                    } else {
-                        loadUserFromLocalStorage();
+            return safeAsync(
+                async () => {
+                    console.log('🔍 DEBUG: initializeUser() called');
+                    
+                    // Ensure data storage is properly initialized
+                    if (!cleartrackData.getData()) {
+                        console.log('🔍 DEBUG: Initializing data storage');
+                        cleartrackData.initializeData();
                     }
-                });
-                return;
-            }
-            
-            // Load user profile from Firestore
-            await loadUserFromFirestore(firebaseUser.uid);
+                    
+                    // Check if Firebase Auth is available
+                    if (!window.firebaseAuth) {
+                        console.error('🔍 DEBUG: Firebase Auth not available');
+                        // Fallback to local storage
+                        loadUserFromLocalStorage();
+                        return;
+                    }
+                    
+                    // Get current Firebase user
+                    const firebaseUser = window.firebaseAuth.currentUser;
+                    if (!firebaseUser) {
+                        console.log('🔍 DEBUG: No Firebase user logged in, checking auth state...');
+                        // Wait for auth state to be determined - return a promise
+                        return new Promise((resolve, reject) => {
+                            const timeout = setTimeout(() => {
+                                unsubscribe();
+                                console.warn('Auth state check timed out, falling back to local storage');
+                                loadUserFromLocalStorage();
+                                resolve();
+                            }, 5000); // 5 second timeout
+                            
+                            const unsubscribe = window.firebaseAuth.onAuthStateChanged(async (user) => {
+                                clearTimeout(timeout);
+                                unsubscribe(); // Only listen once
+                                try {
+                                    if (user) {
+                                        await withTimeout(
+                                            loadUserFromFirestore(user.uid),
+                                            10000,
+                                            'Loading user profile timed out'
+                                        );
+                                    } else {
+                                        loadUserFromLocalStorage();
+                                    }
+                                    resolve();
+                                } catch (error) {
+                                    console.error('Error in auth state change handler:', error);
+                                    loadUserFromLocalStorage();
+                                    resolve();
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Load user profile from Firestore with timeout
+                    await withTimeout(
+                        loadUserFromFirestore(firebaseUser.uid),
+                        10000,
+                        'Loading user profile timed out'
+                    );
+                },
+                'Error initializing user. Using local storage.',
+                (error) => {
+                    console.error('Error in initializeUser:', error);
+                    loadUserFromLocalStorage();
+                }
+            );
         }
         
         // Load user profile from Firestore and sync with local storage
@@ -2734,6 +3178,12 @@
                     
                     // Update local storage
                     cleartrackData.updateUser(uid, currentUser);
+                    
+                    // Update desktop header user name
+                    const desktopUserNameElement = document.getElementById('desktopUserName');
+                    if (desktopUserNameElement && currentUser.name) {
+                        desktopUserNameElement.textContent = currentUser.name;
+                    }
                 } else {
                     // Create new user in local storage with Firebase UID as ID
                     currentUser = cleartrackData.createUserWithId(uid, {
@@ -2748,6 +3198,12 @@
                         profileImage: firestoreProfile.profileImage || '',
                         connectedPractitioner: firestoreProfile.connectedPractitioner || null
                     });
+                    
+                    // Update desktop header user name
+                    const desktopUserNameElement = document.getElementById('desktopUserName');
+                    if (desktopUserNameElement && currentUser.name) {
+                        desktopUserNameElement.textContent = currentUser.name;
+                    }
                 }
                 
                 // Load connection from Firestore if it exists
@@ -2756,6 +3212,18 @@
                 window.currentUser = currentUser;
                 console.log('🔍 DEBUG: Current user set from Firestore:', currentUser);
                 updateUserInterface();
+                
+                // Ensure desktop user name is updated
+                const desktopUserNameElement = document.getElementById('desktopUserName');
+                if (desktopUserNameElement && currentUser && currentUser.name) {
+                    desktopUserNameElement.textContent = currentUser.name;
+                }
+                
+                // Update mobile user name
+                const mobileUserNameElement = document.getElementById('mobileUserName');
+                if (mobileUserNameElement && currentUser && currentUser.name) {
+                    mobileUserNameElement.textContent = currentUser.name;
+                }
                 
                 // Gate access based on practitioner link
                 gateClientAccess(firestoreProfile);
@@ -3059,51 +3527,61 @@
             }
             
             // Close mobile navigation after clicking a link
-            closeMobileNav();
+            if (typeof toggleMenu === 'function') {
+                toggleMenu('user');
+            }
         }
         
-        // Mobile Navigation Functions
-        function toggleMobileNav() {
-            const mobileNav = document.getElementById('mobileNav');
-            if (mobileNav) {
-                mobileNav.classList.toggle('active');
-                // Prevent body scroll when mobile nav is open
-                if (mobileNav.classList.contains('active')) {
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    document.body.style.overflow = '';
+        // Style 6: Compact Dropdown Menu Toggle
+        // Style 6 Mobile Navigation Functions
+        function toggleMenuStyle6() {
+            const menuToggle = document.getElementById('menuToggle');
+            const mainNav = document.getElementById('mainNav');
+            
+            if (menuToggle && mainNav) {
+                menuToggle.classList.toggle('active');
+                mainNav.classList.toggle('active');
+            }
+        }
+        
+        // Close Style 6 menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menuToggle = document.getElementById('menuToggle');
+            const mainNav = document.getElementById('mainNav');
+            
+            if (mainNav && mainNav.classList.contains('active')) {
+                // Check if click is outside the menu and toggle button
+                if (!mainNav.contains(event.target) && !menuToggle.contains(event.target)) {
+                    menuToggle.classList.remove('active');
+                    mainNav.classList.remove('active');
                 }
             }
-        }
+        });
         
-        function closeMobileNav() {
-            const mobileNav = document.getElementById('mobileNav');
-            if (mobileNav) {
-                mobileNav.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        }
-        
-        function closeMobileNavOnOverlay(event) {
-            // Close nav only if clicking on the overlay, not the content
-            if (event.target.classList.contains('mobile-nav')) {
-                closeMobileNav();
-            }
-        }
-        
-        // Close mobile nav when pressing Escape key
+        // Close Style 6 menu when pressing Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
-                closeMobileNav();
+                const menuToggle = document.getElementById('menuToggle');
+                const mainNav = document.getElementById('mainNav');
+                if (menuToggle && mainNav) {
+                    menuToggle.classList.remove('active');
+                    mainNav.classList.remove('active');
+                }
             }
         });
-        
-        // Close mobile nav when window is resized to desktop size
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                closeMobileNav();
+
+                // Close menu when clicking outside (Style 6 dropdown)
+                document.addEventListener('click', function(event) {
+                    const header = document.querySelector("header");
+                    if (mainNav.classList.contains('active')) {
+                        if (header && !header.contains(event.target)) {
+                            mainNav.classList.remove('active');
+                            menuToggle.classList.remove('active');
+                        }
+                    }
+                });
             }
-        });
+        })();
         
         // Dashboard tile click functions
         function openDocumentsSection() {
@@ -3180,7 +3658,7 @@
             const editId = document.getElementById('uploadForm').getAttribute('data-edit-id');
             
             if (!currentUser) {
-                alert('User not found. Please refresh the page.');
+                showUserNotification('User not found. Please refresh the page.', 'error');
                 return;
             }
             
@@ -3190,13 +3668,13 @@
             const description = document.getElementById('docDescription').value;
             
             if (!docType) {
-                alert('Please select a document type');
+                showUserNotification('Please select a document type', 'warning');
                 return;
             }
             
             // For edit mode, we don't require a new file
             if (!isEditMode && files.length === 0) {
-                alert('Please select at least one file');
+                showUserNotification('Please select at least one file', 'warning');
                 return;
             }
             
@@ -3212,14 +3690,14 @@
                         
                         // Save updated document
                         cleartrackData.updateDocument(currentUser.id, existingDoc);
-                        alert('Document updated successfully!');
+                        showUserNotification('Document updated successfully!', 'success');
                         hideUploadModal();
                         loadUserData();
                         updateDashboard();
                     }
                 } catch (error) {
                     console.error('Error updating document:', error);
-                    alert('Error updating document: ' + error.message);
+                    showUserNotification('Error updating document: ' + error.message, 'error');
                 }
                 return;
             }
@@ -3233,7 +3711,7 @@
             const isValid = validTypes.includes(fileExtension) && file.size <= 10 * 1024 * 1024;
             
             if (!isValid) {
-                alert(`File ${file.name} is invalid. Only PDF, DOC, DOCX, JPG, PNG, XLS, XLSX files under 10MB are allowed.`);
+                showUserNotification(`File ${file.name} is invalid. Only PDF, DOC, DOCX, JPG, PNG, XLS, XLSX files under 10MB are allowed.`, 'error');
                 return;
             }
             
@@ -3258,7 +3736,7 @@
                         alert('Document updated successfully!');
                     } else {
                         cleartrackData.addDocument(currentUser.id, documentData);
-                        alert('File uploaded successfully!');
+                        showUserNotification('File uploaded successfully!', 'success');
                     }
                     hideUploadModal();
                     
@@ -3269,7 +3747,7 @@
                     }, 100);
                 } catch (error) {
                     console.error('Error saving document:', error);
-                    alert('Error saving document: ' + error.message);
+                    showUserNotification('Error saving document: ' + error.message, 'error');
                 }
             };
             
@@ -3362,14 +3840,14 @@
             // Validate the scanned image
             if (!file.type.startsWith('image/')) {
                 dropZone.innerHTML = originalContent;
-                alert('Please capture a valid image file.');
+                showUserNotification('Please capture a valid image file.', 'warning');
                 return;
             }
             
             // Check file size (max 10MB)
             if (file.size > 10 * 1024 * 1024) {
                 dropZone.innerHTML = originalContent;
-                alert('Scanned image is too large. Please try again with a smaller image.');
+                showUserNotification('Scanned image is too large. Please try again with a smaller image.', 'warning');
                 return;
             }
             
@@ -3604,33 +4082,34 @@
             `).join('');
         }
         
-        function deleteDocument(id) {
-            if (confirm('Are you sure you want to delete this document?')) {
-                try {
-                    // Remove from local array
-                    documents = documents.filter(doc => String(doc.id) !== String(id));
-                    
-                    // Update in storage
-                    if (currentUser) {
-                        cleartrackData.deleteDocument(currentUser.id, id);
-                    }
-                    
-                    // Update UI
+        async function deleteDocument(id) {
+            const confirmed = await showConfirmation('Are you sure you want to delete this document?', 'Delete Document');
+            if (!confirmed) return;
+            
+            try {
+                // Remove from local array
+                documents = documents.filter(doc => String(doc.id) !== String(id));
+                
+                // Update in storage
+                if (currentUser) {
+                    cleartrackData.deleteDocument(currentUser.id, id);
+                }
+                
+                // Update UI
                 updateDocumentsTable();
                 updateDashboard();
-                    
-                    alert('Document deleted successfully!');
-                } catch (error) {
-                    console.error('Error deleting document:', error);
-                    alert('Error deleting document: ' + error.message);
-                }
+                
+                showUserNotification('Document deleted successfully!', 'success');
+            } catch (error) {
+                console.error('Error deleting document:', error);
+                showUserNotification('Error deleting document: ' + error.message, 'error');
             }
         }
         
         function editDocument(id) {
             const document = documents.find(doc => String(doc.id) === String(id));
             if (!document) {
-                alert('Document not found');
+                showUserNotification('Document not found', 'error');
                 return;
             }
             
@@ -3684,7 +4163,7 @@
             e.preventDefault();
             
             if (!currentUser) {
-                alert('User not found. Please refresh the page.');
+                showUserNotification('User not found. Please refresh the page.', 'error');
                 return;
             }
             
@@ -3694,7 +4173,7 @@
             const documentUploadInput = document.getElementById('vehicleDocumentUpload');
             
             if (!purchasedCheckbox || !leasedCheckbox || !documentUploadInput) {
-                alert('Please select acquisition type and upload document on the Vehicles page first.');
+                showUserNotification('Please select acquisition type and upload document on the Vehicles page first.', 'warning');
                 hideVehicleModal();
                 return;
             }
@@ -4009,7 +4488,7 @@
             e.preventDefault();
             
             if (!currentUser) {
-                alert('User not found. Please refresh the page.');
+                showUserNotification('User not found. Please refresh the page.', 'error');
                 return;
             }
             
@@ -4200,7 +4679,7 @@
                 if (userIds.length > 0) {
                     currentUser = data.users[userIds[0]];
                 } else {
-                    alert('User not found. Please refresh the page.');
+                    showUserNotification('User not found. Please refresh the page.', 'error');
                     return;
                 }
             }
@@ -4288,8 +4767,11 @@
             console.log('[logout] Logout button clicked');
             
             // Close mobile nav if it's open
-            if (typeof closeMobileNav === 'function') {
-                closeMobileNav();
+            const mainNav = document.getElementById('mainNav');
+            const menuToggle = document.getElementById('menuToggle');
+            if (mainNav && menuToggle) {
+                mainNav.classList.remove('active');
+                menuToggle.classList.remove('active');
             }
             
             try {
@@ -4398,20 +4880,20 @@
         
         
         // Connection form submission
-        document.getElementById('connectForm').addEventListener('submit', function(e) {
+        document.getElementById('connectForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             if (!currentUser) {
-                alert('User not found. Please refresh the page.');
+                showUserNotification('User not found. Please refresh the page.', 'error');
                 return;
             }
             
             const code = document.getElementById('practitionerCode').value.toUpperCase();
-            const practitioner = cleartrackData.getPractitionerByCode(code);
+            const practitioner = await cleartrackData.getPractitionerByCode(code);
             
             if (practitioner) {
                 // Send connection request to practitioner using new system
-                const result = cleartrackData.sendConnectionRequest(currentUser.id, practitioner.id);
+                const result = await cleartrackData.sendConnectionRequest(currentUser.id, practitioner.id);
                 
                 if (result.success) {
                     if (result.message) {
@@ -4492,7 +4974,7 @@
         // Disconnect from current practitioner
         async function disconnectFromPractitioner() {
             if (!currentUser) {
-                alert('User not found. Please refresh the page.');
+                showUserNotification('User not found. Please refresh the page.', 'error');
                 return;
             }
             
@@ -5387,7 +5869,7 @@
             if (!messageText) return;
             
             if (!currentUser) {
-                alert('User not found. Please refresh the page.');
+                showUserNotification('User not found. Please refresh the page.', 'error');
                 return;
             }
             
@@ -5461,7 +5943,7 @@
 
         function callPractitioner() {
             if (!currentUser) {
-                alert('User not found. Please refresh the page.');
+                showUserNotification('User not found. Please refresh the page.', 'error');
                 return;
             }
             
@@ -5481,7 +5963,7 @@
         
         function videoCallPractitioner() {
             if (!currentUser) {
-                alert('User not found. Please refresh the page.');
+                showUserNotification('User not found. Please refresh the page.', 'error');
                 return;
             }
             
@@ -5841,13 +6323,37 @@
         }
         
         // Send connection request
-        function sendConnectionRequest(practitionerId) {
+        async function sendConnectionRequest(practitionerId) {
             if (!currentUser) {
                 alert('Please log in to send connection requests.');
                 return;
             }
             
-            const practitioner = cleartrackData.getAllPractitioners().find(p => p.id === practitionerId);
+            // Try to get practitioner from Firestore or localStorage
+            let practitioner = null;
+            try {
+                // First try to get from Firestore if available
+                if (window.firestoreData && window.firestoreData.db) {
+                    const userDoc = await window.firestoreData.db.collection('users').doc(practitionerId).get();
+                    if (userDoc.exists) {
+                        const data = userDoc.data();
+                        if (data.role === 'practitioner') {
+                            practitioner = { id: userDoc.id, ...data };
+                        }
+                    }
+                }
+                
+                // Fallback to localStorage
+                if (!practitioner) {
+                    const allPractitioners = cleartrackData.getAllPractitioners();
+                    practitioner = allPractitioners.find(p => p.id === practitionerId);
+                }
+            } catch (error) {
+                console.error('Error getting practitioner:', error);
+                const allPractitioners = cleartrackData.getAllPractitioners();
+                practitioner = allPractitioners.find(p => p.id === practitionerId);
+            }
+            
             if (!practitioner) {
                 alert('Practitioner not found.');
                 return;
@@ -5861,7 +6367,7 @@
             }
             
             // Send connection request using new system
-            const result = cleartrackData.sendConnectionRequest(currentUser.id, practitionerId);
+            const result = await cleartrackData.sendConnectionRequest(currentUser.id, practitionerId);
             
             if (result.success) {
                 if (result.message) {
@@ -6967,5 +7473,55 @@
     <script src="firebase-api.js"></script>
     <script src="js/client-linking.js"></script>
     <script src="dashboard-auth.js"></script>
+    <script>
+        // Auto-migrate to Firestore on page load
+        (function() {
+            if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                // Wait a bit for Firestore to initialize
+                setTimeout(async () => {
+                    if (window.firestoreData) {
+                        try {
+                            const userDoc = await firebase.firestore().collection('users')
+                                .doc(window.firebaseAuth.currentUser.uid).get();
+                            
+                            if (userDoc.exists) {
+                                const userData = userDoc.data();
+                                if (!userData.migrationComplete) {
+                                    console.log('🔄 Starting migration to Firestore...');
+                                    await window.firestoreData.migrateLocalStorageToFirestore();
+                                }
+                            }
+                        } catch (error) {
+                            console.warn('Migration check failed:', error);
+                        }
+                    }
+                }, 2000);
+            } else {
+                // Wait for auth
+                if (window.firebaseAuth) {
+                    window.firebaseAuth.onAuthStateChanged(async (user) => {
+                        if (user && window.firestoreData) {
+                            setTimeout(async () => {
+                                try {
+                                    const userDoc = await firebase.firestore().collection('users')
+                                        .doc(user.uid).get();
+                                    
+                                    if (userDoc.exists) {
+                                        const userData = userDoc.data();
+                                        if (!userData.migrationComplete) {
+                                            console.log('🔄 Starting migration to Firestore...');
+                                            await window.firestoreData.migrateLocalStorageToFirestore();
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.warn('Migration check failed:', error);
+                                }
+                            }, 2000);
+                        }
+                    });
+                }
+            }
+        })();
+    </script>
 </body>
 </html>
