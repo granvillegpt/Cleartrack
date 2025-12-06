@@ -232,6 +232,21 @@
             }
             
             /* Desktop: nav-style6 is horizontal nav bar (already styled above) */
+            
+            /* Desktop: Always show invoice card expandable content */
+            .invoice-card-expandable {
+                display: block !important;
+            }
+            
+            /* Desktop: Hide toggle arrow */
+            .invoice-card-toggle {
+                display: none !important;
+            }
+            
+            /* Desktop: Remove cursor pointer from header */
+            .invoice-card-header {
+                cursor: default !important;
+            }
         }
         
         /* ============================================
@@ -2078,6 +2093,92 @@
         }
 
         @media (max-width: 768px) {
+            /* General Mobile Spacing Improvements */
+            .section {
+                padding: 1rem 0.75rem !important;
+            }
+            
+            .section h1 {
+                font-size: 1.5rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .mb-6 {
+                margin-bottom: 1rem !important;
+            }
+            
+            .mb-4 {
+                margin-bottom: 0.75rem !important;
+            }
+            
+            /* Card Spacing */
+            .card {
+                margin-bottom: 0.75rem !important;
+                border-radius: 8px !important;
+            }
+            
+            .card-body {
+                padding: 1rem !important;
+            }
+            
+            .card-header {
+                padding: 0.75rem 1rem !important;
+            }
+            
+            /* Invoice Management Section Spacing */
+            #invoices .flex.justify-between {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 0.75rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            #invoices h1 {
+                font-size: 1.375rem !important;
+                margin: 0 !important;
+            }
+            
+            #invoices .btn-primary {
+                width: 100% !important;
+                padding: 0.625rem 1rem !important;
+                font-size: 0.875rem !important;
+            }
+            
+            /* Search/Filter Card - More Compact */
+            .search-container {
+                gap: 0.75rem !important;
+            }
+            
+            .search-input-wrapper {
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .search-input {
+                padding: 0.625rem 0.75rem 0.625rem 2.5rem !important;
+                font-size: 0.875rem !important;
+            }
+            
+            .search-icon {
+                left: 0.75rem !important;
+                width: 16px !important;
+                height: 16px !important;
+            }
+            
+            .filter-select {
+                padding: 0.625rem 2rem 0.625rem 0.75rem !important;
+                font-size: 0.875rem !important;
+            }
+            
+            /* Generated Invoices Card */
+            .card-title {
+                font-size: 1rem !important;
+                margin: 0 !important;
+            }
+            
+            .client-count {
+                font-size: 0.8125rem !important;
+            }
+            
             .vehicle-summary {
                 grid-template-columns: 1fr;
             }
@@ -2093,6 +2194,116 @@
             .mileage-calculations {
                 flex-direction: column;
                 gap: 1rem;
+            }
+            
+            /* Invoice Card Mobile Styles - Collapsible */
+            .invoice-card {
+                padding: 16px !important;
+                margin-bottom: 12px !important;
+                transition: all 0.3s ease;
+            }
+            
+            .invoice-card-header {
+                margin-bottom: 0 !important;
+                padding-bottom: 12px;
+            }
+            
+            .invoice-card-header:active {
+                opacity: 0.7;
+            }
+            
+            .invoice-card-info {
+                flex: 1;
+            }
+            
+            .invoice-card-info h4 {
+                font-size: 15px !important;
+                margin-bottom: 4px !important;
+                line-height: 1.3 !important;
+            }
+            
+            .invoice-card-info p {
+                font-size: 12px !important;
+                line-height: 1.4 !important;
+            }
+            
+            .invoice-card-total {
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+            }
+            
+            .invoice-card-total > div:first-child {
+                text-align: right;
+            }
+            
+            .invoice-card-total .status {
+                display: block;
+                margin-bottom: 3px !important;
+                padding: 3px 10px !important;
+                font-size: 11px !important;
+            }
+            
+            .invoice-card-total > div:first-child > div:last-child {
+                font-size: 16px !important;
+                line-height: 1.2 !important;
+            }
+            
+            .invoice-card-toggle {
+                font-size: 16px !important;
+                color: #6b7280;
+                transition: transform 0.3s ease;
+                flex-shrink: 0;
+                display: block !important;
+            }
+            
+            .invoice-card.expanded .invoice-card-toggle {
+                transform: rotate(180deg);
+            }
+            
+            .invoice-card-expandable {
+                padding-top: 12px;
+                border-top: 1px solid #e5e7eb;
+                margin-top: 10px;
+            }
+            
+            .invoice-card-details {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+                margin-bottom: 12px !important;
+                font-size: 12px !important;
+            }
+            
+            .invoice-card-details > div {
+                padding: 8px;
+                background: #f9fafb;
+                border-radius: 6px;
+            }
+            
+            .invoice-card-details strong {
+                font-size: 11px !important;
+                display: block;
+                margin-bottom: 2px;
+            }
+            
+            .invoice-card-actions {
+                gap: 6px !important;
+            }
+            
+            .invoice-card-actions .btn {
+                flex: 1 1 calc(50% - 3px) !important;
+                min-width: calc(50% - 3px) !important;
+                padding: 8px 6px !important;
+                font-size: 12px !important;
+                justify-content: center !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 4px !important;
+            }
+            
+            .invoice-card-actions .btn img {
+                width: 12px !important;
+                height: 12px !important;
             }
         }
 
@@ -2656,29 +2867,6 @@
                     <button class="btn btn-primary" onclick="showAddClientModal()">Add Client</button>
                 </div>
                 
-                <!-- Add Client Section (Invite via Mobile + Code) -->
-                <div id="practitioner-add-client-section" class="card mb-4">
-                    <div class="card-header">
-                        <h3 class="card-title">Invite Client via Mobile</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label for="add-client-mobile">Client Mobile Number</label>
-                            <input id="add-client-mobile" type="tel" placeholder="Client mobile number" class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label for="add-client-name">Client Name (Optional)</label>
-                            <input id="add-client-name" type="text" placeholder="Client name" class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label for="add-client-note">Note (Optional)</label>
-                            <textarea id="add-client-note" rows="2" placeholder="Optional note" class="form-control"></textarea>
-                        </div>
-                        <button id="add-client-submit-btn" class="btn btn-primary">Add client</button>
-                        <div id="add-client-feedback" class="mt-3"></div>
-                    </div>
-                </div>
-                
                 <!-- Client Search Bar -->
                 <div class="card mb-4">
                     <div class="card-body">
@@ -3184,39 +3372,39 @@
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="clientFirstName" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">First Name <span style="color: #dc2626;">*</span></label>
                             <input type="text" id="clientFirstName" required style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
-                        </div>
+                    </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="clientLastName" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Last Name <span style="color: #dc2626;">*</span></label>
                             <input type="text" id="clientLastName" required style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
-                        </div>
                     </div>
-                    
+                </div>
+                
                     <div class="form-group" style="margin-bottom: 1.5rem;">
                         <label for="clientEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Email Address <span style="color: #dc2626;">*</span></label>
                         <input type="email" id="clientEmail" required style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
-                    </div>
-                    
+                </div>
+                
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="clientPhone" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Phone Number</label>
                             <input type="tel" id="clientPhone" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
-                        </div>
+                    </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="clientTaxNumber" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Tax Number</label>
                             <input type="text" id="clientTaxNumber" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
-                        </div>
                     </div>
-                    
+                </div>
+                
                     <div class="form-group" style="margin-bottom: 1.5rem;">
                         <label for="clientNotes" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Notes <span style="color: #6b7280; font-weight: 400; font-size: 13px;">(Optional)</span></label>
                         <textarea id="clientNotes" rows="3" placeholder="Any additional notes about this client" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white; resize: vertical; font-family: inherit;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';"></textarea>
-                    </div>
-                    
+                </div>
+                
                     <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
                         <button type="button" onclick="hideAddClientModal()" style="padding: 12px 24px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: white; color: #374151;" onmouseover="this.style.borderColor='#d1d5db'; this.style.background='#f9fafb';" onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='white';">Cancel</button>
                         <button type="submit" style="padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: linear-gradient(135deg, #0b7285 0%, #0891b2 100%); color: white; box-shadow: 0 4px 12px rgba(11, 114, 133, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(11, 114, 133, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(11, 114, 133, 0.3)';">Add Client</button>
-                    </div>
-                </form>
+                </div>
+            </form>
             </div>
         </div>
     </div>
@@ -3365,7 +3553,7 @@
             <div class="modal-body">
                 <!-- Client Selection Section -->
                 <div class="invoice-section">
-                    <h4 class="section-title">Select Client</h4>
+                    <h4 class="section-title">Select Client <span style="color: #dc2626;">*</span></h4>
                     <div class="client-selection">
                         <div class="autocomplete-wrapper">
                             <input 
@@ -3404,33 +3592,33 @@
                     <h4 class="section-title">Invoice Details</h4>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="newInvoiceNumber">Invoice Number</label>
+                            <label for="newInvoiceNumber">Invoice Number <span style="color: #dc2626;">*</span></label>
                             <input type="text" id="newInvoiceNumber" class="form-control" required readonly>
                         </div>
                         <div class="form-group">
-                            <label for="newInvoiceDate">Invoice Date</label>
+                            <label for="newInvoiceDate">Invoice Date <span style="color: #dc2626;">*</span></label>
                             <input type="date" id="newInvoiceDate" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="newInvoiceDueDate">Due Date</label>
+                            <label for="newInvoiceDueDate">Due Date <span style="color: #dc2626;">*</span></label>
                             <input type="date" id="newInvoiceDueDate" class="form-control" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="newInvoiceTaxYear">Tax Year</label>
+                            <label for="newInvoiceTaxYear">Tax Year <span style="color: #dc2626;">*</span></label>
                             <select id="newInvoiceTaxYear" class="form-control" required>
                                 <option value="2024/2025">2024/2025</option>
                                 <option value="2025/2026" selected>2025/2026</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="newInvoiceAmount">Amount (R)</label>
+                            <label for="newInvoiceAmount">Amount (R) <span style="color: #dc2626;">*</span></label>
                             <input type="number" id="newInvoiceAmount" class="form-control" step="0.01" required>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="newInvoiceDescription">Description</label>
+                        <label for="newInvoiceDescription">Description <span style="color: #dc2626;">*</span></label>
                         <textarea id="newInvoiceDescription" class="form-control" rows="3" required placeholder="Describe the services provided..."></textarea>
                     </div>
                 </div>
@@ -3440,7 +3628,7 @@
                     <h4 class="section-title">VAT Details</h4>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="newInvoiceVATType">VAT Type</label>
+                            <label for="newInvoiceVATType">VAT Type <span style="color: #dc2626;">*</span></label>
                             <select id="newInvoiceVATType" class="form-control" required>
                                 <option value="standard">Standard (15%)</option>
                                 <option value="exempt">VAT Exempt</option>
@@ -3448,7 +3636,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="newInvoiceVATReason">VAT Exemption Reason (if applicable)</label>
+                            <label for="newInvoiceVATReason">VAT Exemption Reason <span style="color: #6b7280; font-weight: 400; font-size: 13px;">(if applicable)</span></label>
                             <input type="text" id="newInvoiceVATReason" class="form-control" placeholder="Enter reason for VAT exemption">
                         </div>
                     </div>
@@ -3472,7 +3660,7 @@
                 <div class="invoice-section">
                     <h4 class="section-title">Additional Information</h4>
                     <div class="form-group">
-                        <label for="newInvoiceNotes">Notes</label>
+                        <label for="newInvoiceNotes">Notes <span style="color: #6b7280; font-weight: 400; font-size: 13px;">(Optional)</span></label>
                         <textarea id="newInvoiceNotes" class="form-control" rows="2" placeholder="Additional notes or payment instructions..."></textarea>
                     </div>
                 </div>
@@ -5700,29 +5888,29 @@
             
             // Then populate form fields (with error handling)
             try {
-                // Populate client dropdown
-                populateClientDropdown();
+            // Populate client dropdown
+            populateClientDropdown();
             } catch (error) {
                 console.error('❌ Error populating client dropdown:', error);
             }
             
             try {
-                // Generate invoice number
-                generateNewInvoiceNumber();
+            // Generate invoice number
+            generateNewInvoiceNumber();
             } catch (error) {
                 console.error('❌ Error generating invoice number:', error);
             }
             
             try {
-                // Set default dates
-                setDefaultDates();
+            // Set default dates
+            setDefaultDates();
             } catch (error) {
                 console.error('❌ Error setting default dates:', error);
             }
             
             try {
-                // Setup event listeners
-                setupNewInvoiceEventListeners();
+            // Setup event listeners
+            setupNewInvoiceEventListeners();
             } catch (error) {
                 console.error('❌ Error setting up event listeners:', error);
             }
@@ -5777,7 +5965,7 @@
                 resetNewInvoiceForm();
             }
         }
-
+        
         // Close invoice modal on overlay click
         function closeNewInvoiceModalOnOverlay(event) {
             if (event.target.id === 'newInvoiceModal') {
@@ -7799,21 +7987,25 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 const statusText = invoice.status === 'paid' ? 'Paid' : isOverdue ? 'Overdue' : 'Pending';
                 
                 return `
-                    <div class="invoice-card" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 16px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
-                            <div>
+                    <div class="invoice-card" data-invoice-id="${invoice.id}" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 16px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <div class="invoice-card-header" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; cursor: pointer;" onclick="toggleInvoiceCard('${invoice.id}')">
+                            <div class="invoice-card-info">
                                 <h4 style="margin: 0 0 8px 0; color: #374151; font-size: 18px;">${invoice.invoiceNumber}</h4>
                                 <p style="margin: 0; color: #6b7280; font-size: 14px;">${invoice.clientName} • Tax Year ${invoice.taxYear}</p>
                             </div>
-                            <div style="text-align: right;">
+                            <div class="invoice-card-total" style="text-align: right; display: flex; align-items: center; gap: 12px;">
+                                <div>
                                 <span class="status ${statusClass}" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; margin-bottom: 8px;">
                                     ${statusText}
                                 </span>
                                 <div style="font-size: 20px; font-weight: bold; color: #0b7285;">R ${(invoice.total || 0).toFixed(2)}</div>
+                                </div>
+                                <div class="invoice-card-toggle" style="font-size: 20px; color: #6b7280; transition: transform 0.3s ease;">▼</div>
                             </div>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px; font-size: 14px; color: #6b7280;">
+                        <div class="invoice-card-expandable" style="overflow: hidden; transition: all 0.3s ease;">
+                            <div class="invoice-card-details" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px; font-size: 14px; color: #6b7280;">
                             <div>
                                 <strong>Invoice Date:</strong><br>
                                 ${new Date(invoice.invoiceDate).toLocaleDateString()}
@@ -7832,31 +8024,104 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                             </div>
                         </div>
                         
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button class="btn btn-sm btn-outline" onclick="viewInvoiceFromList('${invoice.id}')" class="flex items-center gap-1">
+                            <div class="invoice-card-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); viewInvoiceFromList('${invoice.id}');" class="flex items-center gap-1">
                                 <img src="assets/icons/eye.svg" class="icon icon-sm" alt="View"> View
                             </button>
-                            <button class="btn btn-sm btn-primary" onclick="downloadInvoice('${invoice.id}')" class="flex items-center gap-1">
+                            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); downloadInvoice('${invoice.id}');" class="flex items-center gap-1">
                                 <img src="assets/icons/download.svg" class="icon icon-sm" alt="Download"> Download
                             </button>
-                            <button class="btn btn-sm btn-success" onclick="chatInvoice('${invoice.id}')" class="flex items-center gap-1">
+                            <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); chatInvoice('${invoice.id}');" class="flex items-center gap-1">
                                 <img src="assets/icons/message.svg" class="icon icon-sm" alt="Send Chat"> Send Chat
                             </button>
-                            <button class="btn btn-sm btn-secondary" onclick="emailInvoice('${invoice.id}')" class="flex items-center gap-1">
+                            <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); emailInvoice('${invoice.id}');" class="flex items-center gap-1">
                                 <img src="assets/icons/email.svg" class="icon icon-sm" alt="Email"> Email
                             </button>
                             ${invoice.status !== 'paid' ? `
-                                <button class="btn btn-sm btn-success" onclick="markInvoicePaid('${invoice.id}')" class="flex items-center gap-1">
+                                <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); markInvoicePaid('${invoice.id}');" class="flex items-center gap-1">
                                     <img src="assets/icons/check.svg" class="icon icon-sm icon-green-600" alt="Mark Paid"> Mark Paid
                                 </button>
                             ` : ''}
-                            <button class="btn btn-sm btn-danger" onclick="deleteInvoice('${invoice.id}')" class="flex items-center gap-1" style="background: #dc2626; color: white; border: none; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
+                            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteInvoice('${invoice.id}');" class="flex items-center gap-1" style="background: #dc2626; color: white; border: none; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
                                 <img src="assets/icons/trash.svg" class="icon icon-sm" alt="Delete" style="width: 16px; height: 16px; filter: brightness(0) invert(1);"> Delete
                             </button>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
+            
+            // Initialize mobile collapsible behavior
+            initializeInvoiceCards();
+        }
+        
+        // Toggle invoice card expand/collapse (mobile only)
+        function toggleInvoiceCard(invoiceId) {
+            // Only work on mobile
+            if (window.innerWidth > 768) return;
+            
+            const card = document.querySelector(`.invoice-card[data-invoice-id="${invoiceId}"]`);
+            if (!card) return;
+            
+            const expandable = card.querySelector('.invoice-card-expandable');
+            const toggle = card.querySelector('.invoice-card-toggle');
+            
+            if (!expandable || !toggle) return;
+            
+            const isExpanded = expandable.style.display === 'block' || card.classList.contains('expanded');
+            
+            if (isExpanded) {
+                expandable.style.display = 'none';
+                toggle.style.transform = 'rotate(0deg)';
+                card.classList.remove('expanded');
+            } else {
+                expandable.style.display = 'block';
+                toggle.style.transform = 'rotate(180deg)';
+                card.classList.add('expanded');
+            }
+        }
+        
+        // Initialize invoice cards for mobile/desktop behavior
+        function initializeInvoiceCards() {
+            const cards = document.querySelectorAll('.invoice-card');
+            cards.forEach(card => {
+                const expandable = card.querySelector('.invoice-card-expandable');
+                const toggle = card.querySelector('.invoice-card-toggle');
+                
+                if (!expandable || !toggle) return;
+                
+                // On desktop, always show expandable content
+                if (window.innerWidth > 768) {
+                    expandable.style.display = 'block';
+                    toggle.style.display = 'none';
+                } else {
+                    // On mobile, hide by default
+                    expandable.style.display = 'none';
+                    toggle.style.display = 'block';
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                const cards = document.querySelectorAll('.invoice-card');
+                cards.forEach(card => {
+                    const expandable = card.querySelector('.invoice-card-expandable');
+                    const toggle = card.querySelector('.invoice-card-toggle');
+                    
+                    if (!expandable || !toggle) return;
+                    
+                    if (window.innerWidth > 768) {
+                        expandable.style.display = 'block';
+                        toggle.style.display = 'none';
+                    } else {
+                        // Only hide if not already expanded
+                        if (!card.classList.contains('expanded')) {
+                            expandable.style.display = 'none';
+                        }
+                        toggle.style.display = 'block';
+                    }
+                });
+            });
         }
         
         // Update tax returns display with optional filtered list
@@ -12215,52 +12480,6 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Client Linking Handlers
         function setupClientLinkingHandlers() {
-            // Add Client button handler
-            const addClientBtn = document.getElementById('add-client-submit-btn');
-            if (addClientBtn) {
-                addClientBtn.addEventListener('click', async function() {
-                    const mobile = document.getElementById('add-client-mobile').value.trim();
-                    const clientName = document.getElementById('add-client-name').value.trim();
-                    const note = document.getElementById('add-client-note').value.trim();
-                    const feedback = document.getElementById('add-client-feedback');
-                    
-                    if (!mobile) {
-                        feedback.innerHTML = '<div class="alert alert-error">Mobile number is required</div>';
-                        return;
-                    }
-                    
-                    if (!window.CTClientLinking) {
-                        feedback.innerHTML = '<div class="alert alert-error">Client linking module not loaded</div>';
-                        return;
-                    }
-                    
-                    try {
-                        addClientBtn.disabled = true;
-                        addClientBtn.textContent = 'Creating invite...';
-                        feedback.innerHTML = '';
-                        
-                        const result = await window.CTClientLinking.createClientInvite(mobile, clientName || null, note || null);
-                        
-                        // Show success with code for dev/testing
-                        feedback.innerHTML = `<div class="alert alert-success">
-                            <strong>Invite created successfully!</strong><br>
-                            Code: <strong>${result.code}</strong> (for testing)<br>
-                            Expires: ${new Date(result.expiresAt).toLocaleString()}
-                        </div>`;
-                        
-                        // Clear form
-                        document.getElementById('add-client-mobile').value = '';
-                        document.getElementById('add-client-name').value = '';
-                        document.getElementById('add-client-note').value = '';
-                    } catch (error) {
-                        feedback.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
-                    } finally {
-                        addClientBtn.disabled = false;
-                        addClientBtn.textContent = 'Add client';
-                    }
-                });
-            }
-            
             // Load client requests
             loadClientRequests();
             
@@ -12387,12 +12606,12 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                             <line x1="12" y1="8" x2="12.01" y2="8"></line>
                         </svg>
                         Image Requirements
-                    </div>
+                </div>
                     <div style="font-size: 13px; color: #1e3a8a; line-height: 1.5;">
                         For best results, use a square image (1:1 ratio) at least 400x400 pixels. 
                         Supported formats: JPG, PNG, WebP. Max file size: 5MB.
-                    </div>
-                </div>
+        </div>
+    </div>
 
                 <!-- Image Preview -->
                 <div style="margin-bottom: 24px;">
@@ -12404,10 +12623,10 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                                 <polyline points="21 15 16 10 5 21"></polyline>
                             </svg>
                             <div>No image selected</div>
-                        </div>
+            </div>
                         <img id="practitionerImagePreview" src="" alt="Preview" style="display: none; width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                </div>
+                        </div>
+                            </div>
 
                 <!-- Action Buttons -->
                 <div style="display: grid; gap: 12px;">
@@ -12415,9 +12634,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; border-radius: 6px; flex-shrink: 0;">
                                 <img src="assets/icons/camera.svg" class="icon" alt="Camera" style="width: 16px; height: 16px;">
-                            </div>
-                            <span>Take Photo</span>
                         </div>
+                            <span>Take Photo</span>
+                    </div>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
@@ -12427,9 +12646,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; border-radius: 6px; flex-shrink: 0;">
                                 <img src="assets/icons/gallery.svg" class="icon" alt="Gallery" style="width: 16px; height: 16px;">
-                            </div>
+                </div>
                             <span>Choose from Gallery</span>
-                        </div>
+                </div>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
@@ -12441,7 +12660,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                                 <img src="assets/icons/edit.svg" class="icon" alt="Edit" style="width: 16px; height: 16px;">
                             </div>
                             <span>Edit Image</span>
-                        </div>
+                            </div>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
@@ -12451,9 +12670,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #fee2e2; border-radius: 6px; flex-shrink: 0;">
                                 <img src="assets/icons/trash.svg" class="icon" alt="Trash" style="width: 16px; height: 16px;">
-                            </div>
+            </div>
                             <span>Delete Photo</span>
-                        </div>
+                </div>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
@@ -12473,7 +12692,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             <div class="modal-body">
                 <div style="width: 100%; max-height: 400px; background: #f9fafb; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
                     <img id="practitionerCropImage" src="" alt="Crop" style="max-width: 100%; display: block;">
-                </div>
+                        </div>
                 <div style="display: flex; gap: 12px; justify-content: center;">
                     <button onclick="closePractitionerCropModal()" style="padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: #e5e7eb; color: #374151;" onmouseover="this.style.background='#d1d5db';" onmouseout="this.style.background='#e5e7eb';">Cancel</button>
                     <button onclick="savePractitionerCroppedImage()" style="padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: #0b7285; color: white;" onmouseover="this.style.background='#095a69';" onmouseout="this.style.background='#0b7285';">Save Crop</button>
