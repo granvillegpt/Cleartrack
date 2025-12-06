@@ -298,7 +298,7 @@
 
         <!-- Tabs -->
         <div class="tabs">
-            <div class="tab active" data-tab="heroicons">Heroicons Outline</div>
+            <div class="tab" data-tab="heroicons">Heroicons Outline</div>
             <div class="tab" data-tab="heroicons-solid">Heroicons Solid</div>
             <div class="tab" data-tab="feather">Feather Icons</div>
             <div class="tab" data-tab="material">Material Outline</div>
@@ -306,10 +306,11 @@
             <div class="tab" data-tab="vehicles">🚗 Vehicles</div>
             <div class="tab" data-tab="money">💰 Money & Finance</div>
             <div class="tab" data-tab="communication">📱 Communication & Media</div>
+            <div class="tab active" data-tab="assets">📁 Assets Icons</div>
         </div>
 
         <!-- Heroicons Outline (Current Style) -->
-        <div id="heroicons" class="tab-content active">
+        <div id="heroicons" class="tab-content">
             <div class="icon-pack">
                 <h2>Heroicons Outline</h2>
                 <p class="icon-pack-description">
@@ -394,6 +395,17 @@
                     Icons for communication, media, and multimedia features including camera, phone, microphone, video, and messaging.
                 </p>
                 <div class="icon-grid" id="communication-grid"></div>
+            </div>
+        </div>
+
+        <!-- Assets Icons (From assets/icons folder) -->
+        <div id="assets" class="tab-content active">
+            <div class="icon-pack">
+                <h2>📁 Assets Icons</h2>
+                <p class="icon-pack-description">
+                    Icons from your assets/icons folder. These are the actual SVG files used in your application.
+                </p>
+                <div class="icon-grid" id="assets-grid"></div>
             </div>
         </div>
     </div>
@@ -593,6 +605,46 @@
             Object.keys(communicationIcons).forEach(key => {
                 const item = communicationIcons[key];
                 communicationGrid.appendChild(createIconItem(key, 'communication', item.path, false, item.name, item.isFilled || false));
+            });
+
+            // Assets Icons - Load from actual SVG files
+            const assetsGrid = document.getElementById('assets-grid');
+            const assetIcons = [
+                'camera', 'car', 'check', 'clock', 'document', 'download', 'edit', 'email', 
+                'eye', 'folder', 'gallery', 'info', 'message', 'money', 'percent', 'phone', 
+                'refresh', 'road', 'search', 'star', 'trash', 'user', 'video'
+            ];
+            
+            assetIcons.forEach(iconName => {
+                const iconItem = document.createElement('div');
+                iconItem.className = 'icon-item';
+                iconItem.innerHTML = `
+                    <div class="icon-preview">
+                        <img src="assets/icons/${iconName}.svg" class="icon-preview-img" alt="${iconName}" style="width: 48px; height: 48px; object-fit: contain;">
+                    </div>
+                    <div class="icon-name">${iconName.charAt(0).toUpperCase() + iconName.slice(1)}</div>
+                    <div class="icon-code">&lt;img src="assets/icons/${iconName}.svg" class="icon" alt="${iconName}"&gt;</div>
+                    <button class="copy-btn" onclick="copyAssetIcon('${iconName}', event)">Copy Code</button>
+                `;
+                iconItem.onclick = () => {
+                    document.querySelectorAll('.icon-item').forEach(item => item.classList.remove('selected'));
+                    iconItem.classList.add('selected');
+                };
+                assetsGrid.appendChild(iconItem);
+            });
+        }
+
+        function copyAssetIcon(iconName, event) {
+            event.stopPropagation();
+            const code = `<img src="assets/icons/${iconName}.svg" class="icon" alt="${iconName}">`;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = event.target;
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy Code';
+                    btn.classList.remove('copied');
+                }, 2000);
             });
         }
 

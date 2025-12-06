@@ -2107,7 +2107,7 @@ td {
 }
 
 .profile-edit-btn {
-    background: #10b981;
+    background: #0b7285;
     color: white;
     border: none;
     border-radius: 6px;
@@ -2115,6 +2115,10 @@ td {
     cursor: pointer;
     font-size: 0.75rem;
     font-weight: 500;
+}
+
+.profile-edit-btn:hover {
+    background: #095a69;
 }
 
 /* Form Styles */

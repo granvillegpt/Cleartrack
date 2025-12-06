@@ -1,7 +1,7 @@
 // Service Worker for Cleartrack PWA - Updated for performance and stability
-const CACHE_NAME = 'cleartrack-v2024-21';
-const STATIC_CACHE = 'cleartrack-static-v2024-21';
-const DYNAMIC_CACHE = 'cleartrack-dynamic-v2024-21';
+const CACHE_NAME = 'cleartrack-v2024-22';
+const STATIC_CACHE = 'cleartrack-static-v2024-22';
+const DYNAMIC_CACHE = 'cleartrack-dynamic-v2024-22';
 
 const urlsToCache = [
   '/',

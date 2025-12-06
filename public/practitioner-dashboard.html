@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="whatsapp-messaging.css">
     <link rel="stylesheet" href="responsive-fixes.css">
     <link rel="stylesheet" href="css/ct-theme.css" />
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css">
     <style>
         * {
             margin: 0;
@@ -22,6 +24,17 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
         
         body {
@@ -740,52 +753,160 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+        
+        .modal-overlay:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
         }
         
         .modal {
             background: white;
-            border-radius: 8px;
-            padding: 2rem;
+            border-radius: 20px;
             max-width: 600px;
             width: 90%;
             max-height: 90vh;
-            overflow-y: auto;
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-overlay:not(.hidden) .modal {
+            transform: scale(1) translateY(0);
         }
         
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 24px;
+            border-bottom: none;
+            margin-bottom: 0;
+            flex-shrink: 0;
+            width: 100%;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #0b7285 0%, #0891b2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .modal-title {
-            font-size: 1.25rem;
+            font-size: 20px;
             font-weight: 600;
-            color: #111827;
+            color: white;
+            margin: 0;
         }
         
         .modal-close {
-            background: none;
+            background: rgba(255,255,255,0.2);
             border: none;
-            font-size: 1.5rem;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 24px;
             cursor: pointer;
-            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            line-height: 1;
+            flex-shrink: 0;
         }
         
         .modal-close:hover {
-            color: #374151;
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
         }
         
         .hidden {
             display: none;
+        }
+        
+        /* Icon Styles - Ensure icons from assets/icons work properly */
+        .icon {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+        
+        /* Icon sizes for img tags */
+        img.icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        img.icon-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        img.icon-lg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+        
+        img.icon-xl {
+            width: 2rem;
+            height: 2rem;
+        }
+        
+        img.icon-2xl {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        /* Icon colors for images using CSS filters */
+        img.icon-gray-500 {
+            filter: brightness(0) saturate(100%) invert(48%) sepia(6%) saturate(750%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+        
+        img.icon-green-600 {
+            filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
+        }
+        
+        img.icon-blue-600 {
+            filter: brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1352%) hue-rotate(194deg) brightness(97%) contrast(96%);
+        }
+        
+        img.icon-red-600 {
+            filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+        }
+        
+        /* Ensure icons align properly in buttons and text */
+        .btn .icon,
+        .btn img.icon {
+            margin-right: 0.375rem;
+        }
+        
+        .btn .icon:last-child,
+        .btn img.icon:last-child {
+            margin-right: 0;
+            margin-left: 0.375rem;
         }
         
         /* Invoice Preview Styles */
@@ -2308,15 +2429,10 @@
                         <h4>Share this code with clients to connect:</h4>
                         <div class="code" id="practitionerCode">Loading...</div>
                         <button class="btn btn-primary btn-copy-code" id="copyCodeBtn" onclick="copyPractitionerCode()">
-                            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M5 15H4C3.46957 15 2.96086 14.7893 2.58579 14.4142C2.21071 14.0391 2 13.5304 2 13V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2H13C13.5304 2 14.0391 2.21071 14.4142 2.58579C14.7893 2.96086 15 3.46957 15 4V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg> Copy Your Code
+                            <img src="assets/icons/copy-and-paste.svg" class="icon icon-sm" alt="Copy"> Copy Your Code
                         </button>
                         <div id="copySuccessMessage" class="copy-success-message">
-                            <svg class="icon icon-sm icon-green-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg> Code copied to clipboard successfully!
+                            <img src="assets/icons/check.svg" class="icon icon-sm icon-green-600" alt="Success"> Code copied to clipboard successfully!
                         </div>
                         <p class="text-muted-small">
                             Clients can use this code to connect to your practice
@@ -2373,10 +2489,7 @@
                             <div class="search-input-wrapper">
                                 <input type="text" id="clientSearchInput" placeholder="Search clients by name, email, or phone..." class="search-input">
                                 <div class="search-icon">
-                                <svg class="icon icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
                             </div>
                             </div>
                             <div class="search-filters">
@@ -2414,12 +2527,17 @@
                     <div class="whatsapp-sidebar">
                         <div class="whatsapp-sidebar-header">
                             <div class="whatsapp-sidebar-actions">
-                                <button onclick="refreshPractitionerMessages()" title="Refresh">🔄</button>
+                                <button onclick="refreshPractitionerMessages()" title="Refresh">
+                                    <img src="assets/icons/refresh.svg" class="icon icon-sm" alt="Refresh">
+                                </button>
                         </div>
                             </div>
                         
-                        <div class="whatsapp-search">
-                            <input type="text" placeholder="Search clients" id="clientSearch">
+                        <div class="whatsapp-search" style="position: relative;">
+                            <input type="text" placeholder="Search clients" id="clientSearch" style="padding-left: 40px; position: relative;">
+                            <div class="search-icon" style="position: absolute; left: 28px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 1;">
+                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search" style="width: 18px; height: 18px;">
+                            </div>
                         </div>
                         
                         <div class="whatsapp-chat-list" id="conversationsList">
@@ -2431,24 +2549,28 @@
                     <div class="whatsapp-main">
                         <div class="whatsapp-chat-header" id="chatHeaderInfo">
                             <div class="whatsapp-chat-contact">
-                                <div class="whatsapp-chat-contact-avatar">👤</div>
+                                <div class="whatsapp-chat-contact-avatar">
+                                    <img src="assets/icons/user.svg" class="icon icon-lg" alt="Profile">
+                                </div>
                                 <div class="whatsapp-chat-contact-info">
                                 <h3>Select a client to start chatting</h3>
                                 <p>Choose a client from the left to view your conversation</p>
                                 </div>
                             </div>
                             <div class="whatsapp-chat-actions">
-                                <button onclick="callClient()" title="Call">📞</button>
-                                <button onclick="videoCallClient()" title="Video">📹</button>
+                                <button onclick="callClient()" title="Call">
+                                    <img src="assets/icons/phone.svg" class="icon icon-sm" alt="Call">
+                                </button>
+                                <button onclick="videoCallClient()" title="Video">
+                                    <img src="assets/icons/video.svg" class="icon icon-sm" alt="Video">
+                                </button>
                             </div>
                         </div>
                         
                         <div class="whatsapp-messages" id="conversationMessages">
                                 <div class="chat-empty-state">
                                     <div class="chat-empty-icon">
-                                        <svg class="icon icon-2xl icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
+                                        <img src="assets/icons/message.svg" class="icon icon-2xl icon-gray-500" alt="Message">
                                     </div>
                                     <h3 class="chat-empty-title">No conversation selected</h3>
                                     <p class="chat-empty-text">Select a client from the left to start or continue your conversation</p>
@@ -2459,19 +2581,27 @@
                             <!-- Attachment menu -->
                             <div class="whatsapp-attachment-menu" id="attachmentMenu">
                                 <button class="whatsapp-attachment-item" onclick="document.getElementById('fileInput').click(); closeAttachmentMenu();">
-                                    <div class="whatsapp-attachment-icon">📄</div>
+                                    <div class="whatsapp-attachment-icon">
+                                        <img src="assets/icons/document.svg" class="icon icon-sm" alt="Document">
+                                    </div>
                                     <div class="whatsapp-attachment-text">Document</div>
                                         </button>
                                 <button class="whatsapp-attachment-item" onclick="document.getElementById('imageInput').click(); closeAttachmentMenu();">
-                                    <div class="whatsapp-attachment-icon">📷</div>
+                                    <div class="whatsapp-attachment-icon">
+                                        <img src="assets/icons/camera.svg" class="icon icon-sm" alt="Camera">
+                                    </div>
                                     <div class="whatsapp-attachment-text">Camera</div>
                                         </button>
                                 <button class="whatsapp-attachment-item" onclick="document.getElementById('fileInput').click(); closeAttachmentMenu();">
-                                    <div class="whatsapp-attachment-icon">🖼️</div>
+                                    <div class="whatsapp-attachment-icon">
+                                        <img src="assets/icons/gallery.svg" class="icon icon-sm" alt="Gallery">
+                                    </div>
                                     <div class="whatsapp-attachment-text">Gallery</div>
                                         </button>
                                 <button class="whatsapp-attachment-item" onclick="startVoiceRecording(); closeAttachmentMenu();">
-                                    <div class="whatsapp-attachment-icon">🎤</div>
+                                    <div class="whatsapp-attachment-icon">
+                                        <img src="assets/icons/message.svg" class="icon icon-sm" alt="Audio">
+                                    </div>
                                     <div class="whatsapp-attachment-text">Audio</div>
                                         </button>
                                 </div>
@@ -2485,12 +2615,16 @@
                                 
                             <div class="whatsapp-input-container">
                                 <div class="whatsapp-input-actions">
-                                    <button onclick="toggleAttachmentMenu()" title="Attach">➕</button>
+                                    <button onclick="toggleAttachmentMenu()" title="Attach">
+                                        <img src="assets/icons/document.svg" class="icon icon-sm" alt="Attach">
+                                    </button>
                                     <button onclick="toggleEmojiPicker()" title="Emoji">😊</button>
                                 </div>
                                 <textarea id="practitionerMessageText" class="whatsapp-input" placeholder="Type a message" rows="1" onkeydown="handleMessageKeydown(event)" oninput="autoResize(this)"></textarea>
                                 <div class="whatsapp-input-actions">
-                                    <button onclick="sendPractitionerMessage()" class="send" title="Send">➤</button>
+                                    <button onclick="sendPractitionerMessage()" class="send" title="Send">
+                                        <img src="assets/icons/message.svg" class="icon icon-sm" alt="Send">
+                                    </button>
                                 </div>
                                 </div>
                                 
@@ -2550,10 +2684,7 @@
                         <div class="search-input-wrapper">
                             <input type="text" id="taxReturnsSearchInput" placeholder="Search tax returns by client name, tax year, or status..." class="search-input">
                             <div class="search-icon">
-                                <svg class="icon icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
                             </div>
                         </div>
                         <div class="search-filters">
@@ -2607,10 +2738,7 @@
                             <div class="search-input-wrapper">
                                 <input type="text" id="invoiceSearchInput" placeholder="Search invoices by client name, invoice number, or amount..." class="search-input">
                                 <div class="search-icon">
-                                <svg class="icon icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
                             </div>
                             </div>
                             <div class="search-filters">
@@ -2843,51 +2971,53 @@
     </div>
     
     <!-- Add Client Modal -->
-    <div id="addClientModal" class="modal-overlay hidden">
-        <div class="modal">
+    <div id="addClientModal" class="modal-overlay hidden" onclick="hideAddClientModalOnOverlay(event)">
+        <div class="modal" style="max-width: 600px; width: 90%;" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3 class="modal-title">Add Client</h3>
-                <button class="modal-close" onclick="hideAddClientModal()">&times;</button>
+                <h3 id="addClientModalTitle" class="modal-title">Add Client</h3>
+                <button onclick="hideAddClientModal()" class="modal-close">&times;</button>
             </div>
             
-            <form id="addClientForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="clientFirstName">First Name</label>
-                        <input type="text" id="clientFirstName" required>
+            <div class="modal-body">
+                <form id="addClientForm" style="display: flex; flex-direction: column; gap: 0;">
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="clientFirstName" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">First Name <span style="color: #dc2626;">*</span></label>
+                            <input type="text" id="clientFirstName" required style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="clientLastName" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Last Name <span style="color: #dc2626;">*</span></label>
+                            <input type="text" id="clientLastName" required style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="clientLastName">Last Name</label>
-                        <input type="text" id="clientLastName" required>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="clientEmail" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Email Address <span style="color: #dc2626;">*</span></label>
+                        <input type="email" id="clientEmail" required style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="clientEmail">Email Address</label>
-                    <input type="email" id="clientEmail" required>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="clientPhone">Phone Number</label>
-                        <input type="tel" id="clientPhone">
+                    
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="clientPhone" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Phone Number</label>
+                            <input type="tel" id="clientPhone" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="clientTaxNumber" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Tax Number</label>
+                            <input type="text" id="clientTaxNumber" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="clientTaxNumber">Tax Number</label>
-                        <input type="text" id="clientTaxNumber">
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="clientNotes" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151; font-size: 14px;">Notes <span style="color: #6b7280; font-weight: 400; font-size: 13px;">(Optional)</span></label>
+                        <textarea id="clientNotes" rows="3" placeholder="Any additional notes about this client" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.2s ease; background: white; resize: vertical; font-family: inherit;" onfocus="this.style.borderColor='#0b7285'; this.style.boxShadow='0 0 0 3px rgba(11, 114, 133, 0.1)';" onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none';"></textarea>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="clientNotes">Notes (Optional)</label>
-                    <textarea id="clientNotes" rows="3" placeholder="Any additional notes about this client"></textarea>
-                </div>
-                
-                <div style="display: flex; gap: 1rem;">
-                    <button type="submit" class="btn btn-primary">Add Client</button>
-                    <button type="button" class="btn btn-outline" onclick="hideAddClientModal()">Cancel</button>
-                </div>
-            </form>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                        <button type="button" onclick="hideAddClientModal()" style="padding: 12px 24px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: white; color: #374151;" onmouseover="this.style.borderColor='#d1d5db'; this.style.background='#f9fafb';" onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='white';">Cancel</button>
+                        <button type="submit" style="padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: linear-gradient(135deg, #0b7285 0%, #0891b2 100%); color: white; box-shadow: 0 4px 12px rgba(11, 114, 133, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(11, 114, 133, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(11, 114, 133, 0.3)';">Add Client</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     
@@ -2948,11 +3078,7 @@
             <div style="padding: 1rem; border-top: 1px solid #e5e7eb; display: flex; gap: 1rem; justify-content: flex-end;">
                 <button class="btn btn-outline" onclick="hideDocumentViewerModal()">Close</button>
                 <button class="btn btn-primary" id="downloadFromViewerBtn" onclick="downloadFromViewer()">
-                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg> Download
+                    <img src="assets/icons/download.svg" class="icon icon-sm" alt="Download"> Download
                 </button>
             </div>
         </div>
@@ -3209,10 +3335,12 @@
                 cleartrackData.setData(data);
             }
             initializePractitioner();
+            // Load data - updateDashboard will be called by loadClients() after clients are loaded
             loadClients();
             loadTaxReturns();
             loadInvoices();
-            updateDashboard();
+            // Also call updateDashboard here as a fallback, but loadClients() will call it too
+            setTimeout(() => updateDashboard(), 100);
             
             // Setup invoice form
             setupInvoiceForm();
@@ -3561,17 +3689,10 @@
                             </div>
                             <div class="document-actions">
                                 <button class="btn btn-outline btn-sm" onclick="viewDocument('${doc.id}', '${doc.fileName}')">
-                                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg> View
+                                    <img src="assets/icons/eye.svg" class="icon icon-sm" alt="View"> View
                                 </button>
                                 <button class="btn btn-primary btn-sm" onclick="downloadDocument('${doc.id}', '${doc.fileName}')">
-                                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg> Download
+                                    <img src="assets/icons/download.svg" class="icon icon-sm" alt="Download"> Download
                                 </button>
                             </div>
                         </div>
@@ -3657,12 +3778,7 @@
                         viewerContent = `
                             <div style="text-align: center; padding: 2rem; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
                                 <div class="no-client-icon">
-                                    <svg class="icon icon-2xl icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
+                                    <img src="assets/icons/document.svg" class="icon icon-2xl icon-gray-500" alt="Document">
                                 </div>
                                 <p style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">This file type cannot be previewed in the browser.</p>
                                 <p class="text-gray-500 text-sm" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">Please download the file to view it.</p>
@@ -3674,12 +3790,7 @@
                     viewerContent = `
                         <div style="text-align: center; padding: 2rem; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
                             <div class="no-client-icon">
-                                <svg class="icon icon-2xl icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <img src="assets/icons/document.svg" class="icon icon-2xl icon-gray-500" alt="Document">
                             </div>
                             <h3 class="mb-4" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">${fileName}</h3>
                             <p style="color: #6b7280; margin-bottom: 1.5rem; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">This file type cannot be previewed in the browser.</p>
@@ -3807,12 +3918,7 @@
                         viewerContent = `
                             <div style="text-align: center; padding: 2rem; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
                                 <div class="no-client-icon">
-                                    <svg class="icon icon-2xl icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
+                                    <img src="assets/icons/document.svg" class="icon icon-2xl icon-gray-500" alt="Document">
                                 </div>
                                 <p style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">This file type cannot be previewed in the browser.</p>
                                 <p class="text-gray-500 text-sm" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">Please download the file to view it.</p>
@@ -3824,12 +3930,7 @@
                     viewerContent = `
                         <div style="text-align: center; padding: 2rem; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
                             <div class="no-client-icon">
-                                <svg class="icon icon-2xl icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <img src="assets/icons/document.svg" class="icon icon-2xl icon-gray-500" alt="Document">
                             </div>
                             <h3 class="mb-4" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">${fileName}</h3>
                             <p style="color: #6b7280; margin-bottom: 1.5rem; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">This file type cannot be previewed in the browser.</p>
@@ -3920,13 +4021,7 @@
                                         <div style="font-weight: 600; color: #374151;">${client.firstName} ${client.lastName}</div>
                                         <div class="text-sm text-gray-500">${client.email}</div>
                                         <div style="font-size: 0.75rem; color: #059669; margin-top: 0.25rem;">
-                                            <svg class="icon icon-sm icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg> ${client.documentCount || 0} Documents • <svg class="icon icon-sm icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <line x1="12" y1="1" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M17 5H9.5C8.11929 5 7 6.11929 7 7.5S8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5S15.8807 15 14.5 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg> ${client.expenseCount || 0} Expenses
+                                            <img src="assets/icons/document.svg" class="icon icon-sm icon-gray-500" alt="Documents"> ${client.documentCount || 0} Documents • <img src="assets/icons/money.svg" class="icon icon-sm icon-gray-500" alt="Expenses"> ${client.expenseCount || 0} Expenses
                                         </div>
                                     </div>
                                 </div>
@@ -4009,9 +4104,7 @@
                                     <div style="font-weight: 600; color: #374151;">Tax Year ${return_.taxYear}</div>
                                     <div class="text-sm text-gray-500">Client: ${return_.clientName || 'Unknown'}</div>
                                     <div style="font-size: 0.75rem; color: #dc2626; margin-top: 0.25rem;">
-                                        <svg class="icon icon-sm icon-green-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg> Completed on ${new Date(return_.completedAt || return_.createdAt).toLocaleDateString()}
+                                        <img src="assets/icons/check.svg" class="icon icon-sm icon-green-600" alt="Completed"> Completed on ${new Date(return_.completedAt || return_.createdAt).toLocaleDateString()}
                                     </div>
                                 </div>
                                 <div class="flex gap-2">
@@ -4404,45 +4497,26 @@
                 // Preview invoice actions
                 actionButtons.innerHTML = `
                     <button class="btn btn-primary" onclick="generateInvoiceFromPreview('${invoice.taxYear}')" style="display: flex; align-items: center; gap: 8px; background: #3b82f6; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="12" y1="1" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M17 5H9.5C8.11929 5 7 6.11929 7 7.5S8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5S15.8807 15 14.5 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Generate Invoice
+                        <img src="assets/icons/money.svg" class="icon icon-sm" alt="Generate"> Generate Invoice
                     </button>
                     <button class="btn btn-outline" onclick="hideInvoicePreviewModal()" style="display: flex; align-items: center; gap: 8px; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Close Preview
+                        <img src="assets/icons/trash.svg" class="icon icon-sm" alt="Close"> Close Preview
                     </button>
                 `;
             } else {
                 // Real invoice actions
                 actionButtons.innerHTML = `
                     <button class="btn btn-primary" onclick="sendInvoiceViaChat()" style="display: flex; align-items: center; gap: 8px; background: #3b82f6; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Send via Chat
+                        <img src="assets/icons/message.svg" class="icon icon-sm" alt="Chat"> Send via Chat
                     </button>
                     <button class="btn btn-success" onclick="sendInvoiceViaEmail()" style="display: flex; align-items: center; gap: 8px; background: #10b981; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Send via Email
+                        <img src="assets/icons/email.svg" class="icon icon-sm" alt="Email"> Send via Email
                     </button>
                     <button class="btn btn-outline" onclick="downloadCurrentInvoicePDF()" style="display: flex; align-items: center; gap: 8px; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Download PDF
+                        <img src="assets/icons/download.svg" class="icon icon-sm" alt="Download"> Download PDF
                     </button>
                     <button class="btn btn-secondary" onclick="printInvoice()" style="display: flex; align-items: center; gap: 8px; background: #6b7280; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M6 18H4C3.46957 18 2.96086 17.7893 2.58579 17.4142C2.21071 17.0391 2 16.5304 2 16V11C2 10.4696 2.21071 9.96086 2.58579 9.58579C2.96086 9.21071 3.46957 9 4 9H20C20.5304 9 21.0391 9.21071 21.4142 9.58579C21.7893 9.96086 22 10.4696 22 11V16C22 16.5304 21.7893 17.0391 21.4142 17.4142C21.0391 17.7893 20.5304 18 20 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <polyline points="6,14 6,18 18,18 18,14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Print Invoice
+                        <img src="assets/icons/document.svg" class="icon icon-sm" alt="Print"> Print Invoice
                     </button>
                 `;
             }
@@ -4822,11 +4896,7 @@
                     // Show user-friendly message
                     const message = `
                         <div style="position: fixed; top: 10px; right: 10px; background: #10b981; color: white; padding: 10px 15px; border-radius: 6px; font-size: 14px; z-index: 9999;">
-                            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 12.92 14 10.92 14C9.42 14 8.42 13 7.92 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg> Tip: Use Ctrl+P (Cmd+P on Mac) to print or save as PDF
+                            <img src="assets/icons/info.svg" class="icon icon-sm" alt="Info"> Tip: Use Ctrl+P (Cmd+P on Mac) to print or save as PDF
                         </div>
                     `;
                     printWindow.document.body.insertAdjacentHTML('afterbegin', message);
@@ -6212,10 +6282,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             document.getElementById('clientDataContent').innerHTML = `
                 <div class="mb-8">
                     <h4 style="margin-bottom: 1rem; color: #374151;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Documents (${documents.length})
+                        <img src="assets/icons/document.svg" class="icon icon-sm" alt="Documents"> Documents (${documents.length})
                     </h4>
                     ${documents.length === 0 ? 
                         '<p style="color: #6b7280; text-align: center; padding: 1rem;">No documents uploaded</p>' :
@@ -6231,13 +6298,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 
                 <div class="mb-8">
                     <h4 style="margin-bottom: 1rem; color: #374151;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M7 17H4C3.46957 17 2.96086 16.7893 2.58579 16.4142C2.21071 16.0391 2 15.5304 2 15V12C2 11.4696 2.21071 10.9609 2.58579 10.5858C2.96086 10.2107 3.46957 10 4 10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M17 17H20C20.5304 17 21.0391 16.7893 21.4142 16.4142C21.7893 16.0391 22 15.5304 22 15V12C22 11.4696 21.7893 10.9609 21.4142 10.5858C21.0391 10.2107 20.5304 10 20 10H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M7 10V6C7 5.46957 7.21071 4.96086 7.58579 4.58579C7.96086 4.21071 8.46957 4 9 4H15C15.5304 4 16.0391 4.21071 16.4142 4.58579C16.7893 4.96086 17 5.46957 17 6V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="6" cy="17" r="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="18" cy="17" r="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Vehicles (${vehicles.length})
+                        <img src="assets/icons/car.svg" class="icon icon-sm" alt="Vehicles"> Vehicles (${vehicles.length})
                     </h4>
                     ${vehicles.length === 0 ? 
                         '<p style="color: #6b7280; text-align: center; padding: 1rem;">No vehicles registered</p>' :
@@ -6254,10 +6315,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 <div class="mb-8">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h4 style="color: #374151; margin: 0;">
-                            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <line x1="12" y1="1" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M17 5H9.5C8.11929 5 7 6.11929 7 7.5S8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5S15.8807 15 14.5 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg> Expenses (${expenses.length}) - Total: R ${expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0).toLocaleString()}
+                            <img src="assets/icons/money.svg" class="icon icon-sm" alt="Expenses"> Expenses (${expenses.length}) - Total: R ${expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0).toLocaleString()}
                         </h4>
                         ${expenses.length > 0 ? `
                             <button class="btn btn-outline btn-sm" onclick="openExpenseModal('${clientId}')">
@@ -6352,13 +6410,13 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             successMessage.style.display = 'block';
             
             // Update button
-            button.innerHTML = '<svg class="icon icon-sm icon-green-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!';
+            button.innerHTML = '<img src="assets/icons/check.svg" class="icon icon-sm icon-green-600" alt="Copied"> Copied!';
             button.style.background = '#059669';
             
             // Hide success message and reset button after 3 seconds
             setTimeout(() => {
                 successMessage.style.display = 'none';
-                button.textContent = originalText;
+                button.innerHTML = '<img src="assets/icons/copy-and-paste.svg" class="icon icon-sm" alt="Copy"> Copy Your Code';
                 button.style.background = '#2563eb';
             }, 3000);
         }
@@ -6461,10 +6519,10 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 const clickedOnclick = clickedLink.getAttribute('onclick');
                 if (clickedOnclick) {
                     document.querySelectorAll('.nav-link, .nav a, .nav-style6 a').forEach(link => {
-                        if (link.getAttribute('onclick') === clickedOnclick) {
-                            link.classList.add('active');
-                        }
-                    });
+                    if (link.getAttribute('onclick') === clickedOnclick) {
+                        link.classList.add('active');
+                    }
+                });
                 }
             } else {
                 // Fallback: find link by section name
@@ -6557,19 +6615,44 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Update dashboard statistics
         function updateDashboard() {
-            document.getElementById('totalClients').textContent = clients.length;
+            // Ensure clients array exists
+            if (!clients) {
+                clients = [];
+            }
+            
+            // Safely update total clients with null check
+            const totalClientsEl = document.getElementById('totalClients');
+            if (totalClientsEl) {
+                totalClientsEl.textContent = clients.length || 0;
+            }
             
             // Count active clients (those with documents or expenses)
             const activeClientsCount = clients.filter(client => 
                 (client.documentCount || 0) > 0 || (client.expenseCount || 0) > 0
             ).length;
-            document.getElementById('activeClients').textContent = activeClientsCount;
+            
+            const activeClientsEl = document.getElementById('activeClients');
+            if (activeClientsEl) {
+                activeClientsEl.textContent = activeClientsCount;
+            }
+            
+            // Ensure taxReturns array exists
+            if (!taxReturns) {
+                taxReturns = [];
+            }
             
             const pendingReturns = taxReturns.filter(r => r.status === 'pending' || r.status === 'in_progress').length;
             const completedReturns = taxReturns.filter(r => r.status === 'completed').length;
             
-            document.getElementById('pendingReturns').textContent = pendingReturns;
-            document.getElementById('completedReturns').textContent = completedReturns;
+            const pendingReturnsEl = document.getElementById('pendingReturns');
+            if (pendingReturnsEl) {
+                pendingReturnsEl.textContent = pendingReturns;
+            }
+            
+            const completedReturnsEl = document.getElementById('completedReturns');
+            if (completedReturnsEl) {
+                completedReturnsEl.textContent = completedReturns;
+            }
             
             // Add status summary
             updateStatusSummary(clients.length, activeClientsCount, pendingReturns, completedReturns);
@@ -6624,11 +6707,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                             <div style="padding: 0.75rem; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 0.375rem;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem; color: #92400e; font-weight: 500;">
                                     <span>
-                                        <svg class="icon icon-sm icon-red-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M10.29 3.86L1.82 18C1.64547 18.3024 1.5729 18.6453 1.61257 18.9873C1.65224 19.3293 1.8017 19.6487 2.03969 19.9019C2.27768 20.155 2.59083 20.3279 2.9355 20.3951C3.28017 20.4623 3.6404 20.4203 3.96 20.275L12 16.77L20.04 20.275C20.3596 20.4203 20.7198 20.4623 21.0645 20.3951C21.4092 20.3279 21.7223 20.155 21.9603 19.9019C22.1983 19.6487 22.3478 19.3293 22.3874 18.9873C22.4271 18.6453 22.3545 18.3024 22.18 18L13.71 3.86C13.5318 3.56631 13.2807 3.32312 12.9812 3.15447C12.6817 2.98582 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98582 11.0188 3.15447C10.7193 3.32312 10.4682 3.56631 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
+                                        <img src="assets/icons/info.svg" class="icon icon-sm icon-red-600" alt="Warning">
                                     </span>
                                     <span>${readyForInvoicing} client${readyForInvoicing !== 1 ? 's' : ''} ready for invoicing</span>
                                 </div>
@@ -6659,9 +6738,14 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Load clients from real data storage
         function loadClients() {
-            if (!practitioner) return;
+            if (!practitioner) {
+                // If no practitioner, ensure clients is an empty array
+                clients = [];
+                updateDashboard();
+                return;
+            }
             
-            clients = cleartrackData.getConnectedUsers(practitioner.id);
+            clients = cleartrackData.getConnectedUsers(practitioner.id) || [];
             
             // Calculate document and expense counts for each client
             clients.forEach(client => {
@@ -6678,6 +6762,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             
             updateClientsDisplay();
             setupClientSearch();
+            // Always update dashboard after loading clients
+            updateDashboard();
         }
         
         // Original loadClients display logic (now in updateClientsDisplay)
@@ -7074,7 +7160,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (displayInvoices.length === 0) {
                 invoicesList.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #6b7280;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+                        <div style="margin-bottom: 16px;">
+                            <img src="assets/icons/folder.svg" class="icon icon-2xl icon-gray-500" alt="Invoice">
+                        </div>
                         <h3 style="margin: 0 0 8px 0; color: #374151;">No invoices found</h3>
                         <p class="no-client-text">Generate your first invoice from the Tax Returns tab.</p>
                     </div>
@@ -7140,12 +7228,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                                 </button>
                             ` : ''}
                             <button class="btn btn-sm btn-danger" onclick="deleteInvoice('${invoice.id}')" class="flex items-center gap-1" style="background: #dc2626; color: white; border: none; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
-                                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;">
-                                    <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg> Delete
+                                <img src="assets/icons/trash.svg" class="icon icon-sm" alt="Delete" style="width: 16px; height: 16px;"> Delete
                             </button>
                         </div>
                     </div>
@@ -7213,18 +7296,15 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     <td>${return_.expenses || 0}</td>
                     <td>
                         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                            <button class="btn btn-sm btn-outline" onclick="viewInvoiceFromTaxReturn('${return_.id}')" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; transition: all 0.2s;">
-                                📄 View Invoice
+                            <button class="btn btn-sm btn-outline" onclick="viewInvoiceFromTaxReturn('${return_.id}')" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem;">
+                                <img src="assets/icons/document.svg" class="icon icon-sm" alt="Invoice"> View Invoice
                             </button>
                             ${return_.status === 'pending' || return_.status === 'in_progress' ? 
                                 `<button class="btn btn-sm btn-success" onclick="markTaxReturnCompleted('${return_.id}')" title="Mark as completed" style="background: #10b981; color: white; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; border: none; transition: all 0.2s;">✅ Complete</button>` : 
                                 return_.status === 'completed' ? 
                                     `<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                                         <button class="btn btn-sm btn-primary" onclick="generateInvoice('${return_.id}')" title="Generate invoice" style="background: #3b82f6; color: white; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; border: none; transition: all 0.2s;">
-                                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <line x1="12" y1="1" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M17 5H9.5C8.11929 5 7 6.11929 7 7.5S8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5S15.8807 15 14.5 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Generate Invoice
+                                        <img src="assets/icons/money.svg" class="icon icon-sm" alt="Invoice"> Generate Invoice
                                         </button>
                                         ${hasInvoice ? 
                                             `<span style="color: #10b981; font-size: 0.875rem; font-weight: 500;">✅ Has Invoice</span>` : 
@@ -7242,12 +7322,22 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Add client modal
         function showAddClientModal() {
-            document.getElementById('addClientModal').classList.remove('hidden');
+            const modal = document.getElementById('addClientModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
         
         function hideAddClientModal() {
-            document.getElementById('addClientModal').classList.add('hidden');
+            const modal = document.getElementById('addClientModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
             document.getElementById('addClientForm').reset();
+        }
+
+        function hideAddClientModalOnOverlay(event) {
+            if (event.target.id === 'addClientModal') {
+                hideAddClientModal();
+            }
         }
         
         // Add client form
@@ -8452,13 +8542,16 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 if (addressInput) addressInput.value = client.address || '';
                 
                 // Change the modal title and button text for editing
-                const modalTitle = document.querySelector('#addClientModal .modal-title');
-                const submitButton = document.querySelector('#addClientModal .btn-primary');
+                const modalTitle = document.getElementById('addClientModalTitle');
+                const submitButton = document.querySelector('#addClientForm button[type="submit"]');
                 
                 if (modalTitle) modalTitle.textContent = 'Edit Client';
                 if (submitButton) {
                     submitButton.textContent = 'Update Client';
-                    submitButton.onclick = () => updateClient(clientId);
+                    submitButton.onclick = (e) => {
+                        e.preventDefault();
+                        updateClient(clientId);
+                    };
                 }
             }, 100);
             
@@ -8737,12 +8830,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (!isPreview) {
                 buttonsHTML += `
                     <button class="btn btn-sm btn-danger" onclick="deleteInvoice('${invoiceId}')" class="flex items-center gap-1" style="background: #dc2626; color: white; border: none; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
-                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;">
-                            <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg> Delete
+                        <img src="assets/icons/trash.svg" class="icon icon-sm" alt="Delete" style="width: 16px; height: 16px;"> Delete
                     </button>
                 `;
             }
@@ -9178,8 +9266,12 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     </div>
                 </div>
                 <div class="whatsapp-chat-actions">
-                    <button onclick="callClient()" title="Call">📞</button>
-                    <button onclick="videoCallClient()" title="Video">📹</button>
+                    <button onclick="callClient()" title="Call">
+                        <img src="assets/icons/phone.svg" class="icon icon-sm" alt="Call">
+                    </button>
+                    <button onclick="videoCallClient()" title="Video">
+                        <img src="assets/icons/video.svg" class="icon icon-sm" alt="Video">
+                    </button>
                 </div>
             `;
             
@@ -9292,15 +9384,21 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             // Reset chat header
             document.getElementById('chatHeaderInfo').innerHTML = `
                 <div class="whatsapp-chat-contact">
-                    <div class="whatsapp-chat-contact-avatar">👤</div>
+                    <div class="whatsapp-chat-contact-avatar">
+                        <img src="assets/icons/user.svg" class="icon icon-lg" alt="Profile">
+                    </div>
                     <div class="whatsapp-chat-contact-info">
                         <h3>Select a client to start chatting</h3>
                         <p>Choose a client from the left to view your conversation</p>
                     </div>
                 </div>
                 <div class="whatsapp-chat-actions">
-                    <button onclick="callClient()" title="Call">📞</button>
-                    <button onclick="videoCallClient()" title="Video">📹</button>
+                    <button onclick="callClient()" title="Call">
+                        <img src="assets/icons/phone.svg" class="icon icon-sm" alt="Call">
+                    </button>
+                    <button onclick="videoCallClient()" title="Video">
+                        <img src="assets/icons/video.svg" class="icon icon-sm" alt="Video">
+                    </button>
                 </div>
             `;
             
@@ -9316,9 +9414,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 messagesContainer.innerHTML = `
                     <div class="chat-empty-state">
                         <div class="chat-empty-icon">
-                            <svg class="icon icon-2xl icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <img src="assets/icons/message.svg" class="icon icon-2xl icon-gray-500" alt="Message">
                         </div>
                         <h3 class="chat-empty-title">No conversation selected</h3>
                         <p class="chat-empty-text">Select a client from the left to start or continue your conversation</p>
@@ -9440,7 +9536,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     if (fileType === 'application/pdf') {
                         content = `
                             <div class="whatsapp-file-attachment pdf-attachment">
-                                <div class="whatsapp-file-icon">📄</div>
+                                <div class="whatsapp-file-icon">
+                                    <img src="assets/icons/document.svg" class="icon icon-sm" alt="PDF">
+                                </div>
                                 <div class="whatsapp-file-info">
                                     <div class="whatsapp-file-name">${fileName}</div>
                                     <div class="whatsapp-file-size">PDF Document</div>
@@ -9456,7 +9554,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         // Other document types
                         content = `
                             <div class="whatsapp-file-attachment">
-                                <div class="whatsapp-file-icon">📄</div>
+                                <div class="whatsapp-file-icon">
+                                    <img src="assets/icons/document.svg" class="icon icon-sm" alt="Document">
+                                </div>
                                 <div class="whatsapp-file-info">
                                     <div class="whatsapp-file-name">${fileName}</div>
                                     <div class="whatsapp-file-size">Document</div>
@@ -9474,7 +9574,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     const totalDisplay = isFinite(totalNum) ? totalNum.toFixed(2) : '0.00';
                     content = `
                             <div class="whatsapp-file-attachment">
-                                <div class="whatsapp-file-icon">📄</div>
+                                <div class="whatsapp-file-icon">
+                                    <img src="assets/icons/document.svg" class="icon icon-sm" alt="Invoice">
+                                </div>
                                 <div class="whatsapp-file-info">
                                     <div class="whatsapp-file-name">Invoice ${invNum}</div>
                                     <div class="whatsapp-file-size">R ${totalDisplay}</div>
@@ -10098,12 +10200,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         <iframe src="${fileData}" width="100%" height="600px" frameborder="0" style="border: none; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"></iframe>
                         <div class="pdf-fallback">
                             <div class="no-client-icon">
-                                <svg class="icon icon-2xl icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <img src="assets/icons/document.svg" class="icon icon-2xl icon-gray-500" alt="Document">
                             </div>
                             <h3 style="margin: 1rem 0 0.5rem 0; color: #374151;">PDF Preview Not Available</h3>
                             <p style="color: #6b7280; margin: 0;">This PDF cannot be previewed in the browser. Please download it to view.</p>
@@ -10138,12 +10235,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         <div class="document-preview-content">
                             <div style="text-align: center; padding: 2rem; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
                                 <div class="no-client-icon">
-                                    <svg class="icon icon-2xl icon-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
+                                    <img src="assets/icons/document.svg" class="icon icon-2xl icon-gray-500" alt="Document">
                                 </div>
                                 <p style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">This file type cannot be previewed in the browser.</p>
                                 <p class="text-gray-500 text-sm" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">Please download the file to view it.</p>
@@ -10368,7 +10460,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     mediaRecorder.start();
                     isRecording = true;
                     document.getElementById('voiceRecording').style.display = 'block';
-                    document.getElementById('voiceButton').innerHTML = '<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="12" height="12" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    document.getElementById('voiceButton').innerHTML = '<img src="assets/icons/message.svg" class="icon icon-sm" alt="Voice">';
                 })
                 .catch(error => {
                     console.error('Error accessing microphone:', error);
@@ -10381,7 +10473,10 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 mediaRecorder.stop();
                 isRecording = false;
                 document.getElementById('voiceRecording').style.display = 'none';
-                document.getElementById('voiceButton').textContent = '🎤';
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.innerHTML = '<img src="assets/icons/message.svg" class="icon icon-sm" alt="Voice">';
+                }
             }
         }
         
@@ -10524,6 +10619,17 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     setTimeout(() => container.classList.remove('flash-success'), 900);
                 }
                 
+                // Update modal preview if modal is open
+                const modalPreview = document.getElementById('practitionerImagePreview');
+                const modalPlaceholder = document.getElementById('practitionerImagePlaceholder');
+                const modalContainer = document.getElementById('practitionerImagePreviewContainer');
+                if (modalPreview && modalPlaceholder && modalContainer) {
+                    modalPreview.src = processedDataUrl;
+                    modalPreview.style.display = 'block';
+                    modalPlaceholder.style.display = 'none';
+                    modalContainer.style.border = '2px solid #0b7285';
+                }
+                
                 // Persist to practitioner data store
                 if (practitioner) {
                     practitioner.profileImage = processedDataUrl;
@@ -10640,11 +10746,38 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Professional practitioner profile image functions - Complete modern implementation
         function openPractitionerProfileImageModal() {
-            document.getElementById('practitionerProfileImageOptionsModal').classList.remove('hidden');
+            const modal = document.getElementById('practitionerProfileImageOptionsModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Load current image preview if exists
+            const currentImg = document.getElementById('practitionerProfileImage');
+            const preview = document.getElementById('practitionerImagePreview');
+            const placeholder = document.getElementById('practitionerImagePlaceholder');
+            const container = document.getElementById('practitionerImagePreviewContainer');
+            
+            if (currentImg && currentImg.src && currentImg.style.display !== 'none') {
+                preview.src = currentImg.src;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                container.style.border = '2px solid #0b7285';
+            } else {
+                preview.style.display = 'none';
+                placeholder.style.display = 'block';
+                container.style.border = '2px dashed #e5e7eb';
+            }
         }
         
         function closePractitionerProfileImageModal() {
-            document.getElementById('practitionerProfileImageOptionsModal').classList.add('hidden');
+            const modal = document.getElementById('practitionerProfileImageOptionsModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function closePractitionerProfileImageModalOnOverlay(event) {
+            if (event.target.id === 'practitionerProfileImageOptionsModal') {
+                closePractitionerProfileImageModal();
+            }
         }
         
         function takePractitionerPhoto() {
@@ -10655,11 +10788,6 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         function choosePractitionerPhoto() {
             closePractitionerProfileImageModal();
             document.getElementById('practitionerGalleryInput').click();
-        }
-        
-        function createPractitionerAIImage() {
-            closePractitionerProfileImageModal();
-            alert('AI Image Generation\n\nThis feature will allow you to create professional profile images using AI technology.\n\nComing soon: Generate headshots, multiple styles, high-quality AI images.\n\nFor now, please use "Choose photo" to upload an existing image.');
         }
         
         function deletePractitionerPhoto() {
@@ -10694,7 +10822,170 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         let practitionerCropStartX, practitionerCropStartY;
         let practitionerCropBoxX = 0, practitionerCropBoxY = 0, practitionerCropBoxWidth = 200, practitionerCropBoxHeight = 200;
         
+        // Cropper.js instance for practitioner
+        let practitionerCropper = null;
+
+        function editPractitionerProfileImageWithCrop() {
+            const currentImg = document.getElementById('practitionerProfileImage');
+            if (!currentImg || !currentImg.src || currentImg.style.display === 'none') {
+                alert('Please select an image first');
+                return;
+            }
+            
+            // Close main modal and open crop modal
+            closePractitionerProfileImageModal();
+            openPractitionerCropModal(currentImg.src);
+        }
+
+        function openPractitionerCropModal(imageSrc) {
+            const cropModal = document.getElementById('practitionerCropModal');
+            const cropImage = document.getElementById('practitionerCropImage');
+            
+            cropImage.src = imageSrc;
+            cropModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Initialize cropper after image loads
+            setTimeout(() => {
+                if (practitionerCropper) {
+                    practitionerCropper.destroy();
+                }
+                
+                practitionerCropper = new Cropper(cropImage, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.8,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                    responsive: true,
+                    background: true,
+                    modal: true
+                });
+            }, 100);
+        }
+
+        function closePractitionerCropModal() {
+            const cropModal = document.getElementById('practitionerCropModal');
+            cropModal.classList.add('hidden');
+            document.body.style.overflow = '';
+            
+            if (practitionerCropper) {
+                practitionerCropper.destroy();
+                practitionerCropper = null;
+            }
+        }
+
+        function closePractitionerCropModalOnOverlay(event) {
+            if (event.target.id === 'practitionerCropModal') {
+                closePractitionerCropModal();
+            }
+        }
+
+        function savePractitionerCroppedImage() {
+            if (!practitionerCropper) {
+                alert('Cropper not initialized');
+                return;
+            }
+            
+            // Get cropped canvas
+            const canvas = practitionerCropper.getCroppedCanvas({
+                width: 512,
+                height: 512,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+            
+            if (!canvas) {
+                alert('Error creating cropped image');
+                return;
+            }
+            
+            // Convert to blob
+            canvas.toBlob((blob) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const croppedDataUrl = e.target.result;
+                    
+                    // Update profile image
+                    const profileImg = document.getElementById('practitionerProfileImage');
+                    const placeholder = document.getElementById('practitionerProfileImagePlaceholder');
+                    const container = document.getElementById('practitionerProfileImageContainer');
+                    
+                    profileImg.src = croppedDataUrl;
+                    profileImg.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    
+                    if (container) {
+                        container.classList.add('flash-success');
+                        setTimeout(() => container.classList.remove('flash-success'), 900);
+                    }
+                    
+                    // Save to practitioner data
+                    if (practitioner) {
+                        practitioner.profileImage = croppedDataUrl;
+                        cleartrackData.updatePractitioner(practitioner.id, {
+                            profileImage: croppedDataUrl
+                        });
+                    }
+                    
+                    // Show success
+                    showPractitionerSuccess('Image cropped and saved successfully');
+                    
+                    // Close crop modal
+                    closePractitionerCropModal();
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/jpeg', 0.92);
+        }
+
+        function showPractitionerSuccess(message) {
+            // Create success overlay
+            const successOverlay = document.createElement('div');
+            successOverlay.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 32px;
+                border-radius: 16px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                z-index: 10001;
+                text-align: center;
+                animation: scaleIn 0.3s ease;
+            `;
+            
+            successOverlay.innerHTML = `
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; animation: scaleIn 0.3s ease;">
+                    <span style="color: white; font-size: 32px; font-weight: bold;">✓</span>
+                </div>
+                <div style="font-size: 16px; font-weight: 600; color: #374151; margin-top: 8px;">${message}</div>
+            `;
+            
+            document.body.appendChild(successOverlay);
+            
+            setTimeout(() => {
+                successOverlay.style.animation = 'scaleIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (document.body.contains(successOverlay)) {
+                        document.body.removeChild(successOverlay);
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        // Keep old function for backward compatibility but redirect to crop
         function editPractitionerProfileImage() {
+            editPractitionerProfileImageWithCrop();
+        }
+        
+        function editPractitionerProfileImageOld() {
             if (!practitioner || !practitioner.profileImage) {
                 alert('No image to edit. Please upload an image first.');
                 closePractitionerProfileImageModal();
@@ -11456,51 +11747,113 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
     </script>
 
-    <!-- Practitioner Profile Image Options Modal -->
-    <div id="practitionerProfileImageOptionsModal" class="modal-overlay hidden">
-        <div class="modal" style="max-width: 400px; width: 90%;">
+    <!-- Practitioner Profile Image Options Modal - Premium Version -->
+    <div id="practitionerProfileImageOptionsModal" class="modal-overlay hidden" onclick="closePractitionerProfileImageModalOnOverlay(event)">
+        <div class="modal" style="max-width: 500px; width: 90%;" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3>Edit profile picture</h3>
+                <h3 class="modal-title">Edit Profile Picture</h3>
                 <button onclick="closePractitionerProfileImageModal()" class="modal-close">&times;</button>
             </div>
-            <div class="modal-body" class="p-4">
-                <!-- Image size recommendation -->
-                <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 0.75rem; margin-bottom: 1rem; text-align: center;">
-                    <div style="font-size: 0.875rem; color: #0369a1; font-weight: 500;">📏 Image Requirements</div>
-                    <div style="font-size: 0.75rem; color: #0369a1; margin-top: 0.25rem;">Recommended: 200x200px or larger for best quality</div>
+            <div class="modal-body">
+                <!-- Info Banner -->
+                <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 1px solid #93c5fd; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #1e40af; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Image Requirements
+                    </div>
+                    <div style="font-size: 13px; color: #1e3a8a; line-height: 1.5;">
+                        For best results, use a square image (1:1 ratio) at least 400x400 pixels. 
+                        Supported formats: JPG, PNG, WebP. Max file size: 5MB.
+                    </div>
                 </div>
-                
-                <div style="display: flex; flex-direction: column; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-                    <button onclick="takePractitionerPhoto()" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: none; background: white; border-bottom: 1px solid #e5e7eb; cursor: pointer; font-size: 1rem; color: #374151; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='white'">
-                        <span>Take photo</span>
-                        <span class="attachment-icon">
-                            <img src="assets/icons/camera.svg" class="icon" alt="Camera">
-                        </span>
+
+                <!-- Image Preview -->
+                <div style="margin-bottom: 24px;">
+                    <div id="practitionerImagePreviewContainer" style="position: relative; width: 100%; max-width: 300px; margin: 0 auto 16px; border-radius: 12px; overflow: hidden; background: #f9fafb; border: 2px dashed #e5e7eb; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;">
+                        <div id="practitionerImagePlaceholder" style="text-align: center; color: #9ca3af; padding: 40px 20px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 64px; height: 64px; margin-bottom: 12px; opacity: 0.5;">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <div>No image selected</div>
+                        </div>
+                        <img id="practitionerImagePreview" src="" alt="Preview" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: grid; gap: 12px;">
+                    <button onclick="takePractitionerPhoto()" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: white; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; font-size: 15px; font-weight: 500; color: #374151; text-align: left;" onmouseover="this.style.borderColor='#0b7285'; this.style.background='#f0fdfa'; this.style.transform='translateX(4px)';" onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='white'; this.style.transform='translateX(0)';">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; border-radius: 6px; flex-shrink: 0;">
+                                <img src="assets/icons/camera.svg" class="icon" alt="Camera" style="width: 16px; height: 16px;">
+                            </div>
+                            <span>Take Photo</span>
+                        </div>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
                     </button>
-                    <button onclick="choosePractitionerPhoto()" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: none; background: white; border-bottom: 1px solid #e5e7eb; cursor: pointer; font-size: 1rem; color: #374151; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='white'">
-                        <span>Choose photo</span>
-                        <span class="attachment-icon">
-                            <img src="assets/icons/gallery.svg" class="icon" alt="Gallery">
-                        </span>
+
+                    <button onclick="choosePractitionerPhoto()" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: white; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; font-size: 15px; font-weight: 500; color: #374151; text-align: left;" onmouseover="this.style.borderColor='#0b7285'; this.style.background='#f0fdfa'; this.style.transform='translateX(4px)';" onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='white'; this.style.transform='translateX(0)';">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; border-radius: 6px; flex-shrink: 0;">
+                                <img src="assets/icons/gallery.svg" class="icon" alt="Gallery" style="width: 16px; height: 16px;">
+                            </div>
+                            <span>Choose from Gallery</span>
+                        </div>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
                     </button>
-                    <button onclick="createPractitionerAIImage()" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: none; background: white; border-bottom: 1px solid #e5e7eb; cursor: pointer; font-size: 1rem; color: #374151; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='white'">
-                        <span>Create AI image</span>
-                        <span class="attachment-icon">
-                            <img src="assets/icons/star.svg" class="icon" alt="Star">
-                        </span>
+
+                    <button onclick="editPractitionerProfileImageWithCrop()" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: white; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; font-size: 15px; font-weight: 500; color: #374151; text-align: left;" onmouseover="this.style.borderColor='#0b7285'; this.style.background='#f0fdfa'; this.style.transform='translateX(4px)';" onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='white'; this.style.transform='translateX(0)';">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; border-radius: 6px; flex-shrink: 0;">
+                                <img src="assets/icons/edit.svg" class="icon" alt="Edit" style="width: 16px; height: 16px;">
+                            </div>
+                            <span>Edit Image</span>
+                        </div>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
                     </button>
-                    <button onclick="editPractitionerProfileImage()" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: none; background: white; border-bottom: 1px solid #e5e7eb; cursor: pointer; font-size: 1rem; color: #374151; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='white'">
-                        <span>Edit image</span>
-                        <span class="attachment-icon">
-                            <img src="assets/icons/edit.svg" class="icon" alt="Edit">
-                        </span>
+
+                    <button onclick="deletePractitionerPhoto()" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: white; border: 2px solid #fee2e2; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; font-size: 15px; font-weight: 500; color: #dc2626; text-align: left;" onmouseover="this.style.borderColor='#dc2626'; this.style.background='#fef2f2'; this.style.transform='translateX(4px)';" onmouseout="this.style.borderColor='#fee2e2'; this.style.background='white'; this.style.transform='translateX(0)';">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #fee2e2; border-radius: 6px; flex-shrink: 0;">
+                                <img src="assets/icons/trash.svg" class="icon" alt="Trash" style="width: 16px; height: 16px;">
+                            </div>
+                            <span>Delete Photo</span>
+                        </div>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
                     </button>
-                    <button onclick="deletePractitionerPhoto()" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: none; background: white; cursor: pointer; font-size: 1rem; color: #dc2626; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='white'">
-                        <span>Delete photo</span>
-                        <span class="attachment-icon">
-                            <img src="assets/icons/trash.svg" class="icon" alt="Trash">
-                        </span>
-                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Practitioner Crop Modal -->
+    <div id="practitionerCropModal" class="modal-overlay hidden" onclick="closePractitionerCropModalOnOverlay(event)">
+        <div class="modal" style="max-width: 600px; width: 90%;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Crop Image</h3>
+                <button onclick="closePractitionerCropModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="width: 100%; max-height: 400px; background: #f9fafb; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+                    <img id="practitionerCropImage" src="" alt="Crop" style="max-width: 100%; display: block;">
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button onclick="closePractitionerCropModal()" style="padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: #e5e7eb; color: #374151;" onmouseover="this.style.background='#d1d5db';" onmouseout="this.style.background='#e5e7eb';">Cancel</button>
+                    <button onclick="savePractitionerCroppedImage()" style="padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: #0b7285; color: white;" onmouseover="this.style.background='#095a69';" onmouseout="this.style.background='#0b7285';">Save Crop</button>
                 </div>
             </div>
         </div>
@@ -11600,6 +11953,24 @@ ${practitioner.firstName} ${practitioner.lastName}`;
     <script src="firebase-api.js"></script>
     <script src="js/client-linking.js"></script>
     <script src="dashboard-auth.js"></script>
+    
+    <!-- Cropper.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+    
+    <!-- Keyboard shortcuts for modals -->
+    <script>
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const cropModal = document.getElementById('practitionerCropModal');
+                const profileModal = document.getElementById('practitionerProfileImageOptionsModal');
+                if (cropModal && !cropModal.classList.contains('hidden')) {
+                    closePractitionerCropModal();
+                } else if (profileModal && !profileModal.classList.contains('hidden')) {
+                    closePractitionerProfileImageModal();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
 
