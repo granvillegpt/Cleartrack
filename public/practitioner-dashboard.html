@@ -765,9 +765,16 @@
             padding: 20px;
         }
         
+        .modal-overlay.hidden {
+            display: flex !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        
         .modal-overlay:not(.hidden) {
-            opacity: 1;
-            visibility: visible;
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
         
         .modal {
@@ -841,7 +848,33 @@
         }
         
         .hidden {
-            display: none;
+            display: none !important;
+        }
+        
+        /* Override hidden for modal overlays - they use opacity/visibility instead */
+        .modal-overlay.hidden {
+            display: flex !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        
+        .modal-overlay:not(.hidden) {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        /* Override hidden for modal overlays - they use opacity/visibility instead */
+        .modal-overlay.hidden {
+            display: flex !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        
+        .modal-overlay:not(.hidden) {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
         
         /* Icon Styles - Ensure icons from assets/icons work properly */
@@ -1560,6 +1593,167 @@
 
         .client-selection {
             position: relative;
+        }
+        
+        .autocomplete-wrapper {
+            position: relative;
+        }
+        
+        .autocomplete-wrapper {
+            position: relative;
+        }
+        
+        .autocomplete-wrapper .form-control {
+            width: 100%;
+            padding: 0.875rem 2.5rem 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.9375rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.95);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        .autocomplete-wrapper .form-control:focus {
+            outline: none;
+            border-color: var(--ct-primary);
+            box-shadow: 0 0 0 4px rgba(11, 114, 133, 0.1), 0 4px 6px -1px rgba(11, 114, 133, 0.1);
+            background: white;
+            transform: translateY(-1px);
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .autocomplete-dropdown.hidden {
+            display: none;
+        }
+        
+        /* Custom scrollbar for dropdown */
+        .autocomplete-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .autocomplete-dropdown::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .autocomplete-dropdown::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        .autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .autocomplete-item {
+            padding: 0.875rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .autocomplete-item:first-child {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+        
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: #f0fdfa;
+        }
+        
+        .autocomplete-item-name {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.9375rem;
+            margin: 0;
+        }
+        
+        .autocomplete-item-email {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            margin: 0;
+        }
+        
+        .client-dropdown-toggle {
+            position: absolute;
+            right: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            transition: color 0.2s ease, transform 0.3s ease;
+            z-index: 10;
+            pointer-events: auto;
+        }
+        
+        .client-dropdown-toggle:hover {
+            color: #0b7285;
+        }
+        
+        .client-dropdown-toggle:focus {
+            outline: none;
+        }
+        
+        .client-dropdown-toggle svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.3s ease;
+        }
+        
+        .client-dropdown-toggle.active svg {
+            transform: rotate(180deg);
+        }
+        
+        .autocomplete-wrapper:has(.autocomplete-dropdown:not(.hidden)) .client-dropdown-toggle {
+            color: #0b7285;
+        }
+        
+        .autocomplete-wrapper:has(.autocomplete-dropdown:not(.hidden)) .client-dropdown-toggle svg {
+            transform: rotate(180deg);
         }
 
         .selected-client-info {
@@ -2729,7 +2923,10 @@
             
             <!-- Invoices Section -->
             <div id="invoices" class="section hidden">
-                <h1 class="mb-6">Invoice Management</h1>
+                <div class="flex justify-between items-center mb-6">
+                    <h1>Invoice Management</h1>
+                    <button class="btn btn-primary" onclick="openNewInvoiceModalFromInvoiceTab()">Generate Invoice</button>
+                </div>
                 
                 <!-- Invoice Search Bar -->
                 <div class="card mb-4">
@@ -3156,8 +3353,8 @@
     </div>
     
     <!-- New Clean Invoice Generation Modal -->
-    <div id="newInvoiceModal" class="modal-overlay hidden">
-        <div class="modal" style="max-width: 900px;">
+    <div id="newInvoiceModal" class="modal-overlay hidden" onclick="closeNewInvoiceModalOnOverlay(event)">
+        <div class="modal" style="max-width: 900px;" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h3 class="modal-title">Generate Invoice</h3>
                 <button class="modal-close" onclick="closeNewInvoiceModal()">&times;</button>
@@ -3167,9 +3364,29 @@
                 <div class="invoice-section">
                     <h4 class="section-title">Select Client</h4>
                     <div class="client-selection">
-                        <select id="newInvoiceClientSelect" class="form-control" required>
-                            <option value="">Choose a client...</option>
-                        </select>
+                        <div class="autocomplete-wrapper">
+                            <input 
+                                type="text" 
+                                id="newInvoiceClientSelect" 
+                                class="form-control" 
+                                placeholder="Choose a client..." 
+                                autocomplete="off"
+                                required
+                            />
+                            <button 
+                                type="button"
+                                id="clientDropdownToggle"
+                                class="client-dropdown-toggle"
+                                aria-label="Show client list"
+                                title="Browse all clients"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <div id="clientAutocompleteDropdown" class="autocomplete-dropdown hidden"></div>
+                        </div>
+                        <input type="hidden" id="newInvoiceClientId" value="" />
                         <div id="selectedClientInfo" class="selected-client-info hidden">
                             <div class="client-details">
                                 <h5 id="selectedClientName"></h5>
@@ -4224,17 +4441,13 @@
             
             // Wait for modal to be visible, then populate form
             setTimeout(() => {
-                // Populate client select dropdown first
-                const clientSelect = document.getElementById('newInvoiceClientSelect');
-                if (clientSelect) {
-                    // Clear existing options
-                    clientSelect.innerHTML = '<option value="">Choose a client...</option>';
-                    // Add the client for this tax return
-                    const option = document.createElement('option');
-                    option.value = client.id;
-                    option.textContent = `${client.firstName} ${client.lastName}`;
-                    option.selected = true;
-                    clientSelect.appendChild(option);
+                // Populate client autocomplete input
+                const clientInput = document.getElementById('newInvoiceClientSelect');
+                const clientIdInput = document.getElementById('newInvoiceClientId');
+                if (clientInput && clientIdInput) {
+                    // Set the client name and ID
+                    clientInput.value = `${client.firstName} ${client.lastName}`;
+                    clientIdInput.value = client.id;
                     
                     // Show selected client info
                     const selectedClientInfo = document.getElementById('selectedClientInfo');
@@ -5346,20 +5559,83 @@
                 return;
             }
             
-            // Populate client dropdown
-            populateClientDropdown();
-            
-            // Generate invoice number
-            generateNewInvoiceNumber();
-            
-            // Set default dates
-            setDefaultDates();
-            
-            // Setup event listeners
-            setupNewInvoiceEventListeners();
-            
-            // Show modal
+            // Show modal FIRST before doing anything else
+            console.log('📋 Removing hidden class from modal');
             modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            console.log('✅ Modal classes after removal:', modal.className);
+            console.log('✅ Modal display style:', window.getComputedStyle(modal).display);
+            console.log('✅ Modal opacity:', window.getComputedStyle(modal).opacity);
+            console.log('✅ Modal visibility:', window.getComputedStyle(modal).visibility);
+            
+            // Then populate form fields (with error handling)
+            try {
+                // Populate client dropdown
+                populateClientDropdown();
+            } catch (error) {
+                console.error('❌ Error populating client dropdown:', error);
+            }
+            
+            try {
+                // Generate invoice number
+                generateNewInvoiceNumber();
+            } catch (error) {
+                console.error('❌ Error generating invoice number:', error);
+            }
+            
+            try {
+                // Set default dates
+                setDefaultDates();
+            } catch (error) {
+                console.error('❌ Error setting default dates:', error);
+            }
+            
+            try {
+                // Setup event listeners
+                setupNewInvoiceEventListeners();
+            } catch (error) {
+                console.error('❌ Error setting up event listeners:', error);
+            }
+        }
+        
+        // Open new invoice modal from invoice tab
+        function openNewInvoiceModalFromInvoiceTab() {
+            console.log('🔧 openNewInvoiceModalFromInvoiceTab called');
+            
+            // Ensure clients is always an array
+            if (!clients || !Array.isArray(clients)) {
+                console.log('📋 Initializing clients array...');
+                if (practitioner) {
+                    const fetchedClients = cleartrackData.getConnectedUsers(practitioner.id);
+                    clients = Array.isArray(fetchedClients) ? fetchedClients : [];
+                } else {
+                    clients = [];
+                }
+            }
+            
+            // Mark that this is a direct invoice (not from tax return)
+            const modal = document.getElementById('newInvoiceModal');
+            if (!modal) {
+                console.error('❌ Modal not found!');
+                alert('Invoice modal not found. Please refresh the page.');
+                return;
+            }
+            
+            console.log('✅ Modal found, setting returnId');
+            modal.dataset.returnId = 'direct_invoice';
+            
+            // Open the modal (it will populate client dropdown)
+            console.log('🚀 Calling openNewInvoiceModal()');
+            openNewInvoiceModal();
+            
+            // Load clients in background to update UI (non-blocking)
+            try {
+                if (practitioner && clients.length === 0) {
+                    loadClients();
+                }
+            } catch (error) {
+                console.error('❌ Error loading clients (non-critical):', error);
+            }
         }
         
         // Close new invoice modal
@@ -5367,26 +5643,160 @@
             const modal = document.getElementById('newInvoiceModal');
             if (modal) {
                 modal.classList.add('hidden');
+                document.body.style.overflow = '';
                 resetNewInvoiceForm();
             }
         }
+
+        // Close invoice modal on overlay click
+        function closeNewInvoiceModalOnOverlay(event) {
+            if (event.target.id === 'newInvoiceModal') {
+                closeNewInvoiceModal();
+            }
+        }
         
-        // Populate client dropdown
+        // Store clients list for autocomplete
+        let autocompleteClients = [];
+        let selectedAutocompleteIndex = -1;
+        
+        // Populate client dropdown (now for autocomplete)
         function populateClientDropdown() {
-            const clientSelect = document.getElementById('newInvoiceClientSelect');
-            if (!clientSelect) return;
+            const clientInput = document.getElementById('newInvoiceClientSelect');
+            if (!clientInput) return;
             
-            // Clear existing options
-            clientSelect.innerHTML = '<option value="">Choose a client...</option>';
+            // Ensure clients is an array
+            if (!clients || !Array.isArray(clients)) {
+                console.warn('⚠️ Clients is not an array, loading clients...');
+                if (practitioner) {
+                    clients = cleartrackData.getConnectedUsers(practitioner.id) || [];
+                } else {
+                    clients = [];
+                }
+            }
             
-            // Add clients
-            clients.forEach(client => {
-                const option = document.createElement('option');
-                option.value = client.id;
-                option.textContent = `${client.firstName} ${client.lastName}`;
-                option.dataset.email = client.email;
-                clientSelect.appendChild(option);
+            // Store clients for autocomplete
+            autocompleteClients = Array.isArray(clients) ? clients : [];
+        }
+        
+        // Show all clients in dropdown
+        function showAllClientsDropdown() {
+            const dropdown = document.getElementById('clientAutocompleteDropdown');
+            const dropdownToggle = document.getElementById('clientDropdownToggle');
+            if (!dropdown) return;
+            
+            if (autocompleteClients.length === 0) {
+                dropdown.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">No clients available</div></div>';
+                dropdown.classList.remove('hidden');
+                selectedAutocompleteIndex = -1;
+                if (dropdownToggle) {
+                    dropdownToggle.classList.add('active');
+                }
+                return;
+            }
+            
+            dropdown.innerHTML = autocompleteClients.map((client, index) => {
+                const fullName = `${client.firstName} ${client.lastName}`;
+                return `
+                    <div class="autocomplete-item" data-index="${index}" data-client-id="${client.id}">
+                        <div class="autocomplete-item-name">${fullName}</div>
+                        <div class="autocomplete-item-email">${client.email || ''}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            dropdown.classList.remove('hidden');
+            selectedAutocompleteIndex = -1;
+            if (dropdownToggle) {
+                dropdownToggle.classList.add('active');
+            }
+            
+            // Add click handlers
+            dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const clientId = item.dataset.clientId;
+                    selectClientFromAutocomplete(clientId);
+                });
             });
+        }
+        
+        // Filter and display autocomplete suggestions
+        function filterAutocomplete(query) {
+            const dropdown = document.getElementById('clientAutocompleteDropdown');
+            if (!dropdown) return;
+            
+            if (!query || query.trim() === '') {
+                // If empty, don't show dropdown (user can click arrow to see all)
+                dropdown.classList.add('hidden');
+                selectedAutocompleteIndex = -1;
+                return;
+            }
+            
+            const searchTerm = query.toLowerCase().trim();
+            const filtered = autocompleteClients.filter(client => {
+                const fullName = `${client.firstName} ${client.lastName}`.toLowerCase();
+                const email = (client.email || '').toLowerCase();
+                return fullName.includes(searchTerm) || email.includes(searchTerm);
+            });
+            
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">No clients found</div></div>';
+                dropdown.classList.remove('hidden');
+                selectedAutocompleteIndex = -1;
+                return;
+            }
+            
+            dropdown.innerHTML = filtered.map((client, index) => {
+                const fullName = `${client.firstName} ${client.lastName}`;
+                return `
+                    <div class="autocomplete-item" data-index="${index}" data-client-id="${client.id}">
+                        <div class="autocomplete-item-name">${fullName}</div>
+                        <div class="autocomplete-item-email">${client.email || ''}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            dropdown.classList.remove('hidden');
+            selectedAutocompleteIndex = -1;
+            
+            const dropdownToggle = document.getElementById('clientDropdownToggle');
+            if (dropdownToggle) {
+                dropdownToggle.classList.add('active');
+            }
+            
+            // Add click handlers
+            dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const clientId = item.dataset.clientId;
+                    selectClientFromAutocomplete(clientId);
+                });
+            });
+        }
+        
+        // Select client from autocomplete
+        function selectClientFromAutocomplete(clientId) {
+            const client = autocompleteClients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            const clientInput = document.getElementById('newInvoiceClientSelect');
+            const clientIdInput = document.getElementById('newInvoiceClientId');
+            const dropdown = document.getElementById('clientAutocompleteDropdown');
+            const dropdownToggle = document.getElementById('clientDropdownToggle');
+            
+            if (clientInput) {
+                clientInput.value = `${client.firstName} ${client.lastName}`;
+            }
+            if (clientIdInput) {
+                clientIdInput.value = client.id;
+            }
+            if (dropdown) {
+                dropdown.classList.add('hidden');
+            }
+            if (dropdownToggle) {
+                dropdownToggle.classList.remove('active');
+            }
+            
+            // Update selected client info
+            handleClientSelection({ target: { value: client.id } });
         }
         
         // Generate new invoice number
@@ -5420,11 +5830,94 @@
         
         // Setup event listeners for new invoice modal
         function setupNewInvoiceEventListeners() {
-            // Client selection
-            const clientSelect = document.getElementById('newInvoiceClientSelect');
-            if (clientSelect) {
-                clientSelect.addEventListener('change', handleClientSelection);
+            // Client autocomplete input
+            const clientInput = document.getElementById('newInvoiceClientSelect');
+            const dropdownToggle = document.getElementById('clientDropdownToggle');
+            const dropdown = document.getElementById('clientAutocompleteDropdown');
+            
+            if (clientInput) {
+                // Filter on input
+                clientInput.addEventListener('input', (e) => {
+                    filterAutocomplete(e.target.value);
+                });
+                
+                // Show all clients when input is focused and empty
+                clientInput.addEventListener('focus', (e) => {
+                    if (!e.target.value || e.target.value.trim() === '') {
+                        // Don't auto-show on focus, let user click arrow or type
+                    }
+                });
+                
+                // Handle keyboard navigation
+                clientInput.addEventListener('keydown', (e) => {
+                    if (!dropdown || dropdown.classList.contains('hidden')) {
+                        // If dropdown is hidden and user presses arrow down, show all clients
+                        if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            showAllClientsDropdown();
+                            const items = dropdown.querySelectorAll('.autocomplete-item');
+                            if (items.length > 0) {
+                                selectedAutocompleteIndex = 0;
+                                updateAutocompleteSelection(items);
+                            }
+                        }
+                        return;
+                    }
+                    
+                    const items = dropdown.querySelectorAll('.autocomplete-item');
+                    if (items.length === 0) return;
+                    
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        selectedAutocompleteIndex = Math.min(selectedAutocompleteIndex + 1, items.length - 1);
+                        updateAutocompleteSelection(items);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedAutocompleteIndex = Math.max(selectedAutocompleteIndex - 1, -1);
+                        updateAutocompleteSelection(items);
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (selectedAutocompleteIndex >= 0 && items[selectedAutocompleteIndex]) {
+                            const clientId = items[selectedAutocompleteIndex].dataset.clientId;
+                            selectClientFromAutocomplete(clientId);
+                        }
+                    } else if (e.key === 'Escape') {
+                        dropdown.classList.add('hidden');
+                        selectedAutocompleteIndex = -1;
+                        if (dropdownToggle) {
+                            dropdownToggle.classList.remove('active');
+                        }
+                    }
+                });
             }
+            
+            // Dropdown toggle button
+            if (dropdownToggle) {
+                dropdownToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (dropdown && dropdown.classList.contains('hidden')) {
+                        showAllClientsDropdown();
+                        dropdownToggle.classList.add('active');
+                    } else {
+                        dropdown.classList.add('hidden');
+                        dropdownToggle.classList.remove('active');
+                    }
+                });
+            }
+            
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (dropdown && !clientInput.contains(e.target) && 
+                        !dropdown.contains(e.target) && 
+                        !dropdownToggle.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                        if (dropdownToggle) {
+                            dropdownToggle.classList.remove('active');
+                        }
+                    }
+                });
             
             // VAT calculation
             const amountField = document.getElementById('newInvoiceAmount');
@@ -5438,6 +5931,18 @@
             }
         }
         
+        // Update autocomplete selection highlight
+        function updateAutocompleteSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedAutocompleteIndex) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        
         // Handle client selection
         function handleClientSelection(event) {
             const clientId = event.target.value;
@@ -5446,10 +5951,10 @@
             const selectedClientEmail = document.getElementById('selectedClientEmail');
             
             if (clientId) {
-                const client = clients.find(c => c.id === clientId);
+                const client = autocompleteClients.find(c => c.id === clientId) || clients.find(c => c.id === clientId);
                 if (client) {
                     selectedClientName.textContent = `${client.firstName} ${client.lastName}`;
-                    selectedClientEmail.textContent = client.email;
+                    selectedClientEmail.textContent = client.email || '';
                     selectedClientInfo.classList.remove('hidden');
                 }
             } else {
@@ -5491,9 +5996,14 @@
             console.log('🚀 Generating new invoice');
             
             // Get form data
+            const clientIdInput = document.getElementById('newInvoiceClientId');
+            const clientInput = document.getElementById('newInvoiceClientSelect');
+            const clientId = clientIdInput ? clientIdInput.value : '';
+            const clientName = clientInput ? clientInput.value : document.getElementById('selectedClientName').textContent;
+            
             const formData = {
-                clientId: document.getElementById('newInvoiceClientSelect').value,
-                clientName: document.getElementById('selectedClientName').textContent,
+                clientId: clientId,
+                clientName: clientName,
                 clientEmail: document.getElementById('selectedClientEmail').textContent,
                 invoiceNumber: document.getElementById('newInvoiceNumber').value,
                 invoiceDate: document.getElementById('newInvoiceDate').value,
@@ -5507,8 +6017,8 @@
             };
             
             // Validate form
-            if (!formData.clientId || !formData.invoiceNumber || !formData.amount || !formData.description) {
-                alert('Please fill in all required fields.');
+            if ((!formData.clientId && !formData.clientName) || !formData.invoiceNumber || !formData.amount || !formData.description) {
+                alert('Please fill in all required fields. Make sure to select or enter a client name.');
                 return;
             }
             
@@ -5831,6 +6341,14 @@
                     }
                 });
             }
+            
+            // Reset autocomplete dropdown
+            const dropdown = document.getElementById('clientAutocompleteDropdown');
+            if (dropdown) {
+                dropdown.classList.add('hidden');
+                dropdown.innerHTML = '';
+            }
+            selectedAutocompleteIndex = -1;
             
             // Hide selected client info
             const selectedClientInfo = document.getElementById('selectedClientInfo');
@@ -6745,9 +7263,16 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
-            clients = cleartrackData.getConnectedUsers(practitioner.id) || [];
+            // Get clients and ensure it's always an array
+            const fetchedClients = cleartrackData.getConnectedUsers(practitioner.id);
+            clients = Array.isArray(fetchedClients) ? fetchedClients : [];
             
             // Calculate document and expense counts for each client
+            if (!Array.isArray(clients)) {
+                console.error('❌ Clients is not an array:', clients);
+                clients = [];
+            }
+            
             clients.forEach(client => {
                 const documents = cleartrackData.getUserDocuments(client.id);
                 const expenses = cleartrackData.getUserExpenses(client.id);
