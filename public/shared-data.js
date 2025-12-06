@@ -1,7 +1,10 @@
 // Shared Data Storage System for Cleartrack
 // This file provides a unified data layer for user-practitioner connections
 
-class CleartrackDataManager {
+// Prevent duplicate declarations
+if (typeof CleartrackDataManager === 'undefined') {
+// Make class available globally by assigning to window
+var CleartrackDataManager = class CleartrackDataManager {
     constructor() {
         this.storageKey = 'cleartrack_data';
         this.connectionsKey = 'cleartrack_connections';
@@ -21,7 +24,8 @@ class CleartrackDataManager {
                 vehicles: {},
                 expenses: {},
                 taxReturns: {},
-                messages: {}
+                messages: {},
+                clientInvites: {}
             });
         }
     }
@@ -108,18 +112,45 @@ class CleartrackDataManager {
         return practitioner;
     }
 
+    createPractitionerWithId(practitionerId, practitionerData) {
+        const data = this.getData();
+        
+        const practitioner = {
+            id: practitionerId,
+            ...practitionerData,
+            createdAt: practitionerData.createdAt || new Date().toISOString(),
+            connectedUsers: practitionerData.connectedUsers || []
+        };
+        
+        // Only generate code if not provided
+        if (!practitioner.practitionerCode) {
+            practitioner.practitionerCode = this.generatePractitionerCode();
+        }
+
+        data.practitioners[practitionerId] = practitioner;
+        this.setData(data);
+        return practitioner;
+    }
+
     getPractitioner(practitionerId) {
         const data = this.getData();
         if (!data || !data.practitioners) return null;
         return data.practitioners[practitionerId] || null;
     }
 
-    getPractitionerByCode(code) {
+    async getPractitionerByCode(code) {
+        // Use Firestore if available, fallback to localStorage
+        if (window.firestoreData && typeof window.firestoreData.getPractitionerByCode === 'function') {
+            return await window.firestoreData.getPractitionerByCode(code);
+        }
+
+        // Fallback to localStorage
         const data = this.getData();
         if (!data || !data.practitioners) return null;
         
+        const upperCode = code.toUpperCase();
         for (let practitionerId in data.practitioners) {
-            if (data.practitioners[practitionerId].practitionerCode === code) {
+            if (data.practitioners[practitionerId].practitionerCode === upperCode) {
                 return data.practitioners[practitionerId];
             }
         }
@@ -137,7 +168,13 @@ class CleartrackDataManager {
     }
 
     // Connection management
-    connectUserToPractitioner(userId, practitionerId) {
+    async connectUserToPractitioner(userId, practitionerId) {
+        // Use Firestore if available, fallback to localStorage
+        if (window.firestoreData && typeof window.firestoreData.connectUserToPractitioner === 'function') {
+            return await window.firestoreData.connectUserToPractitioner(userId, practitionerId);
+        }
+
+        // Fallback to localStorage
         try {
             if (!userId || !practitionerId) {
                 return false;
@@ -194,7 +231,13 @@ class CleartrackDataManager {
     }
 
     // Check if user is connected to practitioner
-    isUserConnectedToPractitioner(userId, practitionerId) {
+    async isUserConnectedToPractitioner(userId, practitionerId) {
+        // Use Firestore if available, fallback to localStorage
+        if (window.firestoreData && typeof window.firestoreData.isUserConnectedToPractitioner === 'function') {
+            return await window.firestoreData.isUserConnectedToPractitioner(userId, practitionerId);
+        }
+
+        // Fallback to localStorage
         try {
             const data = this.getData();
             
@@ -221,7 +264,13 @@ class CleartrackDataManager {
         }
     }
 
-    disconnectUserFromPractitioner(userId) {
+    async disconnectUserFromPractitioner(userId) {
+        // Use Firestore if available, fallback to localStorage
+        if (window.firestoreData && typeof window.firestoreData.disconnectUserFromPractitioner === 'function') {
+            return await window.firestoreData.disconnectUserFromPractitioner(userId);
+        }
+
+        // Fallback to localStorage
         try {
             const data = this.getData();
             
@@ -582,10 +631,149 @@ class CleartrackDataManager {
     }
 
     // Get all connected users for a practitioner
-    getConnectedUsers(practitionerId) {
+    // Invite management (localStorage-based, no Cloud Functions needed)
+    createClientInvite(practitionerId, clientData) {
+        const data = this.getData();
+        if (!data.clientInvites) {
+            data.clientInvites = {};
+        }
+        
+        const inviteId = 'inv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 30); // 30 days expiry
+        
+        // Generate shareable link
+        const appUrl = window.location.origin || 'https://app.cleartrack.co.za';
+        const inviteLink = `${appUrl}/login.html?inviteId=${inviteId}`;
+        
+        const invite = {
+            inviteId: inviteId,
+            practitionerId: practitionerId,
+            clientFirstName: clientData.firstName || '',
+            clientLastName: clientData.lastName || '',
+            clientEmail: clientData.email || '',
+            clientPhone: clientData.phone || '',
+            clientTaxNumber: clientData.taxNumber || '',
+            notes: clientData.notes || '',
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            expiresAt: expiresAt.toISOString(),
+            inviteLink: inviteLink, // Store inviteLink in the invite object
+            clientUserId: null // Will be set when client registers
+        };
+        
+        data.clientInvites[inviteId] = invite;
+        this.setData(data);
+        
+        return {
+            inviteId: inviteId,
+            inviteLink: inviteLink,
+            expiresAt: expiresAt.toISOString(),
+            ...invite // Include all invite data
+        };
+    }
+    
+    getInvite(inviteId) {
+        const data = this.getData();
+        if (data.clientInvites && data.clientInvites[inviteId]) {
+            const invite = data.clientInvites[inviteId];
+            // Check if expired
+            if (new Date(invite.expiresAt) < new Date()) {
+                invite.status = 'expired';
+            }
+            return invite;
+        }
+        return null;
+    }
+    
+    updateInviteStatus(inviteId, status, clientUserId = null) {
+        const data = this.getData();
+        if (data.clientInvites && data.clientInvites[inviteId]) {
+            data.clientInvites[inviteId].status = status;
+            if (clientUserId) {
+                data.clientInvites[inviteId].clientUserId = clientUserId;
+            }
+            this.setData(data);
+            return true;
+        }
+        return false;
+    }
+    
+    getPendingInvitesForPractitioner(practitionerId) {
+        const data = this.getData();
+        if (!data.clientInvites) {
+            return [];
+        }
+        
+        const invites = [];
+        for (let inviteId in data.clientInvites) {
+            const invite = data.clientInvites[inviteId];
+            if (invite.practitionerId === practitionerId && invite.status === 'pending') {
+                // Check if expired
+                if (new Date(invite.expiresAt) >= new Date()) {
+                    invites.push(invite);
+                } else {
+                    invite.status = 'expired';
+                    this.setData(data);
+                }
+            }
+        }
+        return invites;
+    }
+
+    async getConnectedUsers(practitionerId) {
+        // Use Firestore if available
+        if (window.firestoreData && window.firestoreData.isAuthenticated && window.firestoreData.isAuthenticated()) {
+            try {
+                const connectedUsers = await window.firestoreData.getConnectedUsers(practitionerId);
+                // Also get pending invites and merge them
+                const pendingInvites = this.getPendingInvitesForPractitioner(practitionerId);
+                const pendingClients = pendingInvites.map(invite => ({
+                    id: invite.inviteId, // Use inviteId as temporary ID
+                    firstName: invite.clientFirstName,
+                    lastName: invite.clientLastName,
+                    email: invite.clientEmail,
+                    phone: invite.clientPhone,
+                    taxNumber: invite.clientTaxNumber,
+                    notes: invite.notes,
+                    status: 'pending',
+                    inviteId: invite.inviteId,
+                    connectedPractitioner: practitionerId,
+                    connectedAt: invite.createdAt,
+                    documentCount: 0,
+                    expenseCount: 0,
+                    totalExpenses: 0,
+                    isActive: false,
+                    isPending: true
+                }));
+                return [...connectedUsers, ...pendingClients];
+            } catch (error) {
+                console.warn('Error getting connected users from Firestore, falling back to localStorage:', error);
+            }
+        }
+
+        // Fallback to localStorage
         const data = this.getData();
         if (!data || !data.practitioners || !data.practitioners[practitionerId]) {
-            return [];
+            // Still return pending invites even if practitioner not found
+            return this.getPendingInvitesForPractitioner(practitionerId).map(invite => ({
+                id: invite.inviteId,
+                firstName: invite.clientFirstName,
+                lastName: invite.clientLastName,
+                email: invite.clientEmail,
+                phone: invite.clientPhone,
+                taxNumber: invite.clientTaxNumber,
+                notes: invite.notes,
+                status: 'pending',
+                inviteId: invite.inviteId,
+                connectedPractitioner: practitionerId,
+                connectedAt: invite.createdAt,
+                documentCount: 0,
+                expenseCount: 0,
+                totalExpenses: 0,
+                isActive: false,
+                isPending: true
+            }));
         }
 
         const practitioner = data.practitioners[practitionerId];
@@ -620,11 +808,34 @@ class CleartrackDataManager {
                 vehicleCount: user.vehicles ? user.vehicles.length : 0,
                 vehicles: user.vehicles || [],
                 expenseCount: user.expenses ? user.expenses.length : 0,
-                totalExpenses: user.expenses ? user.expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0) : 0
+                totalExpenses: user.expenses ? user.expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0) : 0,
+                isPending: false,
+                status: 'connected'
             };
         }).filter(Boolean);
 
-        return connectedUsers;
+        // Also include pending invites
+        const pendingInvites = this.getPendingInvitesForPractitioner(practitionerId);
+        const pendingClients = pendingInvites.map(invite => ({
+            id: invite.inviteId, // Use inviteId as temporary ID
+            firstName: invite.clientFirstName,
+            lastName: invite.clientLastName,
+            email: invite.clientEmail,
+            phone: invite.clientPhone,
+            taxNumber: invite.clientTaxNumber,
+            notes: invite.notes,
+            status: 'pending',
+            inviteId: invite.inviteId,
+            connectedPractitioner: practitionerId,
+            connectedAt: invite.createdAt,
+            documentCount: 0,
+            expenseCount: 0,
+            totalExpenses: 0,
+            isActive: false,
+            isPending: true
+        }));
+
+        return [...connectedUsers, ...pendingClients];
     }
 
     // Get user's connected practitioner
@@ -800,7 +1011,13 @@ class CleartrackDataManager {
     }
 
     // Connection request management - Rebuilt system
-    sendConnectionRequest(userId, practitionerId) {
+    async sendConnectionRequest(userId, practitionerId) {
+        // Use Firestore if available, fallback to localStorage
+        if (window.firestoreData && typeof window.firestoreData.sendConnectionRequest === 'function') {
+            return await window.firestoreData.sendConnectionRequest(userId, practitionerId);
+        }
+
+        // Fallback to localStorage
         try {
             // Validate inputs
             if (!userId || !practitionerId) {
@@ -882,7 +1099,13 @@ class CleartrackDataManager {
         }
     }
 
-    getConnectionRequests(practitionerId) {
+    async getConnectionRequests(practitionerId) {
+        // Use Firestore if available, fallback to localStorage
+        if (window.firestoreData && typeof window.firestoreData.getConnectionRequests === 'function') {
+            return await window.firestoreData.getConnectionRequests(practitionerId);
+        }
+
+        // Fallback to localStorage
         const data = this.getData();
         if (!data || !data.connectionRequests) return [];
         
@@ -891,7 +1114,13 @@ class CleartrackDataManager {
         );
     }
 
-    updateConnectionRequest(requestId, status) {
+    async updateConnectionRequest(requestId, status) {
+        // Use Firestore if available, fallback to localStorage
+        if (window.firestoreData && typeof window.firestoreData.updateConnectionRequest === 'function') {
+            return await window.firestoreData.updateConnectionRequest(requestId, status);
+        }
+
+        // Fallback to localStorage
         const data = this.getData();
         if (!data.connectionRequests || !data.connectionRequests[requestId]) return null;
         
@@ -900,8 +1129,21 @@ class CleartrackDataManager {
         return data.connectionRequests[requestId];
     }
 }
+// Make class available globally
+window.CleartrackDataManager = CleartrackDataManager;
+} // Close the if (typeof CleartrackDataManager === 'undefined') block
 
-// Create global instance
-window.cleartrackData = new CleartrackDataManager();
+// Create global instance (only if not already created)
+// This MUST be outside the if block so it always runs
+if (!window.cleartrackData) {
+    // Use the global reference (assigned inside the if block above)
+    const CleartrackDataManagerClass = window.CleartrackDataManager;
+    if (typeof CleartrackDataManagerClass !== 'undefined') {
+        window.cleartrackData = new CleartrackDataManagerClass();
+        console.log('✅ cleartrackData initialized successfully');
+    } else {
+        console.error('❌ CleartrackDataManager class is not defined! Check shared-data.js for errors.');
+    }
+}
 
 

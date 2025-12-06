@@ -19,107 +19,535 @@
   />
 
   <link rel="icon" type="image/png" href="assets/images/icon%20logo.png" />
-
-  <link rel="manifest" href="/manifest.json">
-
-  <meta name="theme-color" content="#1b6ca8">
+  
+  <!-- PWA Features - Only on app.cleartrack.co.za -->
+  <script>
+    (function() {
+      if (window.location.hostname === 'app.cleartrack.co.za') {
+        // Use DOM manipulation instead of document.write to prevent blocking
+        const head = document.head || document.getElementsByTagName('head')[0];
+        
+        // Manifest
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = '/manifest.json';
+        head.appendChild(manifest);
+        
+        // Theme color
+        const themeColor = document.createElement('meta');
+        themeColor.name = 'theme-color';
+        themeColor.content = '#0b7285';
+        head.appendChild(themeColor);
+        
+        // Apple Touch Icons
+        const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        iconSizes.forEach(size => {
+          const icon = document.createElement('link');
+          icon.rel = 'apple-touch-icon';
+          icon.sizes = size + 'x' + size;
+          icon.href = '/icons/cleartrack-' + size + '.png?v=3';
+          head.appendChild(icon);
+        });
+        
+        // PWA Meta Tags
+        const metaTags = [
+          { name: 'apple-mobile-web-app-capable', content: 'yes' },
+          { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+          { name: 'apple-mobile-web-app-title', content: 'ClearTrack' },
+          { name: 'mobile-web-app-capable', content: 'yes' }
+        ];
+        metaTags.forEach(tag => {
+          const meta = document.createElement('meta');
+          meta.name = tag.name;
+          meta.content = tag.content;
+          head.appendChild(meta);
+        });
+        
+        // iOS Splash Screens
+        const splashScreens = [
+          { media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
+          { media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
+          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-xr.png' },
+          { media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs.png' },
+          { media: '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12.png' },
+          { media: '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro.png' },
+          { media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-8-plus.png' },
+          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs-max.png' },
+          { media: '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12-pro-max.png' },
+          { media: '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro-max.png' },
+          { media: '(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-mini.png' },
+          { media: '(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad.png' },
+          { media: '(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-air.png' },
+          { media: '(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-11.png' },
+          { media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-12.png' }
+        ];
+        splashScreens.forEach(screen => {
+          const link = document.createElement('link');
+          link.rel = 'apple-touch-startup-image';
+          link.media = screen.media;
+          link.href = screen.href;
+          head.appendChild(link);
+        });
+      }
+    })();
+  </script>
 
   <link rel="stylesheet" href="/css/ct-theme.css" />
+  <link rel="stylesheet" href="/responsive-fixes.css" />
+  <link rel="stylesheet" href="/header-responsive-fixes.css" />
 
   <style>
-
-    body {
-
-      margin: 0;
-
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-
-      color: #1f2933;
-
-      background: #f5f7fa;
-
+    * {
+      box-sizing: border-box;
     }
 
+    html {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #1f2933;
+      background: #f5f7fa;
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    /* Header - Consistent with rest of app */
     header {
-
       background: #0b7285;
-
       color: #fff;
-
-      padding: 1.5rem 2.5rem;
-
+      padding: 0;
       display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 
+    .header-top {
+      display: flex;
       align-items: center;
-
       justify-content: space-between;
-
+      padding: 1rem 1.5rem;
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
     }
 
     .brand {
-
       font-weight: 700;
-
       letter-spacing: 0.04em;
-
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      z-index: 1;
     }
 
-    nav a {
+    .brand img {
+      height: 50px;
+      max-width: 100%;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
 
+    /* Hamburger menu button - Consistent with app */
+    .menu-toggle-style6 {
+      background: transparent;
+      border: none;
       color: #e0fbff;
-
-      margin-left: 1rem;
-
-      font-size: 0.95rem;
-
-      text-decoration: none;
-
+      cursor: pointer;
+      font-size: 1.3rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0.5rem;
+      transition: transform 0.3s ease;
+      z-index: 2;
+      flex-shrink: 0;
     }
 
-    nav a:hover {
+    .menu-toggle-style6:hover {
+      transform: scale(1.1);
+    }
 
-      text-decoration: underline;
+    .menu-toggle-style6.active {
+      transform: rotate(90deg);
+    }
 
+    .menu-toggle-style6 svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Navigation - Base styles (will be overridden by media queries) */
+    nav.nav-style6 {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    nav.nav-style6 a {
+      color: #e0fbff;
+      font-size: 0.95rem;
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    nav.nav-style6 a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      text-decoration: none;
+    }
+
+    /* Desktop: Hide hamburger, show full navigation tabs */
+    @media (min-width: 769px) {
+      .header-top {
+        padding: 1rem 2rem;
+      }
+
+      .brand {
+        position: static;
+        transform: none;
+        max-width: none;
+      }
+
+      .brand img {
+        height: 50px;
+      }
+
+      /* Hide hamburger menu on desktop */
+      .menu-toggle-style6 {
+        display: none !important;
+      }
+
+      /* Show full navigation as horizontal tabs on desktop */
+      nav.nav-style6 {
+        display: flex !important;
+        position: static !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        min-width: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        opacity: 1 !important;
+        flex-direction: row !important;
+        gap: 1rem !important;
+        overflow: visible !important;
+        z-index: auto !important;
+        pointer-events: auto !important;
+        top: auto !important;
+        right: auto !important;
+        left: auto !important;
+        width: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      nav.nav-style6 a {
+        color: #e0fbff !important;
+        font-size: 0.95rem;
+        text-decoration: none;
+        white-space: nowrap;
+        padding: 0.5rem 0.75rem;
+        display: flex !important;
+        align-items: center;
+        width: auto !important;
+        border-radius: 4px;
+        transition: all 0.2s;
+        min-height: 44px;
+        background: transparent !important;
+        margin: 0 !important;
+      }
+
+      nav.nav-style6 a:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        padding-left: 0.75rem !important;
+      }
+
+      nav.nav-style6 a:first-child,
+      nav.nav-style6 a:last-child {
+        border-radius: 4px !important;
+      }
+    }
+
+    /* Tablet: Show hamburger, nav as dropdown */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .header-top {
+        padding: 1rem 1.5rem;
+      }
+
+      .brand {
+        position: static;
+        transform: none;
+        max-width: none;
+      }
+
+      .brand img {
+        height: 35px;
+      }
+
+      /* Show hamburger menu on tablet */
+      .menu-toggle-style6 {
+        display: flex !important;
+      }
+
+      /* Hide full navigation, show as dropdown when active */
+      nav.nav-style6 {
+        display: none !important;
+        position: absolute !important;
+        top: calc(100% + 0.5rem) !important;
+        right: 1.5rem !important;
+        left: auto !important;
+        background: white !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+        min-width: 220px !important;
+        max-width: calc(100vw - 3rem) !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        transition: max-height 0.3s ease, opacity 0.3s ease !important;
+        opacity: 0 !important;
+        z-index: 1000 !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        pointer-events: none !important;
+        width: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      nav.nav-style6.active {
+        display: block !important;
+        max-height: 400px !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+
+      nav.nav-style6 a {
+        color: #1f2933 !important;
+        text-decoration: none;
+        padding: 0.75rem 1.25rem;
+        display: block !important;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        width: 100% !important;
+        box-sizing: border-box;
+        min-height: 44px;
+        align-items: center;
+        background: transparent !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+      }
+
+      nav.nav-style6 a:hover {
+        background: #f5f7fa !important;
+        color: #0b7285 !important;
+        padding-left: 1.5rem;
+      }
+
+      nav.nav-style6 a:first-child {
+        border-radius: 12px 12px 0 0 !important;
+      }
+
+      nav.nav-style6 a:last-child {
+        border-radius: 0 0 12px 12px !important;
+      }
+    }
+
+    /* Mobile: Show hamburger, nav as dropdown */
+    @media (max-width: 480px) {
+      .header-top {
+        padding: 0.75rem 1rem;
+        gap: 0.5rem;
+      }
+
+      .brand {
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        max-width: 140px !important;
+        z-index: 1 !important;
+      }
+
+      .brand img {
+        height: 30px;
+        max-width: 120px;
+      }
+
+      /* Show hamburger menu on mobile */
+      .menu-toggle-style6 {
+        display: flex !important;
+        order: 1;
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      /* Hide full navigation, show as dropdown when active */
+      nav.nav-style6 {
+        display: none !important;
+        position: absolute !important;
+        top: calc(100% + 0.5rem) !important;
+        right: 1rem !important;
+        left: auto !important;
+        background: white !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+        min-width: 200px !important;
+        max-width: calc(100vw - 2rem) !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        transition: max-height 0.3s ease, opacity 0.3s ease !important;
+        opacity: 0 !important;
+        z-index: 1000 !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        pointer-events: none !important;
+        width: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      nav.nav-style6.active {
+        display: block !important;
+        max-height: 400px !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+
+      nav.nav-style6 a {
+        color: #1f2933 !important;
+        text-decoration: none;
+        padding: 0.75rem 1.25rem;
+        display: block !important;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        width: 100% !important;
+        box-sizing: border-box;
+        min-height: 44px;
+        align-items: center;
+        background: transparent !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+      }
+
+      nav.nav-style6 a:hover {
+        background: #f5f7fa !important;
+        color: #0b7285 !important;
+        padding-left: 1.5rem;
+      }
+
+      nav.nav-style6 a:first-child {
+        border-radius: 12px 12px 0 0 !important;
+      }
+
+      nav.nav-style6 a:last-child {
+        border-radius: 0 0 12px 12px !important;
+      }
+    }
+
+    /* Very Small Devices */
+    @media (max-width: 320px) {
+      .header-top {
+        padding: 0.5rem 0.75rem;
+      }
+
+      .brand img {
+        height: 28px;
+        max-width: 100px;
+      }
+
+      .menu-toggle-style6 {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 0.375rem;
+      }
+
+      nav.nav-style6 {
+        right: 0.75rem;
+        min-width: 180px;
+        max-width: calc(100vw - 1.5rem);
+      }
     }
 
     main {
-
       max-width: 960px;
-
       margin: 0 auto;
-
       padding: 2rem 1.5rem 3rem;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+
+    @media (max-width: 768px) {
+
+      main {
+
+        padding: 1.5rem 1rem 2rem;
+
+      }
+
+    }
+
+    @media (max-width: 480px) {
+
+      main {
+
+        padding: 1rem 0.75rem 1.5rem;
+
+      }
 
     }
 
     .hero {
-
       display: grid;
-
       grid-template-columns: minmax(0, 3fr);
-
       gap: 1.5rem;
-
       margin-top: 2rem;
-
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .hero h1 {
-
-      font-size: clamp(2rem, 3vw, 2.6rem);
-
+      color: #0b7285;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      line-height: 1.2;
+      font-weight: 700;
       margin-bottom: 1rem;
+
+      line-height: 1.2;
 
     }
 
     .hero p {
-
-      font-size: 1rem;
-
-      line-height: 1.6;
-
+      font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+      line-height: 1.5;
       margin-bottom: 1.25rem;
-
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .hero-actions {
@@ -134,15 +562,43 @@
 
     }
 
+    @media (max-width: 480px) {
+
+      .hero {
+
+        margin-top: 1rem;
+
+        gap: 1rem;
+
+      }
+
+      .hero-actions {
+
+        flex-direction: column;
+
+      }
+
+      .hero-actions .btn-primary,
+
+      .hero-actions .btn-secondary {
+
+        width: 100%;
+
+        justify-content: center;
+
+      }
+
+    }
+
     .btn-primary,
 
     .btn-secondary {
 
-      padding: 0.75rem 1.3rem;
+      padding: clamp(0.75rem, 2vw, 0.875rem) clamp(1.5rem, 4vw, 2rem);
 
-      border-radius: 999px;
+      border-radius: 8px;
 
-      font-size: 0.95rem;
+      font-size: clamp(0.95rem, 2.5vw, 1rem);
 
       border: none;
 
@@ -156,7 +612,19 @@
 
       justify-content: center;
 
+      white-space: nowrap;
+
+      transition: background-color 0.2s ease, transform 0.1s ease;
+
+      font-weight: 600;
+
     }
+
+    .btn-primary:active,
+    .btn-secondary:active {
+      transform: scale(0.98);
+    }
+
 
     .btn-primary {
 
@@ -174,80 +642,132 @@
 
     .btn-secondary {
 
-      background: #e0f7fb;
+      background: transparent;
 
       color: #0b7285;
+
+      border: 2px solid #0b7285;
 
     }
 
     .btn-secondary:hover {
 
-      background: #c7edf4;
+      background: rgba(11, 114, 133, 0.05);
 
       color: #095a69;
+
+      border-color: #095a69;
 
     }
 
     .section {
-
       margin-top: 3rem;
-
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .section h2 {
-
-      font-size: 1.3rem;
-
+      font-size: clamp(1.15rem, 3vw, 1.3rem);
       margin-bottom: 0.75rem;
+      word-wrap: break-word;
+    }
 
+    .section p {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .grid {
-
       display: grid;
-
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-
       gap: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 768px) {
+
+      .section {
+
+        margin-top: 2rem;
+
+      }
+
+      .grid {
+
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+
+        gap: 0.75rem;
+
+      }
+
+    }
+
+    @media (max-width: 480px) {
+
+      .section {
+
+        margin-top: 1.5rem;
+
+      }
+
+      .grid {
+
+        grid-template-columns: 1fr;
+
+        gap: 0.75rem;
+
+      }
 
     }
 
     .card {
-
       background: #ffffff;
-
       border-radius: 12px;
-
       padding: 1.25rem;
-
       box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
-
-      font-size: 0.95rem;
-
+      font-size: clamp(0.9rem, 2vw, 0.95rem);
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .card h3 {
-
       margin-top: 0;
-
       margin-bottom: 0.5rem;
+      font-size: clamp(1rem, 2.5vw, 1.05rem);
+      word-wrap: break-word;
+    }
 
-      font-size: 1.05rem;
+    .card p {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 480px) {
+
+      .card {
+
+        padding: 1rem;
+
+      }
 
     }
 
     footer {
-
       border-top: 1px solid #d8e2ec;
-
       padding: 1rem 1.5rem 1.5rem;
-
-      font-size: 0.85rem;
-
+      font-size: clamp(0.8rem, 2vw, 0.85rem);
       background: #f9fbfd;
-
       color: #6b7785;
-
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      word-wrap: break-word;
     }
 
     footer a {
@@ -258,12 +778,110 @@
 
       margin-right: 1rem;
 
+      display: inline-block;
+
+      margin-bottom: 0.25rem;
+
     }
 
     footer a:hover {
 
       text-decoration: underline;
 
+    }
+
+    @media (max-width: 768px) {
+
+      footer {
+
+        padding: 1rem;
+
+        text-align: center;
+
+      }
+
+      footer > div {
+
+        margin-bottom: 0.5rem;
+
+      }
+
+      footer a {
+
+        margin-right: 0.75rem;
+
+        margin-left: 0.75rem;
+
+      }
+
+    }
+
+    @media (max-width: 480px) {
+
+      footer {
+
+        padding: 0.75rem;
+
+        font-size: 0.8rem;
+
+      }
+
+      footer a {
+        display: block;
+        margin: 0.25rem 0;
+        word-break: break-all;
+      }
+    }
+
+    /* Ensure all images are responsive */
+    img {
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Ensure all text elements wrap properly */
+    p, h1, h2, h3, h4, h5, h6, span, div, a, li {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    /* Long URLs should break */
+    a {
+      word-break: break-all;
+    }
+
+    /* Prevent horizontal overflow on all elements */
+    * {
+      max-width: 100%;
+    }
+
+    /* Allow specific elements to have their own width */
+    header, main, footer, .grid, .card, .hero {
+      max-width: 100%;
+    }
+
+    /* Very small devices */
+    @media (max-width: 320px) {
+      header {
+        padding: 0.625rem 0.5rem;
+      }
+
+      .brand img {
+        height: 24px;
+      }
+
+      main {
+        padding: 0.75rem 0.5rem 1rem;
+      }
+
+      .hero h1 {
+        font-size: clamp(1.5rem, 5vw, 2rem);
+      }
+
+      .card {
+        padding: 0.875rem;
+      }
     }
 
   </style>
@@ -279,29 +897,42 @@
       }
     })();
   </script>
+  
+  <!-- Service Worker Registration - Only on app.cleartrack.co.za -->
+  <script>
+    if (window.location.hostname === 'app.cleartrack.co.za') {
+      var script = document.createElement('script');
+      script.src = '/sw-register.js';
+      document.head.appendChild(script);
+    }
+  </script>
 
 </head>
 
 <body>
 
   <header>
+    <div class="header-top">
+      <div class="brand">
+        <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
+      </div>
 
-    <div class="brand"><img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo" style="height:40px; filter: brightness(0) invert(1);"></div>
+      <button class="menu-toggle-style6" aria-label="Toggle menu" id="menuToggle">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
 
-    <nav>
-
+    <nav class="nav-style6" id="mainNav">
       <a href="#features">Features</a>
-
       <a href="#who-for">Who it's for</a>
-
       <a href="/practitioner-application.html">For Practitioners</a>
-
       <a href="/contact.html">Contact</a>
-
       <a href="/login.html">Login</a>
-
     </nav>
-
+    </div>
   </header>
 
 
@@ -332,7 +963,7 @@
 
         </div>
 
-        <p style="margin-top: 1rem; font-size: 0.85rem; color: #6b7785;">
+        <p style="margin-top: 1rem; font-size: clamp(0.8rem, 2vw, 0.85rem); color: #6b7785; word-wrap: break-word; overflow-wrap: break-word;">
 
           ClearTrack is a private app built and operated by JellyBean Accounting in South Africa.
 
@@ -440,13 +1071,13 @@
 
       <h2>How ClearTrack works</h2>
 
-      <ol style="padding-left: 1.25rem; font-size: 0.95rem; line-height: 1.6;">
+      <ol style="padding-left: 1.25rem; font-size: clamp(0.9rem, 2vw, 0.95rem); line-height: 1.6;">
 
-        <li>Create an account and add your vehicle(s).</li>
+        <li style="margin-bottom: 0.5rem;">Create an account and add your vehicle(s).</li>
 
-        <li>Capture trips or import your route list / call cycle.</li>
+        <li style="margin-bottom: 0.5rem;">Capture trips or import your route list / call cycle.</li>
 
-        <li>Upload supporting documents such as fuel slips and IRP5s.</li>
+        <li style="margin-bottom: 0.5rem;">Upload supporting documents such as fuel slips and IRP5s.</li>
 
         <li>Share exports with your practitioner when it is time to file.</li>
 
@@ -498,6 +1129,60 @@
   <script>
 
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Style 6: Compact Dropdown Menu Toggle - Clean Implementation
+    (function() {
+      const menuToggle = document.getElementById("menuToggle");
+      const mainNav = document.getElementById("mainNav");
+
+      if (menuToggle && mainNav) {
+        function toggleMenu() {
+          // Only toggle on mobile/tablet (when hamburger is visible)
+          if (window.innerWidth <= 768) {
+          mainNav.classList.toggle('active');
+          menuToggle.classList.toggle('active');
+          }
+        }
+
+        menuToggle.addEventListener("click", function(e) {
+          e.stopPropagation();
+          // Only toggle on mobile/tablet
+          if (window.innerWidth <= 768) {
+          toggleMenu();
+          }
+        });
+
+        // Close menu when clicking on a link (mobile/tablet only)
+        const navLinks = mainNav.querySelectorAll("a");
+        navLinks.forEach(function(link) {
+          link.addEventListener("click", function() {
+            if (window.innerWidth <= 768) {
+            mainNav.classList.remove('active');
+            menuToggle.classList.remove('active');
+            }
+          });
+        });
+
+        // Close menu when clicking outside (mobile/tablet only)
+        document.addEventListener('click', function(event) {
+          const header = document.querySelector("header");
+          if (window.innerWidth <= 768 && mainNav.classList.contains('active')) {
+            if (header && !header.contains(event.target)) {
+              mainNav.classList.remove('active');
+              menuToggle.classList.remove('active');
+            }
+          }
+        });
+
+        // Close mobile menu when resizing to desktop
+        window.addEventListener('resize', function() {
+          if (window.innerWidth > 768) {
+            mainNav.classList.remove('active');
+            menuToggle.classList.remove('active');
+          }
+        });
+      }
+    })();
 
     </script>
     

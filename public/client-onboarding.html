@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
     <link rel="stylesheet" href="global-styles.css">
     <link rel="stylesheet" href="/css/ct-theme.css" />
+    <link rel="stylesheet" href="/header-responsive-fixes.css" />
     <style>
         * {
             margin: 0;
@@ -21,54 +22,228 @@
             margin: 0;
         }
         
+        /* Style 6: Compact Dropdown (Minimal) - Clean Implementation */
         header {
             background: #0b7285;
             color: #fff;
-            padding: 1.5rem 2.5rem;
+            padding: 1rem 1.5rem;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
             position: relative;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
         }
-        
-        .logo {
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: 0.04em;
             display: flex;
             align-items: center;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+            flex-shrink: 0;
         }
-        
-        .logo img {
-            height: 32px;
+
+        .brand img {
+            height: 35px;
+            max-width: 100%;
             width: auto;
+            object-fit: contain;
             filter: brightness(0) invert(1);
+        }
+
+        /* Style 6: Hamburger menu button */
+        .menu-toggle-style6 {
+            background: transparent;
+            border: none;
+            color: #e0fbff;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-toggle-style6:hover {
+            transform: scale(1.1);
+        }
+
+        .menu-toggle-style6.active {
+            transform: rotate(90deg);
+        }
+
+        /* Style 6: Navigation - Desktop (visible by default) */
+        nav.nav-style6 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        nav.nav-style6 a {
+            color: #e0fbff;
+            font-size: 0.95rem;
+            text-decoration: none;
+            white-space: nowrap;
+            padding: 0.25rem 0.5rem;
+        }
+
+        nav.nav-style6 a:hover {
+            text-decoration: underline;
+        }
+
+        /* Desktop: Hide hamburger, show nav */
+        @media (min-width: 769px) {
+            .menu-toggle-style6 {
+                display: none;
+            }
+
+            nav.nav-style6 {
+                display: flex;
+                position: static;
+                background: transparent;
+                border-radius: 0;
+                box-shadow: none;
+                min-width: auto;
+                max-height: none;
+                opacity: 1;
+                flex-direction: row;
+                gap: 0.75rem;
+                overflow: visible;
+                z-index: auto;
+            }
+
+            nav.nav-style6 a {
+                color: #e0fbff;
+                font-size: 0.95rem;
+                text-decoration: none;
+                white-space: nowrap;
+                padding: 0.25rem 0.5rem;
+                display: inline-block;
+                width: auto;
+            }
+
+            nav.nav-style6 a:hover {
+                text-decoration: underline;
+                background: transparent;
+                padding-left: 0.5rem;
+            }
+        }
+
+        /* Mobile: Show hamburger, nav as dropdown */
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+            }
+
+            .brand img {
+                height: 30px;
+            }
+
+            .menu-toggle-style6 {
+                display: flex;
+            }
+
+            /* Style 6: Nav as dropdown - exactly like demo */
+            nav.nav-style6 {
+                position: absolute;
+                top: calc(100% + 0.5rem);
+                right: 1.5rem;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+                min-width: 220px;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease, opacity 0.3s ease;
+                opacity: 0;
+                z-index: 1000;
+                display: block;
+                flex-direction: initial;
+                align-items: initial;
+                gap: 0;
+                flex-wrap: initial;
+            }
+
+            nav.nav-style6.active {
+                max-height: 400px;
+                opacity: 1;
+            }
+
+            nav.nav-style6 a {
+                color: #1f2933;
+                text-decoration: none;
+                padding: 0.75rem 1.25rem;
+                display: block;
+                font-size: 0.95rem;
+                transition: all 0.2s;
+                border: none;
+                margin: 0;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            nav.nav-style6 a:hover {
+                background: #f5f7fa;
+                color: #0b7285;
+                padding-left: 1.5rem;
+            }
+
+            nav.nav-style6 a:first-child {
+                border-radius: 12px 12px 0 0;
+            }
+
+            nav.nav-style6 a:last-child {
+                border-radius: 0 0 12px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 0.75rem;
+            }
+
+            .brand img {
+                height: 28px;
+            }
+
+            nav.nav-style6 {
+                right: 0.75rem;
+                min-width: 200px;
+            }
         }
         
         main {
             max-width: 800px;
             margin: 0 auto;
-            padding: 2rem 1.5rem 3rem;
-            background: #ffffff;
+            padding: clamp(1.5rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem) clamp(2rem, 5vw, 3rem);
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .onboarding-card {
-            margin-top: 0;
-            padding: 0;
-            background: transparent;
-            box-shadow: none;
-            border-radius: 0;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+            padding: clamp(1.25rem, 4vw, 2rem);
+            margin-bottom: 2rem;
         }
         
         .onboarding-card h2 {
-            font-size: 2rem;
+            color: #0b7285;
             margin-top: 0;
             margin-bottom: 0.5rem;
-            color: #0b7285;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            line-height: 1.2;
+            font-weight: 700;
         }
         
         .onboarding-card > p {
-            font-size: 1.1rem;
+            font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+            line-height: 1.5;
             color: #6b7280;
             margin-bottom: 2rem;
         }
@@ -86,34 +261,46 @@
         }
         
         .onboarding-section h3 {
-            font-size: 1.5rem;
+            font-size: clamp(1.25rem, 3.5vw, 1.5rem);
             margin-bottom: 0.75rem;
             color: #111827;
+            font-weight: 600;
         }
         
         .onboarding-section > p {
+            font-size: clamp(0.9rem, 2vw, 0.95rem);
             color: #6b7280;
             margin-bottom: 1.5rem;
+            line-height: 1.5;
         }
         
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: clamp(1.25rem, 3vw, 1.5rem);
         }
         
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
-            color: #374151;
+            color: #334e68;
+            font-size: clamp(0.85rem, 2vw, 0.9rem);
         }
         
         .form-control {
             width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 1rem;
+            box-sizing: border-box;
+            padding: clamp(0.625rem, 2vw, 0.75rem);
+            border: 1px solid #cbd2e1;
+            border-radius: 8px;
+            font-size: clamp(0.9rem, 2.5vw, 0.95rem);
             font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0b7285;
+            box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1);
         }
         
         .form-control:focus {
@@ -174,26 +361,35 @@
         }
         
         .btn {
-            padding: 0.75rem 1.5rem;
+            padding: clamp(0.75rem, 2vw, 0.875rem) clamp(1.5rem, 4vw, 2rem);
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
+            border-radius: 8px;
+            font-size: clamp(0.95rem, 2.5vw, 1rem);
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         
         .btn-primary {
             background: #0b7285;
-            color: white;
+            color: #ffffff;
         }
         
         .btn-primary:hover {
             background: #095a69;
         }
         
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
         .btn-primary:disabled {
-            background: #9ca3af;
+            background: #95a5a6;
             cursor: not-allowed;
         }
         
@@ -221,51 +417,26 @@
         
         @media (max-width: 768px) {
             main {
-                padding: 1.5rem 1rem 2rem;
-            }
-            
-            .onboarding-card h2 {
-                font-size: 1.5rem;
-            }
-            
-            .onboarding-section h3 {
-                font-size: 1.25rem;
+                padding: clamp(1.5rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem) clamp(2rem, 5vw, 3rem);
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">
-            <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
-        </div>
+        <div class="brand"><img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo" style="height:40px; filter: brightness(0) invert(1);"></div>
+        <button class="menu-toggle-style6" aria-label="Toggle menu" id="menuToggle">☰</button>
+        <nav class="nav-style6" id="mainNav">
+            <a href="#" id="logoutLink">Logout</a>
+        </nav>
     </header>
     
     <main>
-        <div class="onboarding-card" style="padding: 0; margin: 0;">
+        <div class="onboarding-card">
             <h2>Welcome to ClearTrack</h2>
             <p>Please connect with your practitioner to get started.</p>
             
-            <!-- Option A: already invited -->
-            <section id="onboarding-invite-section" class="onboarding-section">
-                <h3>Already invited by a practitioner?</h3>
-                <p>Enter your mobile number and the verification code you received.</p>
-                
-                <div class="form-group">
-                    <label for="onboarding-invite-mobile">Your Mobile Number</label>
-                    <input id="onboarding-invite-mobile" type="tel" placeholder="Your mobile number" class="form-control" />
-                </div>
-                
-                <div class="form-group">
-                    <label for="onboarding-invite-code">Invite Code</label>
-                    <input id="onboarding-invite-code" type="text" placeholder="Invite code" class="form-control" />
-                </div>
-                
-                <button id="onboarding-invite-verify-btn" class="btn btn-primary">Connect</button>
-                <div id="onboarding-invite-feedback" class="mt-3"></div>
-            </section>
-            
-            <!-- Option B: questionnaire -->
+            <!-- Option A: questionnaire -->
             <section id="onboarding-questionnaire-section" class="onboarding-section">
                 <h3>New to ClearTrack?</h3>
                 <p>Tell us a bit about your situation so we can match you with the right practitioner.</p>
@@ -421,67 +592,6 @@
         
         // Setup onboarding handlers
         function setupOnboardingHandlers() {
-            // Check for invite link parameters and pre-fill form
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            if (code) {
-                const codeInput = document.getElementById('onboarding-invite-code');
-                if (codeInput) {
-                    codeInput.value = code;
-                }
-            }
-            
-            // Invite verification handler
-            const inviteBtn = document.getElementById('onboarding-invite-verify-btn');
-            const inviteMobileInput = document.getElementById('onboarding-invite-mobile');
-            const inviteCodeInput = document.getElementById('onboarding-invite-code');
-            const inviteFeedback = document.getElementById('onboarding-invite-feedback');
-            
-            if (inviteBtn && inviteMobileInput && inviteCodeInput) {
-                inviteBtn.addEventListener('click', async () => {
-                    // Check auth before submitting
-                    if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
-                        inviteFeedback.innerHTML = '<div class="alert alert-error">Please log in first. Redirecting to login page...</div>';
-                        setTimeout(() => {
-                            window.location.href = '/login.html';
-                        }, 2000);
-                        return;
-                    }
-                    
-                    const mobile = inviteMobileInput.value.trim();
-                    const code = inviteCodeInput.value.trim();
-                    
-                    if (!mobile || !code) {
-                        inviteFeedback.innerHTML = '<div class="alert alert-error">Mobile number and code are required</div>';
-                        return;
-                    }
-                    
-                    if (!window.CTClientLinking) {
-                        inviteFeedback.innerHTML = '<div class="alert alert-error">Client linking module not loaded</div>';
-                        return;
-                    }
-                    
-                    try {
-                        inviteBtn.disabled = true;
-                        inviteBtn.textContent = 'Verifying...';
-                        inviteFeedback.innerHTML = '';
-                        
-                        await window.CTClientLinking.verifyClientInvite(mobile, code);
-                        
-                        inviteFeedback.innerHTML = '<div class="alert alert-success">You are now connected to your practitioner. Redirecting to your dashboard…</div>';
-                        
-                        // Redirect to dashboard after successful verification
-                        setTimeout(() => {
-                            window.location.href = '/user-dashboard.html';
-                        }, 1500);
-                    } catch (err) {
-                        inviteFeedback.innerHTML = `<div class="alert alert-error">${err.message || 'Could not verify invite. Please check your details.'}</div>`;
-                        inviteBtn.disabled = false;
-                        inviteBtn.textContent = 'Connect';
-                    }
-                });
-            }
-            
             // Questionnaire handler
             const questionnaireBtn = document.getElementById('onboarding-questionnaire-submit-btn');
             const questionnaireFeedback = document.getElementById('onboarding-questionnaire-feedback');
@@ -538,6 +648,71 @@
                 });
             }
         }
+
+        // Style 6: Compact Dropdown Menu Toggle - Clean Implementation
+        (function() {
+            const menuToggle = document.getElementById("menuToggle");
+            const mainNav = document.getElementById("mainNav");
+
+            if (menuToggle && mainNav) {
+                function toggleMenu() {
+                    mainNav.classList.toggle('active');
+                    menuToggle.classList.toggle('active');
+                }
+
+                menuToggle.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    toggleMenu();
+                });
+
+                // Close menu when clicking on a link
+                const navLinks = mainNav.querySelectorAll("a");
+                navLinks.forEach(function(link) {
+                    link.addEventListener("click", function() {
+                        mainNav.classList.remove('active');
+                        menuToggle.classList.remove('active');
+                    });
+                });
+
+                // Close menu when clicking outside (Style 6 dropdown)
+                document.addEventListener('click', function(event) {
+                    const header = document.querySelector("header");
+                    if (mainNav.classList.contains('active')) {
+                        if (header && !header.contains(event.target)) {
+                            mainNav.classList.remove('active');
+                            menuToggle.classList.remove('active');
+                        }
+                    }
+                });
+            }
+
+            // Logout handler
+            const logoutLink = document.getElementById("logoutLink");
+            if (logoutLink) {
+                logoutLink.addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    try {
+                        // Check if Firebase Auth is available
+                        if (window.firebaseAuth) {
+                            await window.firebaseAuth.signOut();
+                        }
+                        
+                        // Clear any local storage
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('firebaseUser');
+                        
+                        // Redirect to index page
+                        window.location.href = '/index.html';
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        // Still redirect even if logout fails
+                        window.location.href = '/index.html';
+                    }
+                });
+            }
+        })();
     </script>
 </body>
 </html>

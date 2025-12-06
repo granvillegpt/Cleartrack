@@ -19,8 +19,90 @@
   />
 
   <link rel="icon" type="image/png" href="assets/images/icon%20logo.png" />
+  
+  <!-- PWA Features - Only on app.cleartrack.co.za -->
+  <script>
+    (function() {
+      if (window.location.hostname === 'app.cleartrack.co.za') {
+        // Use DOM manipulation instead of document.write to prevent blocking
+        const head = document.head || document.getElementsByTagName('head')[0];
+        
+        // Manifest
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = '/manifest.json';
+        head.appendChild(manifest);
+        
+        // Theme color
+        const themeColor = document.createElement('meta');
+        themeColor.name = 'theme-color';
+        themeColor.content = '#0b7285';
+        head.appendChild(themeColor);
+        
+        // Apple Touch Icons
+        const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        iconSizes.forEach(size => {
+          const icon = document.createElement('link');
+          icon.rel = 'apple-touch-icon';
+          icon.sizes = size + 'x' + size;
+          icon.href = '/icons/cleartrack-' + size + '.png';
+          head.appendChild(icon);
+        });
+        
+        // PWA Meta Tags
+        const metaTags = [
+          { name: 'apple-mobile-web-app-capable', content: 'yes' },
+          { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+          { name: 'apple-mobile-web-app-title', content: 'ClearTrack' },
+          { name: 'mobile-web-app-capable', content: 'yes' }
+        ];
+        metaTags.forEach(tag => {
+          const meta = document.createElement('meta');
+          meta.name = tag.name;
+          meta.content = tag.content;
+          head.appendChild(meta);
+        });
+        
+        // iOS Splash Screens
+        const splashScreens = [
+          { media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
+          { media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
+          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-xr.png' },
+          { media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs.png' },
+          { media: '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12.png' },
+          { media: '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro.png' },
+          { media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-8-plus.png' },
+          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs-max.png' },
+          { media: '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12-pro-max.png' },
+          { media: '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro-max.png' },
+          { media: '(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-mini.png' },
+          { media: '(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad.png' },
+          { media: '(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-air.png' },
+          { media: '(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-11.png' },
+          { media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-12.png' }
+        ];
+        splashScreens.forEach(screen => {
+          const link = document.createElement('link');
+          link.rel = 'apple-touch-startup-image';
+          link.media = screen.media;
+          link.href = screen.href;
+          head.appendChild(link);
+        });
+      }
+    })();
+  </script>
 
   <link rel="stylesheet" href="/css/ct-theme.css" />
+  <link rel="stylesheet" href="/header-responsive-fixes.css" />
+  
+  <!-- Service Worker Registration - Only on app.cleartrack.co.za -->
+  <script>
+    if (window.location.hostname === 'app.cleartrack.co.za') {
+      var script = document.createElement('script');
+      script.src = '/sw-register.js';
+      document.head.appendChild(script);
+    }
+  </script>
 
   <style>
 
@@ -119,6 +201,7 @@
       margin-bottom: 0.9rem;
 
     }
+
 
     button {
 
@@ -414,7 +497,15 @@
 
         <label for="password">Password</label>
 
-        <input id="password" type="password" autocomplete="current-password" required />
+        <div style="position: relative;">
+          <input id="password" type="password" autocomplete="current-password" required style="padding-right: 2.5rem;" />
+          <button type="button" id="togglePassword" style="position: absolute; right: 0.75rem; top: 29%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.25rem; color: #6b7280; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;" aria-label="Toggle password visibility">
+            <svg id="passwordIcon" width="20" height="20" viewBox="0 0 90 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 45 73.264 c -14.869 0 -29.775 -8.864 -44.307 -26.346 c -0.924 -1.112 -0.924 -2.724 0 -3.836 C 15.225 25.601 30.131 16.737 45 16.737 c 14.868 0 29.775 8.864 44.307 26.345 c 0.925 1.112 0.925 2.724 0 3.836 C 74.775 64.399 59.868 73.264 45 73.264 z M 6.934 45 C 19.73 59.776 32.528 67.264 45 67.264 c 12.473 0 25.27 -7.487 38.066 -22.264 C 70.27 30.224 57.473 22.737 45 22.737 C 32.528 22.737 19.73 30.224 6.934 45 z"/>
+              <path d="M 45 62 c -9.374 0 -17 -7.626 -17 -17 s 7.626 -17 17 -17 s 17 7.626 17 17 S 54.374 62 45 62 z M 45 34 c -6.065 0 -11 4.935 -11 11 s 4.935 11 11 11 s 11 -4.935 11 -11 S 51.065 34 45 34 z"/>
+            </svg>
+          </button>
+        </div>
 
         <a href="#" id="forgotPasswordLink" class="forgot-password-link">Forgot password?</a>
 
@@ -444,7 +535,15 @@
         <input id="registerEmail" type="email" autocomplete="email" required />
 
         <label for="registerPassword">Password</label>
-        <input id="registerPassword" type="password" autocomplete="new-password" required minlength="6" />
+        <div style="position: relative;">
+          <input id="registerPassword" type="password" autocomplete="new-password" required minlength="6" style="padding-right: 2.5rem;" />
+          <button type="button" id="toggleRegisterPassword" style="position: absolute; right: 0.75rem; top: 29%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.25rem; color: #6b7280; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;" aria-label="Toggle password visibility">
+            <svg id="registerPasswordIcon" width="20" height="20" viewBox="0 0 90 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 45 73.264 c -14.869 0 -29.775 -8.864 -44.307 -26.346 c -0.924 -1.112 -0.924 -2.724 0 -3.836 C 15.225 25.601 30.131 16.737 45 16.737 c 14.868 0 29.775 8.864 44.307 26.345 c 0.925 1.112 0.925 2.724 0 3.836 C 74.775 64.399 59.868 73.264 45 73.264 z M 6.934 45 C 19.73 59.776 32.528 67.264 45 67.264 c 12.473 0 25.27 -7.487 38.066 -22.264 C 70.27 30.224 57.473 22.737 45 22.737 C 32.528 22.737 19.73 30.224 6.934 45 z"/>
+              <path d="M 45 62 c -9.374 0 -17 -7.626 -17 -17 s 7.626 -17 17 -17 s 17 7.626 17 17 S 54.374 62 45 62 z M 45 34 c -6.065 0 -11 4.935 -11 11 s 4.935 11 11 11 s 11 -4.935 11 -11 S 51.065 34 45 34 z"/>
+            </svg>
+          </button>
+        </div>
 
         <button id="registerBtn" type="submit">Create Account</button>
 
@@ -497,6 +596,68 @@
   <script src="login.js"></script>
 
   <script>
+    // Password visibility toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    
+    // Eye icon SVG (show password)
+    const eyeIcon = `<svg id="passwordIcon" width="20" height="20" viewBox="0 0 90 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 45 73.264 c -14.869 0 -29.775 -8.864 -44.307 -26.346 c -0.924 -1.112 -0.924 -2.724 0 -3.836 C 15.225 25.601 30.131 16.737 45 16.737 c 14.868 0 29.775 8.864 44.307 26.345 c 0.925 1.112 0.925 2.724 0 3.836 C 74.775 64.399 59.868 73.264 45 73.264 z M 6.934 45 C 19.73 59.776 32.528 67.264 45 67.264 c 12.473 0 25.27 -7.487 38.066 -22.264 C 70.27 30.224 57.473 22.737 45 22.737 C 32.528 22.737 19.73 30.224 6.934 45 z"/>
+      <path d="M 45 62 c -9.374 0 -17 -7.626 -17 -17 s 7.626 -17 17 -17 s 17 7.626 17 17 S 54.374 62 45 62 z M 45 34 c -6.065 0 -11 4.935 -11 11 s 4.935 11 11 11 s 11 -4.935 11 -11 S 51.065 34 45 34 z"/>
+    </svg>`;
+    
+    // Eye-slash icon SVG (hide password)
+    const eyeSlashIcon = `<svg id="passwordIcon" width="20" height="20" viewBox="0 0 90 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 13.148 79.853 c -0.768 0 -1.536 -0.293 -2.121 -0.879 c -1.172 -1.171 -1.172 -3.071 0 -4.242 l 63.705 -63.705 c 1.172 -1.172 3.07 -1.172 4.242 0 c 1.172 1.171 1.172 3.071 0 4.242 L 15.269 78.974 C 14.684 79.56 13.916 79.853 13.148 79.853 z"/>
+      <path d="M 25.296 67.703 c -0.504 0 -1.012 -0.127 -1.474 -0.388 C 16.105 62.961 8.323 56.098 0.693 46.918 c -0.924 -1.112 -0.924 -2.724 0 -3.835 c 21.533 -25.904 43.565 -32.767 65.485 -20.399 c 0.816 0.461 1.371 1.277 1.498 2.207 s -0.188 1.864 -0.852 2.527 L 27.418 66.824 C 26.841 67.402 26.073 67.703 25.296 67.703 z M 6.933 45 c 5.972 6.896 11.974 12.242 17.891 15.934 l 34.842 -34.842 C 42.131 18.098 24.824 24.311 6.933 45 z"/>
+      <path d="M 34.394 58.606 c -0.795 0 -1.558 -0.315 -2.121 -0.878 C 28.873 54.329 27 49.809 27 45 c 0 -9.925 8.075 -18 18 -18 c 4.749 0 9.23 1.833 12.617 5.163 c 0.569 0.56 0.893 1.322 0.897 2.12 s -0.308 1.565 -0.869 2.132 L 36.524 57.719 c -0.562 0.566 -1.326 0.886 -2.124 0.888 C 34.398 58.606 34.396 58.606 34.394 58.606 z M 45 33 c -6.617 0 -12 5.383 -12 12 c 0 2.175 0.574 4.261 1.651 6.085 L 50.995 34.6 C 49.19 33.556 47.136 33 45 33 z"/>
+      <path d="M 44.973 73.26 c -3.552 0 -7.104 -0.501 -10.657 -1.505 c -1.594 -0.45 -2.521 -2.108 -2.071 -3.703 c 0.45 -1.594 2.105 -2.524 3.703 -2.07 C 51.38 70.341 67.226 63.287 83.066 45 c -3.977 -4.592 -7.98 -8.514 -11.925 -11.68 c -1.292 -1.037 -1.499 -2.925 -0.462 -4.218 c 1.038 -1.292 2.927 -1.499 4.218 -0.462 c 4.796 3.849 9.644 8.708 14.409 14.442 c 0.925 1.111 0.925 2.724 0 3.835 C 74.743 64.438 59.874 73.26 44.973 73.26 z"/>
+      <path d="M 45 63 c -0.386 0 -0.77 -0.013 -1.149 -0.036 c -1.654 -0.101 -2.913 -1.523 -2.812 -3.178 c 0.102 -1.652 1.527 -2.909 3.178 -2.811 C 44.476 56.991 44.737 57 45 57 c 6.617 0 12 -5.383 12 -12 c 0 -0.27 -0.009 -0.538 -0.026 -0.803 c -0.107 -1.653 1.146 -3.081 2.799 -3.188 c 1.665 -0.103 3.082 1.146 3.189 2.799 C 62.987 44.202 63 44.599 63 45 C 63 54.925 54.925 63 45 63 z"/>
+    </svg>`;
+    
+    // Register eye icon SVG (show password)
+    const registerEyeIcon = `<svg id="registerPasswordIcon" width="20" height="20" viewBox="0 0 90 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 45 73.264 c -14.869 0 -29.775 -8.864 -44.307 -26.346 c -0.924 -1.112 -0.924 -2.724 0 -3.836 C 15.225 25.601 30.131 16.737 45 16.737 c 14.868 0 29.775 8.864 44.307 26.345 c 0.925 1.112 0.925 2.724 0 3.836 C 74.775 64.399 59.868 73.264 45 73.264 z M 6.934 45 C 19.73 59.776 32.528 67.264 45 67.264 c 12.473 0 25.27 -7.487 38.066 -22.264 C 70.27 30.224 57.473 22.737 45 22.737 C 32.528 22.737 19.73 30.224 6.934 45 z"/>
+      <path d="M 45 62 c -9.374 0 -17 -7.626 -17 -17 s 7.626 -17 17 -17 s 17 7.626 17 17 S 54.374 62 45 62 z M 45 34 c -6.065 0 -11 4.935 -11 11 s 4.935 11 11 11 s 11 -4.935 11 -11 S 51.065 34 45 34 z"/>
+    </svg>`;
+    
+    // Register eye-slash icon SVG (hide password)
+    const registerEyeSlashIcon = `<svg id="registerPasswordIcon" width="20" height="20" viewBox="0 0 90 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 13.148 79.853 c -0.768 0 -1.536 -0.293 -2.121 -0.879 c -1.172 -1.171 -1.172 -3.071 0 -4.242 l 63.705 -63.705 c 1.172 -1.172 3.07 -1.172 4.242 0 c 1.172 1.171 1.172 3.071 0 4.242 L 15.269 78.974 C 14.684 79.56 13.916 79.853 13.148 79.853 z"/>
+      <path d="M 25.296 67.703 c -0.504 0 -1.012 -0.127 -1.474 -0.388 C 16.105 62.961 8.323 56.098 0.693 46.918 c -0.924 -1.112 -0.924 -2.724 0 -3.835 c 21.533 -25.904 43.565 -32.767 65.485 -20.399 c 0.816 0.461 1.371 1.277 1.498 2.207 s -0.188 1.864 -0.852 2.527 L 27.418 66.824 C 26.841 67.402 26.073 67.703 25.296 67.703 z M 6.933 45 c 5.972 6.896 11.974 12.242 17.891 15.934 l 34.842 -34.842 C 42.131 18.098 24.824 24.311 6.933 45 z"/>
+      <path d="M 34.394 58.606 c -0.795 0 -1.558 -0.315 -2.121 -0.878 C 28.873 54.329 27 49.809 27 45 c 0 -9.925 8.075 -18 18 -18 c 4.749 0 9.23 1.833 12.617 5.163 c 0.569 0.56 0.893 1.322 0.897 2.12 s -0.308 1.565 -0.869 2.132 L 36.524 57.719 c -0.562 0.566 -1.326 0.886 -2.124 0.888 C 34.398 58.606 34.396 58.606 34.394 58.606 z M 45 33 c -6.617 0 -12 5.383 -12 12 c 0 2.175 0.574 4.261 1.651 6.085 L 50.995 34.6 C 49.19 33.556 47.136 33 45 33 z"/>
+      <path d="M 44.973 73.26 c -3.552 0 -7.104 -0.501 -10.657 -1.505 c -1.594 -0.45 -2.521 -2.108 -2.071 -3.703 c 0.45 -1.594 2.105 -2.524 3.703 -2.07 C 51.38 70.341 67.226 63.287 83.066 45 c -3.977 -4.592 -7.98 -8.514 -11.925 -11.68 c -1.292 -1.037 -1.499 -2.925 -0.462 -4.218 c 1.038 -1.292 2.927 -1.499 4.218 -0.462 c 4.796 3.849 9.644 8.708 14.409 14.442 c 0.925 1.111 0.925 2.724 0 3.835 C 74.743 64.438 59.874 73.26 44.973 73.26 z"/>
+      <path d="M 45 63 c -0.386 0 -0.77 -0.013 -1.149 -0.036 c -1.654 -0.101 -2.913 -1.523 -2.812 -3.178 c 0.102 -1.652 1.527 -2.909 3.178 -2.811 C 44.476 56.991 44.737 57 45 57 c 6.617 0 12 -5.383 12 -12 c 0 -0.27 -0.009 -0.538 -0.026 -0.803 c -0.107 -1.653 1.146 -3.081 2.799 -3.188 c 1.665 -0.103 3.082 1.146 3.189 2.799 C 62.987 44.202 63 44.599 63 45 C 63 54.925 54.925 63 45 63 z"/>
+    </svg>`;
+    
+    if (togglePassword && passwordInput) {
+      togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        // Get fresh reference to icon element each time
+        const passwordIcon = document.getElementById('passwordIcon');
+        if (passwordIcon) {
+          passwordIcon.outerHTML = type === 'password' ? eyeIcon : eyeSlashIcon;
+        }
+      });
+    }
+
+    // Register password toggle
+    const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
+    const registerPasswordInput = document.getElementById('registerPassword');
+    
+    if (toggleRegisterPassword && registerPasswordInput) {
+      toggleRegisterPassword.addEventListener('click', function() {
+        const type = registerPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        registerPasswordInput.setAttribute('type', type);
+        // Get fresh reference to icon element each time
+        const registerPasswordIcon = document.getElementById('registerPasswordIcon');
+        if (registerPasswordIcon) {
+          registerPasswordIcon.outerHTML = type === 'password' ? registerEyeIcon : registerEyeSlashIcon;
+        }
+      });
+    }
+
     // Hide "Back to ClearTrack home" link on app.cleartrack.co.za
     (function() {
       const backLink = document.getElementById('backToHomeLink');

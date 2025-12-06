@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab Styles Samples - ClearTrack Dashboard Reference</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 2rem;
+            line-height: 1.6;
+            color: #1f2933;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #0b7285;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 3rem;
+            font-size: 1rem;
+        }
+
+        .sample-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .sample-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .sample-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-content {
+            background: #f9fafb;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+
+        /* ============================================
+           STYLE 1: Underline Tabs (Minimal)
+           ============================================ */
+        .tabs-style1 {
+            display: flex;
+            gap: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 0;
+        }
+
+        .tabs-style1 .tab {
+            padding: 1rem 0;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tabs-style1 .tab:hover {
+            color: #0b7285;
+        }
+
+        .tabs-style1 .tab.active {
+            color: #0b7285;
+        }
+
+        .tabs-style1 .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0b7285;
+        }
+
+        /* ============================================
+           STYLE 2: Pill Tabs (Rounded)
+           ============================================ */
+        .tabs-style2 {
+            display: inline-flex;
+            background: #f3f4f6;
+            padding: 0.25rem;
+            border-radius: 8px;
+            gap: 0.25rem;
+        }
+
+        .tabs-style2 .tab {
+            padding: 0.625rem 1.25rem;
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .tabs-style2 .tab:hover {
+            color: #0b7285;
+            background: rgba(11, 114, 133, 0.1);
+        }
+
+        .tabs-style2 .tab.active {
+            background: white;
+            color: #0b7285;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* ============================================
+           STYLE 3: Card Tabs (Elevated)
+           ============================================ */
+        .tabs-style3 {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tabs-style3 .tab {
+            padding: 0.875rem 1.5rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+            position: relative;
+            top: 1px;
+        }
+
+        .tabs-style3 .tab:hover {
+            color: #0b7285;
+            border-color: #0b7285;
+        }
+
+        .tabs-style3 .tab.active {
+            background: white;
+            color: #0b7285;
+            border-color: #0b7285;
+            border-bottom-color: transparent;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+            z-index: 1;
+        }
+
+        .tabs-style3-wrapper {
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 0;
+        }
+
+        /* ============================================
+           STYLE 4: Icon Tabs (With Icons)
+           ============================================ */
+        .tabs-style4 {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .tabs-style4 .tab {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.25rem;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tabs-style4 .tab:hover {
+            color: #0b7285;
+            background: rgba(11, 114, 133, 0.05);
+        }
+
+        .tabs-style4 .tab.active {
+            color: #0b7285;
+            border-bottom-color: #0b7285;
+        }
+
+        .tabs-style4 .tab-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.7;
+        }
+
+        .tabs-style4 .tab.active .tab-icon {
+            opacity: 1;
+        }
+
+        /* ============================================
+           STYLE 5: Segmented Control (iOS Style)
+           ============================================ */
+        .tabs-style5 {
+            display: inline-flex;
+            background: #f3f4f6;
+            padding: 0.25rem;
+            border-radius: 10px;
+            gap: 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        .tabs-style5 .tab {
+            padding: 0.625rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tabs-style5 .tab:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 60%;
+            background: #e5e7eb;
+        }
+
+        .tabs-style5 .tab:hover {
+            color: #0b7285;
+        }
+
+        .tabs-style5 .tab.active {
+            background: white;
+            color: #0b7285;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* ============================================
+           STYLE 6: Badge Tabs (With Counts)
+           ============================================ */
+        .tabs-style6 {
+            display: flex;
+            gap: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .tabs-style6 .tab {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 0;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tabs-style6 .tab:hover {
+            color: #0b7285;
+        }
+
+        .tabs-style6 .tab.active {
+            color: #0b7285;
+        }
+
+        .tabs-style6 .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0b7285;
+        }
+
+        .tabs-style6 .tab-badge {
+            background: #e5e7eb;
+            color: #6b7280;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.125rem 0.5rem;
+            border-radius: 12px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .tabs-style6 .tab.active .tab-badge {
+            background: #0b7285;
+            color: white;
+        }
+
+        /* ============================================
+           STYLE 7: Vertical Tabs (Sidebar Style)
+           ============================================ */
+        .tabs-style7-wrapper {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .tabs-style7 {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            min-width: 200px;
+        }
+
+        .tabs-style7 .tab {
+            padding: 0.875rem 1rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .tabs-style7 .tab:hover {
+            color: #0b7285;
+            border-color: #0b7285;
+            background: rgba(11, 114, 133, 0.05);
+        }
+
+        .tabs-style7 .tab.active {
+            background: #0b7285;
+            color: white;
+            border-color: #0b7285;
+        }
+
+        .tabs-style7-content {
+            flex: 1;
+        }
+
+        /* ============================================
+           STYLE 8: Material Design Tabs
+           ============================================ */
+        .tabs-style8 {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #e5e7eb;
+            position: relative;
+        }
+
+        .tabs-style8 .tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .tabs-style8 .tab:hover {
+            color: #0b7285;
+            background: rgba(11, 114, 133, 0.05);
+        }
+
+        .tabs-style8 .tab.active {
+            color: #0b7285;
+        }
+
+        .tabs-style8 .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #0b7285;
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Code Preview */
+        .code-preview {
+            background: #1f2933;
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            display: none;
+        }
+
+        .code-preview.active {
+            display: block;
+        }
+
+        .toggle-code {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            color: #6b7280;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-code:hover {
+            background: #e5e7eb;
+            color: #0b7285;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tab Styles Samples</h1>
+        <p class="subtitle">Reference designs for ClearTrack Dashboard tabs (Desktop Mode)</p>
+
+        <!-- Style 1: Underline Tabs -->
+        <div class="sample-section">
+            <h2 class="sample-title">Style 1: Underline Tabs (Minimal)</h2>
+            <p class="sample-description">Clean, minimal design with underline indicator. Best for simple navigation.</p>
+            <div class="tabs-style1">
+                <button class="tab active" onclick="switchTab(this, 'content1')">Dashboard</button>
+                <button class="tab" onclick="switchTab(this, 'content2')">Clients</button>
+                <button class="tab" onclick="switchTab(this, 'content3')">Messages</button>
+                <button class="tab" onclick="switchTab(this, 'content4')">Reports</button>
+            </div>
+            <div class="tab-content" id="content1">Content for Dashboard tab</div>
+            <div class="tab-content" id="content2" style="display: none;">Content for Clients tab</div>
+            <div class="tab-content" id="content3" style="display: none;">Content for Messages tab</div>
+            <div class="tab-content" id="content4" style="display: none;">Content for Reports tab</div>
+        </div>
+
+        <!-- Style 2: Pill Tabs -->
+        <div class="sample-section">
+            <h2 class="sample-title">Style 2: Pill Tabs (Rounded)</h2>
+            <p class="sample-description">Modern pill-shaped tabs with background highlight. Great for grouped options.</p>
+            <div class="tabs-style2">
+                <button class="tab active" onclick="switchTab(this, 'content5')">All</button>
+                <button class="tab" onclick="switchTab(this, 'content6')">Active</button>
+                <button class="tab" onclick="switchTab(this, 'content7')">Pending</button>
+                <button class="tab" onclick="switchTab(this, 'content8')">Archived</button>
+            </div>
+            <div class="tab-content" id="content5">Content for All tab</div>
+            <div class="tab-content" id="content6" style="display: none;">Content for Active tab</div>
+            <div class="tab-content" id="content7" style="display: none;">Content for Pending tab</div>
+            <div class="tab-content" id="content8" style="display: none;">Content for Archived tab</div>
+        </div>
+
+        <!-- Style 3: Card Tabs -->
+        <div class="sample-section">
+            <h2 class="sample-title">Style 3: Card Tabs (Elevated)</h2>
+            <p class="sample-description">Elevated card-style tabs that connect to content area. Professional look.</p>
+            <div class="tabs-style3-wrapper">
+                <div class="tabs-style3">
+                    <button class="tab active" onclick="switchTab(this, 'content9')">Overview</button>
+                    <button class="tab" onclick="switchTab(this, 'content10')">Details</button>
+                    <button class="tab" onclick="switchTab(this, 'content11')">Settings</button>
+                </div>
+            </div>
+            <div class="tab-content" id="content9">Content for Overview tab</div>
+            <div class="tab-content" id="content10" style="display: none;">Content for Details tab</div>
+            <div class="tab-content" id="content11" style="display: none;">Content for Settings tab</div>
+        </div>
+
+        <!-- Style 4: Icon Tabs -->
+        <div class="sample-section">
+            <h2 class="sample-title">Style 4: Icon Tabs (With Icons)</h2>
+            <p class="sample-description">Tabs with icons for visual recognition. Ideal for feature-rich dashboards.</p>
+            <div class="tabs-style4">
+                <button class="tab active" onclick="switchTab(this, 'content12')">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Dashboard
+                </button>
+                <button class="tab" onclick="switchTab(this, 'content13')">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Clients
+                </button>
+                <button class="tab" onclick="switchTab(this, 'content14')">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    Messages
+                </button>
+            </div>
+            <div class="tab-content" id="content12">Content for Dashboard tab</div>
+            <div class="tab-content" id="content13" style="display: none;">Content for Clients tab</div>
+            <div class="tab-content" id="content14" style="display: none;">Content for Messages tab</div>
+        </div>
+
+        <!-- Style 5: Segmented Control -->
+        <div class="sample-section">
+            <h2 class="sample-title">Style 5: Segmented Control (iOS Style)</h2>
+            <p class="sample-description">iOS-style segmented control. Clean and modern, great for filters.</p>
+            <div class="tabs-style5">
+                <button class="tab active" onclick="switchTab(this, 'content15')">Today</button>
+                <button class="tab" onclick="switchTab(this, 'content16')">Week</button>
+                <button class="tab" onclick="switchTab(this, 'content17')">Month</button>
+                <button class="tab" onclick="switchTab(this, 'content18')">Year</button>
+            </div>
+            <div class="tab-content" id="content15">Content for Today tab</div>
+            <div class="tab-content" id="content16" style="display: none;">Content for Week tab</div>
+            <div class="tab-content" id="content17" style="display: none;">Content for Month tab</div>
+            <div class="tab-content" id="content18" style="display: none;">Content for Year tab</div>
+        </div>
+
+        <!-- Style 6: Badge Tabs -->
+        <div class="sample-section">
+            <h2 class="sample-title">Style 6: Badge Tabs (With Counts)</h2>
+            <p class="sample-description">Tabs with badge counts. Perfect for showing notifications or item counts.</p>
+            <div class="tabs-style6">
+                <button class="tab active" onclick="switchTab(this, 'content19')">
+                    All Requests
+                    <span class="tab-badge">12</span>
+                </button>
+                <button class="tab" onclick="switchTab(this, 'content20')">
+                    Pending
+                    <span class="tab-badge">5</span>
+                </button>
+                <button class="tab" onclick="switchTab(this, 'content21')">
+                    Approved
+                    <span class="tab-badge">7</span>
+                </button>
+                <button class="tab" onclick="switchTab(this, 'content22')">
+                    Rejected
+                    <span class="tab-badge">0</span>
+                </button>
+            </div>
+            <div class="tab-content" id="content19">Content for All Requests tab</div>
+            <div class="tab-content" id="content20" style="display: none;">Content for Pending tab</div>
+            <div class="tab-content" id="content21" style="display: none;">Content for Approved tab</div>
+            <div class="tab-content" id="content22" style="display: none;">Content for Rejected tab</div>
+        </div>
+
+        <!-- Style 7: Vertical Tabs -->
+        <div class="sample-section">
+            <h2 class="sample-title">Style 7: Vertical Tabs (Sidebar Style)</h2>
+            <p class="sample-description">Vertical sidebar-style tabs. Great for settings or detailed sections.</p>
+            <div class="tabs-style7-wrapper">
+                <div class="tabs-style7">
+                    <button class="tab active" onclick="switchTab(this, 'content23')">General</button>
+                    <button class="tab" onclick="switchTab(this, 'content24')">Security</button>
+                    <button class="tab" onclick="switchTab(this, 'content25')">Notifications</button>
+                    <button class="tab" onclick="switchTab(this, 'content26')">Billing</button>
+                </div>
+                <div class="tabs-style7-content">
+                    <div class="tab-content" id="content23">Content for General tab</div>
+                    <div class="tab-content" id="content24" style="display: none;">Content for Security tab</div>
+                    <div class="tab-content" id="content25" style="display: none;">Content for Notifications tab</div>
+                    <div class="tab-content" id="content26" style="display: none;">Content for Billing tab</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style 8: Material Design Tabs -->
+        <div class="sample-section">
+            <h2 class="sample-title">Style 8: Material Design Tabs</h2>
+            <p class="sample-description">Material Design inspired tabs with uppercase text and bold indicator.</p>
+            <div class="tabs-style8">
+                <button class="tab active" onclick="switchTab(this, 'content27')">Overview</button>
+                <button class="tab" onclick="switchTab(this, 'content28')">Analytics</button>
+                <button class="tab" onclick="switchTab(this, 'content29')">Settings</button>
+            </div>
+            <div class="tab-content" id="content27">Content for Overview tab</div>
+            <div class="tab-content" id="content28" style="display: none;">Content for Analytics tab</div>
+            <div class="tab-content" id="content29" style="display: none;">Content for Settings tab</div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(button, contentId) {
+            // Remove active class from all tabs in the same container
+            const container = button.closest('.sample-section');
+            const tabs = container.querySelectorAll('.tab');
+            const contents = container.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.style.display = 'none');
+            
+            // Add active class to clicked tab
+            button.classList.add('active');
+            document.getElementById(contentId).style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
+
+

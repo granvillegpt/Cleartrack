@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "firebase-tools": "^14.26.0",
+    "sharp": "^0.34.5"
+  }
+}

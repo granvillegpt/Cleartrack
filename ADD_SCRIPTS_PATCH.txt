@@ -1,0 +1,39 @@
+================================================================================
+INSTRUCTIONS TO ADD FIX SCRIPTS TO PRACTITIONER-DASHBOARD.HTML
+================================================================================
+
+The fix files have been created:
+✓ public/prevent-auto-reload.js
+✓ public/practitioner-code-fix.js
+
+STEP 1: Open public/practitioner-dashboard.html in a text editor
+
+STEP 2: Find this line (around line 50-80, in the <head> section):
+    <!-- Color scheme - force light mode for Android -->
+
+STEP 3: RIGHT BEFORE that line, add these three lines:
+
+    <!-- Prevent automatic reloads and fix practitioner code loading -->
+    <script src="/prevent-auto-reload.js"></script>
+    <script src="/practitioner-code-fix.js"></script>
+
+STEP 4: Save the file
+
+The final result should look like this:
+
+    </script>
+    
+    <!-- Prevent automatic reloads and fix practitioner code loading -->
+    <script src="/prevent-auto-reload.js"></script>
+    <script src="/practitioner-code-fix.js"></script>
+    
+    <!-- Color scheme - force light mode for Android -->
+    ...
+
+================================================================================
+ALTERNATIVE: If you can't find the color-scheme comment, add the scripts
+right after the PWA Features script closes (after </script> tag around line 80)
+================================================================================
+
+
+

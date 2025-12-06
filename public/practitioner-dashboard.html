@@ -31,7 +31,7 @@
         }
         
         /* ============================================
-           HEADER CONTAINER
+           HEADER CONTAINER - Desktop Base Styles
            ============================================ */
         .header {
             background: #0b7285;
@@ -43,8 +43,6 @@
             width: 100%;
             box-sizing: border-box;
             display: block;
-            visibility: visible;
-            opacity: 1;
         }
         
         /* ============================================
@@ -160,9 +158,10 @@
         }
         
         /* ============================================
-           MOBILE NAVIGATION (nav-style6)
+           NAVIGATION (nav-style6) - Desktop Base Styles
            ============================================ */
         .nav-style6 {
+            /* Desktop: horizontal navigation bar */
             display: flex;
             gap: 2rem;
             align-items: center;
@@ -172,6 +171,39 @@
             border-top: 1px solid rgba(255, 255, 255, 0.3);
             width: 100%;
             box-sizing: border-box;
+            position: static;
+        }
+        
+        .nav-style6 a {
+            color: #e0fbff;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+            padding: 0.5rem 0;
+            display: inline-block;
+        }
+        
+        .nav-style6 a::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #ffffff;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-style6 a:hover::after,
+        .nav-style6 a.active::after {
+            width: 100%;
+        }
+        
+        .nav-style6 a:hover,
+        .nav-style6 a.active {
+            color: #ffffff;
         }
         
         /* ============================================
@@ -181,61 +213,103 @@
             /* Hide mobile menu toggle on desktop */
             .menu-toggle-style6 {
                 display: none;
-                visibility: hidden;
-                opacity: 0;
-                pointer-events: none;
             }
             
-            /* Desktop navigation */
-            .nav-style6 {
-                display: flex;
-                position: static;
-                background: rgba(255, 255, 255, 0.2);
-                border-radius: 0;
-                box-shadow: none;
-                flex-direction: row;
-            }
-            
-            .nav-style6 a {
-                color: #e0fbff;
-                padding: 0.5rem 0;
-                width: auto;
-                display: inline-block;
-            }
+            /* Desktop: nav-style6 is horizontal nav bar (already styled above) */
         }
         
         /* ============================================
-           MOBILE STYLES (max-width: 768px)
+           MOBILE STYLES (max-width: 768px) - STYLE 6 EXACT COPY
            ============================================ */
         @media (max-width: 768px) {
-            .header-top {
-                padding: 0.875rem 1rem;
-                width: 100%;
-                max-width: 100vw;
-                box-sizing: border-box;
-                min-height: 56px;
-            }
-            
-            /* Mobile menu toggle */
-            .header .menu-toggle-style6 {
+            /* STYLE 6: Header - EXACT COPY from hamburger-menu-styles.html */
+            .header {
+                background: #0b7285;
+                color: #fff;
+                padding: 1rem 1.5rem;
                 display: flex;
-                flex-shrink: 0;
-                width: 36px;
-                height: 36px;
-                min-width: 36px;
-                min-height: 36px;
-                order: 1;
-                z-index: 2;
+                align-items: center;
+                justify-content: space-between;
                 position: relative;
-                left: auto;
             }
             
+            /* STYLE 6: Header-top - flex container for logo and hamburger */
+            .header-top {
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between !important;
+                width: 100%;
+                position: static !important;
+            }
+            
+            /* STYLE 6: Logo becomes brand-style6 - EXACT (left side) */
+            /* Must override desktop absolute positioning to participate in flexbox */
+            .header .logo {
+                font-weight: 700;
+                font-size: 1.2rem;
+                position: static !important;
+                left: auto !important;
+                right: auto !important;
+                transform: none !important;
+                display: flex !important;
+                align-items: center;
+            }
+            
+            /* Increase logo image size on mobile - maintain aspect ratio */
+            .header .logo img {
+                height: 44px !important;
+                width: auto !important;
+                max-width: none !important;
+                object-fit: contain !important;
+            }
+            
+            /* STYLE 6: Hide logout on mobile */
+            #desktopLogoutBtn {
+                display: none !important;
+            }
+            
+            /* STYLE 6: Menu toggle - EXACT COPY (right side) - Increased size */
+            .menu-toggle-style6 {
+                background: transparent;
+                border: none;
+                color: #e0fbff;
+                cursor: pointer;
+                font-size: 1.6rem;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                transition: transform 0.3s ease;
+            }
+            
+            .menu-toggle-style6:hover {
+                transform: scale(1.1);
+            }
+            
+            .menu-toggle-style6.active {
+                transform: rotate(90deg);
+            }
+            
+            /* STYLE 6: Navigation dropdown - EXACT COPY from hamburger-menu-styles.html */
+            /* Reset ALL desktop styles and apply Style 6 dropdown */
             .nav-style6 {
-                display: none;
+                /* Reset desktop styles */
+                display: block;
+                gap: 0;
+                align-items: stretch;
+                justify-content: flex-start;
+                padding: 0;
+                background: white;
+                border-top: none;
+                width: auto;
+                box-sizing: border-box;
+                
+                /* Style 6 dropdown styles */
                 position: absolute;
                 top: calc(100% + 0.5rem);
-                right: 1rem;
-                background: white;
+                right: 1.5rem;
                 border-radius: 12px;
                 box-shadow: 0 8px 24px rgba(0,0,0,0.2);
                 min-width: 220px;
@@ -244,35 +318,40 @@
                 transition: max-height 0.3s ease, opacity 0.3s ease;
                 opacity: 0;
                 z-index: 1000;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 0;
-                padding: 0;
-                margin: 0;
-                border-top: none;
             }
             
             .nav-style6.active {
-                display: flex;
                 max-height: 400px;
                 opacity: 1;
             }
             
+            /* Reset desktop link styles and apply Style 6 link styles */
             .nav-style6 a {
-                width: 100%;
                 color: #1f2933;
-                padding: 0.75rem 1.25rem;
-                font-size: 0.95rem;
-                display: block;
-                transition: all 0.2s;
                 text-decoration: none;
-                border-bottom: none;
+                padding: 0.75rem 1.25rem;
+                display: block;
+                font-size: 0.95rem;
+                transition: all 0.2s;
+                font-weight: normal;
+                position: static;
+                width: auto;
+            }
+            
+            .nav-style6 a::after {
+                display: none;
             }
             
             .nav-style6 a:hover {
                 background: #f5f7fa;
                 color: #0b7285;
                 padding-left: 1.5rem;
+            }
+            
+            .nav-style6 a.active {
+                background: #e0f7fb;
+                color: #0b7285;
+                font-weight: 600;
             }
             
             .nav-style6 a:first-child {
@@ -282,93 +361,22 @@
             .nav-style6 a:last-child {
                 border-radius: 0 0 12px 12px;
             }
-            
-            /* Center logo on mobile */
-            .header .logo {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                transform: translate(-50%, -50%);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: auto;
-                max-width: 140px;
-                z-index: 1;
-                pointer-events: auto;
-            }
-            
-            .header .logo img {
-                height: 32px;
-                max-width: 120px;
-                width: auto;
-                object-fit: contain;
-                display: block;
-            }
-            
-            /* Hide desktop navigation */
-            .nav {
-                display: none;
-            }
-            
-            /* Hide desktop logout button on mobile (handled by JavaScript) */
-            #desktopLogoutBtn {
-                display: none;
-            }
         }
         
         /* ============================================
            SMALL MOBILE STYLES (max-width: 480px)
            ============================================ */
         @media (max-width: 480px) {
-            /* Header top - same padding as 768px breakpoint */
-            .header-top {
-                padding: 0.875rem 1rem;
-            }
-            
-            /* Mobile menu toggle */
-            .header .menu-toggle-style6 {
-                display: flex;
-                width: 36px;
-                height: 36px;
-                min-width: 36px;
-                min-height: 36px;
-                color: #e0fbff;
-            }
-            
-            /* Adjust dropdown position */
+            /* Adjust dropdown position for smaller screens */
             .nav-style6.active {
-                right: 0.75rem;
-                min-width: 200px;
+                right: 0.75rem !important;
+                min-width: 200px !important;
             }
             
+            /* Slightly smaller text and padding for compact mobile */
             .nav-style6 a {
                 font-size: 0.9rem;
                 padding: 0.625rem 1rem;
-            }
-            
-            /* Logo - same as 768px breakpoint */
-            .header .logo {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: auto;
-                max-width: 140px;
-                z-index: 1;
-                pointer-events: auto;
-            }
-            
-            .header .logo img {
-                height: 32px;
-                max-width: 120px;
-                width: auto;
-                object-fit: contain;
-                display: block;
-            }
-            
-            /* Hide desktop logout button on mobile */
-            #desktopLogoutBtn {
-                display: none;
             }
         }
         
@@ -1062,13 +1070,7 @@
         }
         
         @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-            }
-            
-            .nav {
-                display: none;
-            }
+            /* Header styles removed - Style 6 handles all mobile header styling */
             
             .main {
                 padding: 1rem;
@@ -2103,13 +2105,13 @@
     <div class="app">
         <header class="header">
             <div class="header-top">
-                <button class="menu-toggle-style6" id="menuToggle" onclick="toggleMenuStyle6()" aria-label="Toggle navigation menu">☰</button>
                 <div class="logo">
                     <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
                 </div>
+                <button class="menu-toggle-style6" id="menuToggle" onclick="toggleMenu('style6')" aria-label="Toggle navigation menu">☰</button>
                 <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
             </div>
-            <nav class="nav nav-style6" id="mainNav">
+            <nav class="nav-style6" id="nav-style6">
                 <a href="#" class="nav-link active" onclick="handleNavClick('dashboard', event)">Dashboard</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('clients', event)">Clients</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('messages', event)">Messages</a>
@@ -2119,38 +2121,6 @@
                 <a href="#" class="nav-link" onclick="handleNavClick('profile', event)">Profile</a>
             </nav>
         </header>
-        
-        <!-- Mobile Navigation -->
-        <div class="mobile-nav" id="mobileNav" onclick="closeMobileNavOnOverlay(event)">
-            <div class="mobile-nav-content">
-                <div class="mobile-nav-header">
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #111827;">Menu</h3>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                            <span id="mobilePractitionerName" class="mobile-user-name" style="font-size: 0.875rem; color: #6b7280; font-weight: 500;">Practitioner</span>
-                            <span class="practitioner-badge" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background: #10b981; color: white; border-radius: 6px; font-weight: 500;">Practitioner</span>
-                        </div>
-                    </div>
-                    <button class="mobile-nav-close" onclick="closeMobileNav()" aria-label="Close navigation menu">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-                <div class="mobile-nav-links">
-                    <a href="#" class="nav-link active" onclick="handleNavClick('dashboard', event)">Dashboard</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('clients', event)">Clients</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('messages', event)">Messages</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('requests', event)">Requests</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('tax-returns', event)">Tax Returns</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('invoices', event)">Invoices</a>
-                    <a href="#" class="nav-link" onclick="handleNavClick('profile', event)">Profile</a>
-                    <div class="mobile-nav-divider"></div>
-                    <button class="btn btn-outline mobile-logout-btn" data-ct-logout>Logout</button>
-                </div>
-            </div>
-        </div>
         
         <main class="main">
             <!-- Dashboard Section -->
@@ -6311,66 +6281,90 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Handle navigation click - wraps showSection and closes mobile nav
         function handleNavClick(sectionName, event) {
-            // Get the clicked element from event or find it
-            const clickedLink = event ? event.target : null;
+            if (event) {
+                event.preventDefault();
+            }
+            
+            // ALWAYS close mobile menu first (before any other logic)
+            const nav = document.getElementById("nav-style6");
+            const toggle = document.querySelector(".menu-toggle-style6");
+            if (nav && nav.classList.contains("active")) {
+                nav.classList.remove("active");
+                if (toggle) toggle.classList.remove("active");
+            }
+            
+            // Get the clicked element - handle both direct clicks and clicks on child elements
+            let clickedLink = event ? (event.target || event.currentTarget) : null;
+            if (clickedLink && !clickedLink.classList.contains('nav-link')) {
+                clickedLink = clickedLink.closest('.nav-link') || clickedLink.closest('a');
+            }
             
             showSection(sectionName);
             
-            // Update active state for both desktop and mobile nav
-            document.querySelectorAll('.nav-link').forEach(link => {
+            // Update active state for ALL nav links (both desktop .nav a and mobile .nav-style6 a)
+            document.querySelectorAll('.nav-link, .nav a, .nav-style6 a').forEach(link => {
                 link.classList.remove('active');
             });
             
-            // Find and activate the clicked link (works for both navs)
-            if (clickedLink && clickedLink.classList.contains('nav-link')) {
+            // Activate the clicked link
+            if (clickedLink) {
                 clickedLink.classList.add('active');
                 
-                // Also update the corresponding link in the other nav
+                // Also activate corresponding link in the other nav by matching onclick attribute
                 const clickedOnclick = clickedLink.getAttribute('onclick');
-                const allNavLinks = document.querySelectorAll('.nav-link');
-                allNavLinks.forEach(link => {
-                    if (link.getAttribute('onclick') === clickedOnclick) {
-                        link.classList.add('active');
-                    }
-                });
+                if (clickedOnclick) {
+                    document.querySelectorAll('.nav-link, .nav a, .nav-style6 a').forEach(link => {
+                        if (link.getAttribute('onclick') === clickedOnclick) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
             } else {
                 // Fallback: find link by section name
-                const allNavLinks = document.querySelectorAll('.nav-link');
-                allNavLinks.forEach(link => {
+                document.querySelectorAll('.nav-link, .nav a, .nav-style6 a').forEach(link => {
                     const onclick = link.getAttribute('onclick');
                     if (onclick && onclick.includes("'" + sectionName + "'")) {
                         link.classList.add('active');
                     }
                 });
             }
-            
-            // Close mobile navigation after clicking a link
-            closeMobileNav();
         }
         
-        // Mobile Navigation Functions
-        function toggleMenuStyle6() {
-            const menuToggle = document.getElementById('menuToggle');
-            const mainNav = document.getElementById('mainNav');
+        // Style 6 Mobile Navigation Functions - EXACT FROM REFERENCE
+        function toggleMenu(style) {
+            const nav = document.getElementById(`nav-style${style.slice(-1)}`);
+            const toggle = document.querySelector(`.menu-toggle-style${style.slice(-1)}`);
+            const overlay = document.getElementById(`overlay-style${style.slice(-1)}`);
             
-            if (menuToggle && mainNav) {
-                menuToggle.classList.toggle('active');
-                mainNav.classList.toggle('active');
+            if (nav) {
+                nav.classList.toggle('active');
+            }
+            if (toggle) {
+                toggle.classList.toggle('active');
+            }
+            if (overlay) {
+                overlay.classList.toggle('active');
             }
         }
-        
-        // Close Style 6 menu when clicking outside
+
+        // Close menus when clicking outside (for dropdowns) - EXACT FROM REFERENCE
         document.addEventListener('click', function(event) {
-            const menuToggle = document.getElementById('menuToggle');
-            const mainNav = document.getElementById('mainNav');
+            const nav = document.getElementById('nav-style6');
+            const toggle = document.querySelector('.menu-toggle-style6');
+            const header = toggle?.closest('.header');
             
-            if (mainNav && mainNav.classList.contains('active')) {
-                if (!mainNav.contains(event.target) && !menuToggle.contains(event.target)) {
-                    menuToggle.classList.remove('active');
-                    mainNav.classList.remove('active');
+            if (nav && nav.classList.contains('active')) {
+                if (header && !header.contains(event.target)) {
+                    nav.classList.remove('active');
+                    if (toggle) toggle.classList.remove('active');
                 }
             }
         });
+        
+        // Keep toggleMenuStyle6 for backward compatibility
+        function toggleMenuStyle6() {
+            toggleMenu('style6');
+        }
         
         function toggleMobileNav() {
             const mobileNav = document.getElementById('mobileNav');

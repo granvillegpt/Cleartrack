@@ -35,7 +35,15 @@
       return result.data;
     } catch (error) {
       console.error('createClientInvite error:', error);
-      throw new Error(error.message || 'Failed to create client invite');
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      console.error('Error details:', error.details);
+      
+      // Preserve the original error with code and details
+      const enhancedError = new Error(error.message || 'Failed to create client invite');
+      enhancedError.code = error.code;
+      enhancedError.details = error.details;
+      throw enhancedError;
     }
   }
 

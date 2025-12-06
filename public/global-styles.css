@@ -774,117 +774,8 @@ td {
     line-height: 1.5;
 }
 
-/* Mobile Navigation */
-.mobile-menu-toggle {
-    display: none;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(229, 231, 235, 0.8);
-    font-size: 1.5rem;
-    color: #64748b;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    min-height: 44px;
-    min-width: 44px;
-    align-items: center;
-    justify-content: center;
-}
-
-.mobile-menu-toggle:hover {
-    background: #f3f4f6;
-    color: #374151;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.mobile-menu-toggle:active {
-    transform: scale(0.95);
-}
-
-.mobile-nav {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    visibility: hidden;
-}
-
-.mobile-nav.active {
-    opacity: 1;
-    pointer-events: all;
-    visibility: visible;
-}
-
-.mobile-nav-content {
-    position: fixed;
-    top: 0;
-    left: -100%;
-    width: 280px;
-    max-width: 85vw;
-    height: 100%;
-    background: white;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-    transition: left 0.3s ease;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.mobile-nav.active .mobile-nav-content {
-    left: 0;
-}
-
-.mobile-nav-header {
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.mobile-nav-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: #64748b;
-    cursor: pointer;
-    padding: 0.5rem;
-    min-height: 44px;
-    min-width: 44px;
-}
-
-.mobile-nav-links {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.mobile-nav-links a {
-    display: block;
-    padding: 0.75rem 1rem;
-    text-decoration: none;
-    color: #64748b;
-    font-weight: 500;
-    border-radius: 6px;
-    transition: all 0.2s;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-}
-
-.mobile-nav-links a:hover,
-.mobile-nav-links a.active {
-    background: #f0f9ff;
-    color: #2563eb;
-}
+/* Mobile Navigation - REMOVED: Using Style 6 only */
+/* All mobile menu styles removed - Style 6 (.menu-toggle-style6 and .nav-style6) is the only implementation */
 
 /* Responsive Design - Comprehensive Breakpoints */
 /* Extra Small Devices (phones, up to 480px) */
@@ -919,24 +810,7 @@ td {
         position: relative !important;
     }
     
-    /* Hamburger menu - left side */
-    .mobile-menu-toggle {
-        flex-shrink: 0 !important;
-        width: 44px !important;
-        height: 44px !important;
-        padding: 0.5rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        border-radius: 8px !important;
-        order: 1 !important;
-        z-index: 2 !important;
-    }
-    
-    .mobile-menu-toggle svg {
-        width: 22px !important;
-        height: 22px !important;
-    }
+    /* Hamburger menu - REMOVED: Using Style 6 only */
     
     /* Logo - centered and smaller */
     .header-top .logo {
@@ -1342,8 +1216,25 @@ td {
         gap: 1.5rem;
     }
     
-    .mobile-menu-toggle {
-        display: none;
+    .mobile-menu-toggle,
+    .mobile-menu-toggle.desktop-hidden,
+    .mobile-menu-toggle[style],
+    button.mobile-menu-toggle,
+    .header-top .mobile-menu-toggle,
+    header .mobile-menu-toggle,
+    .header .mobile-menu-toggle {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: absolute !important;
+        left: -9999px !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
     }
     
     .stats-grid {
@@ -1392,8 +1283,26 @@ td {
         display: flex;
     }
     
-    .mobile-menu-toggle {
-        display: none;
+    .mobile-menu-toggle,
+    .mobile-menu-toggle.desktop-hidden,
+    .mobile-menu-toggle[style],
+    button.mobile-menu-toggle,
+    .header-top .mobile-menu-toggle,
+    header .mobile-menu-toggle,
+    .header .mobile-menu-toggle,
+    button[class*="mobile-menu-toggle"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: absolute !important;
+        left: -9999px !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
     }
     
     .stats-grid {
@@ -1479,7 +1388,6 @@ td {
 /* Print Styles */
 @media print {
     .nav,
-    .mobile-menu-toggle,
     .btn,
     .modal-overlay,
     .whatsapp-messaging {

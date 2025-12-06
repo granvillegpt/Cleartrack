@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 2: Expandable Section Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f7fa;
+      padding: 1rem;
+    }
+    
+    .application-item {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .application-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    
+    .application-info h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.5rem;
+    }
+    
+    .practice-number {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    
+    .applicant-name {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+    
+    .application-status {
+      padding: 0.375rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .application-actions {
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: flex-start;
+    }
+    
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      width: auto;
+    }
+    
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+    }
+    
+    /* Mobile: Make button bigger */
+    @media (max-width: 768px) {
+      .application-actions {
+        justify-content: stretch;
+      }
+      
+      .btn {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        min-height: 44px;
+      }
+    }
+    
+    /* Desktop: Keep button compact */
+    @media (min-width: 769px) {
+      .application-actions {
+        justify-content: flex-start;
+      }
+      
+      .btn {
+        width: auto;
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+      }
+    }
+    
+    .expand-toggle {
+      background: none;
+      border: none;
+      color: #0b7285;
+      font-size: 0.875rem;
+      cursor: pointer;
+      padding: 0.5rem 0;
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .expand-toggle:hover {
+      color: #095a69;
+    }
+    
+    .expand-icon {
+      transition: transform 0.3s;
+    }
+    
+    .expand-icon.expanded {
+      transform: rotate(180deg);
+    }
+    
+    .expandable-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    
+    .expandable-content.expanded {
+      max-height: 2000px;
+    }
+    
+    .details-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    
+    .detail-label {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.875rem;
+    }
+    
+    .detail-value {
+      color: #111827;
+      font-size: 0.875rem;
+      text-align: right;
+    }
+    
+    .specializations {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+      justify-content: flex-end;
+    }
+    
+    .specialization-badge {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="margin-bottom: 1rem; color: #0b7285;">Option 2: Expandable Section Preview</h1>
+  
+  <div class="application-item">
+    <div class="application-header">
+      <div class="application-info">
+        <h3>Your Practice Name</h3>
+        <div class="practice-number">PR123456</div>
+        <div class="applicant-name">Granville Powell</div>
+      </div>
+      <span class="application-status">APPROVED</span>
+    </div>
+    
+    <div class="application-actions">
+      <button class="btn btn-danger">Suspend</button>
+    </div>
+    
+    <button class="expand-toggle" onclick="toggleExpand('details1')">
+      <span class="expand-icon" id="icon1">▼</span>
+      <span>More Details</span>
+    </button>
+    
+    <div class="expandable-content" id="details1">
+      <div class="details-section">
+        <div class="detail-row">
+          <span class="detail-label">Name:</span>
+          <span class="detail-value">Granville Powell</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Email:</span>
+          <span class="detail-value">granvillepowell@icloud.com</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Practice Name:</span>
+          <span class="detail-value">Your Practice Name</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Date:</span>
+          <span class="detail-value">24/11/2025</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Phone:</span>
+          <span class="detail-value">0631000753</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">SARS Number:</span>
+          <span class="detail-value">SARS789012</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Experience:</span>
+          <span class="detail-value">1 years</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Qualifications:</span>
+          <span class="detail-value">MBA</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Specializations:</span>
+          <span class="detail-value">
+            <div class="specializations">
+              <span class="specialization-badge">Corporate Tax</span>
+              <span class="specialization-badge">Payroll Tax</span>
+            </div>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function toggleExpand(detailsId) {
+      const content = document.getElementById(detailsId);
+      const icon = document.getElementById(detailsId.replace('details', 'icon'));
+      const toggle = content.previousElementSibling;
+      const textSpan = toggle.querySelector('span:last-child');
+      
+      content.classList.toggle('expanded');
+      icon.classList.toggle('expanded');
+      
+      if (content.classList.contains('expanded')) {
+        textSpan.textContent = 'Less Details';
+      } else {
+        textSpan.textContent = 'More Details';
+      }
+    }
+  </script>
+</body>
+</html>
+

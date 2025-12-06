@@ -2540,29 +2540,7 @@
         }
     });
     
-    function toggleMenu(prefix) {
-        const nav = document.getElementById(`nav-${prefix}`);
-        const toggle = document.querySelector(`.menu-toggle-style6`);
-        
-        if (nav && toggle) {
-            nav.classList.toggle('active');
-            toggle.classList.toggle('active');
-        }
-    }
-    
-    // Close menus when clicking outside (for dropdowns)
-    document.addEventListener('click', function(event) {
-        const nav = document.getElementById('nav-admin');
-        const toggle = document.querySelector('.menu-toggle-style6');
-        const header = toggle?.closest('header');
-        
-        if (nav && nav.classList.contains('active')) {
-            if (header && !header.contains(event.target)) {
-                nav.classList.remove('active');
-                if (toggle) toggle.classList.remove('active');
-            }
-        }
-    });
+    // REMOVED: toggleMenu function - Using Style 6 only (toggleMenuStyle6)
     
 
     /**

@@ -21,6 +21,7 @@
   <link rel="icon" type="image/png" href="assets/images/icon%20logo.png" />
 
   <link rel="stylesheet" href="/css/ct-theme.css" />
+  <link rel="stylesheet" href="/header-responsive-fixes.css" />
 
   <style>
 
@@ -37,21 +38,34 @@
     }
 
     header {
-
       background: #0b7285;
-
       color: #fff;
-
-      padding: 1.5rem 2.5rem;
-
+      padding: 1rem 1.5rem;
       display: flex;
-
       justify-content: space-between;
-
       align-items: center;
-
       position: relative;
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
+    }
 
+    @media (max-width: 768px) {
+      header {
+        padding: 1rem;
+      }
+      header img {
+        height: 30px !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 0.75rem;
+      }
+      header img {
+        height: 28px !important;
+      }
     }
 
     header a {
@@ -69,41 +83,35 @@
     }
 
     main {
-
       max-width: 900px;
-
       margin: 0 auto;
-
-      padding: 2rem 1.5rem 3rem;
-
+      padding: clamp(1.5rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem) clamp(2rem, 5vw, 3rem);
       background: #ffffff;
-
+      width: 100%;
+      box-sizing: border-box;
     }
 
     h1 {
-
+      color: #0b7285;
       margin-top: 0;
-
       margin-bottom: 0.5rem;
-
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      line-height: 1.2;
+      font-weight: 700;
     }
 
     h2 {
-
       margin-top: 1.75rem;
-
       margin-bottom: 0.5rem;
-
-      font-size: 1.1rem;
-
+      font-size: clamp(1.15rem, 3vw, 1.3rem);
+      font-weight: 600;
+      color: #111827;
     }
 
     p, li {
-
-      font-size: 0.95rem;
-
+      font-size: clamp(0.9rem, 2.5vw, 0.95rem);
       line-height: 1.6;
-
+      color: #1f2933;
     }
 
     a {
@@ -135,7 +143,7 @@
       <span>ClearTrack</span>
     </a>
 
-    <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo" style="height:32px; filter: brightness(0) invert(1); position: absolute; left: 50%; transform: translateX(-50%);">
+    <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo" style="height:40px; filter: brightness(0) invert(1); position: absolute; left: 50%; transform: translateX(-50%);">
 
     <div style="width: 1px;"></div>
 

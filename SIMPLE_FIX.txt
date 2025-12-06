@@ -1,0 +1,16 @@
+SIMPLE FIX INSTRUCTIONS:
+=======================
+
+I've created the fix file: public/fix-inline.js
+
+To add it, open public/practitioner-dashboard.html and add this ONE line
+right after line 10 (after the icon link):
+
+    <script src="/fix-inline.js"></script>
+
+That's it! Then deploy.
+
+The fix-inline.js file contains both:
+- Prevention of automatic page reloads
+- Complete rebuild of practitioner code loading
+

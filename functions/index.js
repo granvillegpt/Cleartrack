@@ -6,10 +6,17 @@
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const sgMail = require('@sendgrid/mail');
 
 admin.initializeApp();
 
 const db = admin.firestore();
+
+// Initialize SendGrid
+const sendgridApiKey = functions.config().sendgrid && functions.config().sendgrid.apikey;
+if (sendgridApiKey) {
+  sgMail.setApiKey(sendgridApiKey);
+}
 
 /**
  * Helper: Verify user is authenticated and has practitioner role
@@ -118,16 +125,16 @@ exports.createClientInvite = functions.https.onCall(async (data, context) => {
     // Verify practitioner
     const { uid: practitionerId } = await verifyPractitioner(context);
 
-    // Validate input
+    // Validate input - mobile is now optional
     const { mobile, clientName, note } = data;
-    if (!mobile || typeof mobile !== 'string' || mobile.trim().length === 0) {
-      throw new functions.https.HttpsError('invalid-argument', 'Mobile number is required');
-    }
+    let cleanMobile = null;
 
-    // Basic mobile validation (should be at least 10 digits)
-    const cleanMobile = mobile.trim().replace(/\s+/g, '');
+    // Mobile is optional - if provided, validate it
+    if (mobile && typeof mobile === 'string' && mobile.trim().length > 0) {
+      cleanMobile = mobile.trim().replace(/\s+/g, '');
     if (cleanMobile.length < 10) {
       throw new functions.https.HttpsError('invalid-argument', 'Invalid mobile number format');
+      }
     }
 
     // Generate invite
@@ -155,23 +162,32 @@ exports.createClientInvite = functions.https.onCall(async (data, context) => {
 
     await db.collection('clientInvites').doc(inviteId).set(inviteData);
 
-    // Send SMS
+    // Generate shareable link
     const appUrl = 'https://app.cleartrack.co.za';
-    const inviteLink = `${appUrl}/connect?inviteId=${inviteId}&code=${code}`;
-    const smsMessage = `ClearTrack: Your verification code is ${code}. Link: ${inviteLink}`;
-    await sendSMS(cleanMobile, smsMessage);
+    const inviteLink = `${appUrl}/login?inviteId=${inviteId}`;
+
+    // Optionally send SMS (if mobile provided and Twilio is configured)
+    // SMS is now optional - practitioner can share link directly
+    if (cleanMobile) {
+      const smsMessage = `ClearTrack: Click to connect with your tax practitioner: ${inviteLink}`;
+      await sendSMS(cleanMobile, smsMessage); // This will fail silently if Twilio not configured
+    }
 
     return {
       inviteId,
       code, // Return for dev/testing
+      inviteLink, // Return the shareable link
       expiresAt: expiresAt.toDate().toISOString()
     };
   } catch (error) {
     console.error('createClientInvite error:', error);
+    console.error('Error stack:', error.stack);
     if (error instanceof functions.https.HttpsError) {
       throw error;
     }
-    throw new functions.https.HttpsError('internal', 'Failed to create client invite');
+    // Provide more context in the error message
+    const errorMessage = error.message || 'Failed to create client invite';
+    throw new functions.https.HttpsError('internal', `Failed to create client invite: ${errorMessage}`);
   }
 });
 
@@ -227,6 +243,7 @@ exports.verifyClientInvite = functions.https.onCall(async (data, context) => {
     const userRef = db.collection('users').doc(clientUid);
     await userRef.set({
       practitionerId: inviteData.practitionerId,
+      connectedPractitioner: inviteData.practitionerId,
       role: 'client'
     }, { merge: true });
 
@@ -719,28 +736,50 @@ exports.submitPractitionerApplication = functions.https.onCall(async (data, cont
  * Admin approves a practitioner application and generates registration link
  */
 exports.approvePractitionerApplication = functions.https.onCall(async (data, context) => {
-  try {
-    // Verify admin
-    await verifyAdmin(context);
+  // Ensure user is authenticated
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'Only authenticated users can approve applications.'
+    );
+  }
 
-    // Validate input
-    const { applicationId } = data;
-    if (!applicationId || typeof applicationId !== 'string') {
-      throw new functions.https.HttpsError('invalid-argument', 'Application ID is required');
+  const adminUid = context.auth.uid;
+  const applicationId = data && data.applicationId;
+
+  if (!applicationId) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Missing applicationId.'
+    );
+  }
+
+  // Check role from /users/{uid}
+  const userDoc = await db.collection('users').doc(adminUid).get();
+  if (!userDoc.exists || userDoc.data().role !== 'admin') {
+    throw new functions.https.HttpsError(
+      'permission-denied',
+      'Only admins can approve practitioner applications.'
+    );
+  }
+
+  // Update practitionerApplications/{applicationId} to approved
+  const appRef = db.collection('practitionerApplications').doc(applicationId);
+  const appSnap = await appRef.get();
+  if (!appSnap.exists) {
+    throw new functions.https.HttpsError(
+      'not-found',
+      'Application not found.'
+    );
     }
 
-    // Load application
-    const applicationRef = db.collection('practitionerApplications').doc(applicationId);
-    const applicationDoc = await applicationRef.get();
-
-    if (!applicationDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Application not found');
-    }
-
-    const applicationData = applicationDoc.data();
+  const applicationData = appSnap.data();
 
     if (applicationData.status !== 'pending') {
-      throw new functions.https.HttpsError('failed-precondition', 'Application is not in pending status');
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      'Application is not in pending status.'
+    );
     }
 
     // Generate registration token and code
@@ -769,7 +808,7 @@ exports.approvePractitionerApplication = functions.https.onCall(async (data, con
     await db.collection('practitionerInvites').doc(token).set(inviteData);
 
     // Update application status
-    await applicationRef.update({
+  await appRef.update({
       status: 'approved',
       inviteToken: token,
       approvedAt: now,
@@ -801,21 +840,14 @@ exports.approvePractitionerApplication = functions.https.onCall(async (data, con
       <p>Best regards,<br>ClearTrack Team</p>
     `;
 
+  try {
     await sendEmail(applicationData.email, emailSubject, emailHtml, emailText);
-
-    return {
-      token,
-      code,
-      registerLink,
-      expiresAt: expiresAt.toDate().toISOString()
-    };
-  } catch (error) {
-    console.error('approvePractitionerApplication error:', error);
-    if (error instanceof functions.https.HttpsError) {
-      throw error;
-    }
-    throw new functions.https.HttpsError('internal', 'Failed to approve application');
+  } catch (emailError) {
+    // Don't throw - application was saved successfully
+    console.error('Failed to send email:', emailError);
   }
+
+  return { success: true };
 });
 
 /**
@@ -986,6 +1018,123 @@ exports.completePractitionerRegistration = functions.https.onCall(async (data, c
       throw new functions.https.HttpsError('already-exists', 'An account with this email already exists');
     }
     throw new functions.https.HttpsError('internal', 'Failed to complete registration');
+  }
+});
+
+/**
+ * Firestore Trigger: Send approval email when practitioner application is approved
+ * 
+ * Triggers when practitionerApplications/{applicationId} status changes from "pending" to "approved"
+ * - Creates Firebase Auth user if it doesn't exist
+ * - Generates password reset link
+ * - Sends approval email via SendGrid
+ * - Marks application with approvalEmailSent flag
+ */
+exports.onPractitionerApproved = functions.firestore
+  .document('practitionerApplications/{applicationId}')
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+    const applicationId = context.params.applicationId;
+
+    // Only act when status changes from "pending" -> "approved"
+    if (!before || !after) {
+      return null;
+    }
+    if (before.status === after.status) {
+      return null;
+    }
+    if (!(before.status === 'pending' && after.status === 'approved')) {
+      return null;
+    }
+
+    // Extract practitioner details
+    const email = after.email;
+    const firstName = after.firstName || '';
+    const lastName = after.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim() || email;
+
+    // If no email, log and exit
+    if (!email) {
+      console.error('[onPractitionerApproved] No email on application', applicationId);
+      return null;
+    }
+
+    // Idempotency: if approvalEmailSent === true, skip sending again
+    if (after.approvalEmailSent === true) {
+      console.log('[onPractitionerApproved] approvalEmailSent already true, skipping', applicationId);
+      return null;
+    }
+
+    try {
+      // Ensure Auth user exists (email as username)
+      let userRecord;
+      try {
+        userRecord = await admin.auth().getUserByEmail(email);
+      } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+          userRecord = await admin.auth().createUser({
+            email,
+            displayName: fullName,
+          });
+          console.log('[onPractitionerApproved] Created Auth user for', email);
+        } else {
+          throw err;
+        }
+      }
+
+      // Generate password reset link with continue URL to login page
+      const resetLink = await admin.auth().generatePasswordResetLink(email, {
+        url: 'https://cleartrack.co.za/login.html',
+      });
+
+      const fromEmail = (functions.config().sendgrid && functions.config().sendgrid.from_email) || 'no-reply@cleartrack.co.za';
+
+      if (!sendgridApiKey) {
+        console.warn('[onPractitionerApproved] No SendGrid API key configured. Skipping email send.');
+      } else {
+        const msg = {
+          to: email,
+          from: fromEmail,
+          subject: 'Your ClearTrack practitioner account has been approved',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Welcome to ClearTrack, ${fullName || 'Practitioner'}!</h2>
+              <p>Your practitioner account has been <strong>approved</strong>.</p>
+              <p>You can now sign in using the following email as your username:</p>
+              <p><strong>${email}</strong></p>
+              <p>To set your password and log in, click the button below:</p>
+              <p style="text-align: center; margin: 24px 0;">
+                <a href="${resetLink}"
+                   style="background-color: #1f8ac0; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                  Set your password & sign in
+                </a>
+              </p>
+              <p>If the button does not work, copy and paste this link into your browser:</p>
+              <p style="word-break: break-all;">${resetLink}</p>
+              <hr />
+              <p style="font-size: 12px; color: #777;">
+                If you did not request this account, you can ignore this email.
+              </p>
+            </div>
+          `,
+        };
+
+        await sgMail.send(msg);
+        console.log('[onPractitionerApproved] Approval email sent to', email, 'for application', applicationId);
+      }
+
+      // Mark the application as having sent the approval email
+      await db.collection('practitionerApplications').doc(applicationId).update({
+        approvalEmailSent: true,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return null;
+    } catch (error) {
+      console.error('[onPractitionerApproved] Error handling approval for', applicationId, error);
+      // We do NOT throw here because it would retry repeatedly; just log.
+      return null;
   }
 });
 

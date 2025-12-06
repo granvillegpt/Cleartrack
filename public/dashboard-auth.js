@@ -9,15 +9,43 @@
  * - firebase-api.js (provides window.cleartrackAuthApi)
  */
 
+// Check for dev mode IMMEDIATELY (before DOMContentLoaded) to prevent any auth checks
+// Add ?dev=true to URL or set localStorage.setItem('devMode', 'true') to bypass auth
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const devModeParam = urlParams.get('dev') === 'true';
+  const devModeStorage = localStorage.getItem('devMode') === 'true';
+  window.DEV_MODE = devModeParam || devModeStorage;
+  
+  if (window.DEV_MODE) {
+    console.warn('[dashboard-auth] ⚠️ DEVELOPMENT MODE: Authentication bypassed');
+    console.log('[dashboard-auth] To disable dev mode, remove ?dev=true from URL or run: localStorage.removeItem("devMode")');
+  }
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
+  // Check dev mode again (in case it was set via localStorage after page load)
+  const urlParams = new URLSearchParams(window.location.search);
+  const devModeParam = urlParams.get('dev') === 'true';
+  const devModeStorage = localStorage.getItem('devMode') === 'true';
+  const DEV_MODE = devModeParam || devModeStorage || window.DEV_MODE;
+  
+  if (DEV_MODE) {
+    console.warn('[dashboard-auth] ⚠️ DEVELOPMENT MODE: Authentication bypassed');
+    console.log('[dashboard-auth] To disable dev mode, remove ?dev=true from URL or run: localStorage.removeItem("devMode")');
+    return; // Skip all authentication checks
+  }
+
   // Verify dependencies
   if (!window.firebaseAuth) {
     console.error('[dashboard-auth] window.firebaseAuth is not available. Ensure firebase-init.js is loaded first.');
+    console.log('[dashboard-auth] 💡 TIP: Add ?dev=true to URL to bypass authentication for development');
     return;
   }
 
   if (!window.cleartrackAuthApi) {
     console.error('[dashboard-auth] window.cleartrackAuthApi is not available. Ensure firebase-api.js is loaded first.');
+    console.log('[dashboard-auth] 💡 TIP: Add ?dev=true to URL to bypass authentication for development');
     return;
   }
 

@@ -1,0 +1,201 @@
+/* Style 6: Compact Dropdown (Minimal) - Reusable Mobile Menu Styles */
+
+/* Mobile Menu Toggle Button - Style 6 */
+/* Default: Hidden on desktop */
+.menu-toggle-style6,
+.menu-toggle {
+  display: none !important;
+  background: transparent;
+  border: none;
+  color: #e0fbff;
+  cursor: pointer;
+  font-size: 1.3rem;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  transition: transform 0.3s ease;
+  padding: 0;
+}
+
+.menu-toggle-style6:hover,
+.menu-toggle:hover {
+  transform: scale(1.1);
+}
+
+.menu-toggle-style6.active,
+.menu-toggle.active {
+  transform: rotate(90deg);
+}
+
+/* Mobile Menu Styles - Style 6: Compact Dropdown */
+@media (max-width: 767px) {
+  /* Show hamburger button on mobile */
+  .menu-toggle-style6,
+  .menu-toggle {
+    display: flex !important;
+  }
+
+  /* Ensure header has relative positioning for absolute dropdown */
+  header {
+    position: relative !important;
+  }
+
+  /* Hide ALL desktop navigation by default on mobile */
+  header nav {
+    display: none !important;
+  }
+
+  /* Hide ALL navs by default on mobile - they'll be shown as dropdown when active */
+  header nav.style6-menu,
+  nav.style6-menu,
+  header nav#mainNav {
+    display: none !important;
+  }
+
+  /* Show mobile dropdown nav when active */
+  header nav.style6-menu.active,
+  nav.style6-menu.active,
+  header nav#mainNav.active {
+    display: flex !important;
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    min-width: 220px;
+    max-height: 400px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 1;
+    z-index: 1000;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  header nav.style6-menu a,
+  nav.style6-menu a,
+  header nav#mainNav a {
+    width: 100%;
+    color: #1f2933;
+    padding: 0.75rem 1.25rem;
+    margin-left: 0;
+    font-size: 0.95rem;
+    display: block;
+    transition: all 0.2s;
+    border-bottom: none;
+    text-decoration: none;
+  }
+
+  header nav.style6-menu a:hover,
+  nav.style6-menu a:hover,
+  header nav#mainNav a:hover {
+    background: #f5f7fa;
+    color: #0b7285;
+    padding-left: 1.5rem;
+    text-decoration: none;
+  }
+
+  header nav.style6-menu a:first-child,
+  nav.style6-menu a:first-child,
+  header nav#mainNav a:first-child {
+    border-radius: 12px 12px 0 0;
+  }
+
+  header nav.style6-menu a:last-child,
+  nav.style6-menu a:last-child,
+  header nav#mainNav a:last-child {
+    border-radius: 0 0 12px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  header nav.style6-menu.active,
+  nav.style6-menu.active,
+  header nav#mainNav.active {
+    right: 0.75rem;
+    min-width: 200px;
+  }
+
+  header nav.style6-menu a,
+  nav.style6-menu a,
+  header nav#mainNav a {
+    font-size: 0.9rem;
+    padding: 0.625rem 1rem;
+  }
+}
+
+/* Desktop: Show regular nav, hide mobile toggle */
+@media (min-width: 768px) {
+  /* Hide hamburger button on desktop - use more specific selector */
+  header .menu-toggle-style6,
+  header .menu-toggle,
+  button.menu-toggle-style6,
+  button.menu-toggle,
+  #menuToggle,
+  .mobile-menu-toggle,
+  button.mobile-menu-toggle,
+  .header-top .mobile-menu-toggle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+
+  /* Show all navs on desktop */
+  header nav,
+  header nav.style6-menu,
+  nav.style6-menu,
+  header nav#mainNav {
+    display: flex !important;
+    visibility: visible !important;
+    position: static !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    min-width: auto !important;
+    max-height: none !important;
+    opacity: 1 !important;
+    flex-direction: row !important;
+    gap: 0.75rem !important;
+  }
+
+  header nav.style6-menu a,
+  nav.style6-menu a,
+  header nav#mainNav a {
+    color: #e0fbff !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.95rem !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    display: inline-block !important;
+  }
+
+  header nav.style6-menu a:hover,
+  nav.style6-menu a:hover,
+  header nav#mainNav a:hover {
+    background: transparent !important;
+    color: #e0fbff !important;
+    padding-left: 0.5rem !important;
+    text-decoration: underline !important;
+  }
+}
+
+/* ============================================
+   Dashboard Pages - Style 6 Mobile Menu
+   REMOVED: All .mobile-menu-toggle and .mobile-nav styles removed
+   Only Style 6 (.menu-toggle-style6 and .nav-style6) is used
+   ============================================ */
+
