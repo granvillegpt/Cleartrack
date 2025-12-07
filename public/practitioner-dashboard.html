@@ -3811,13 +3811,60 @@
                             </div>
                             </div>
                             <div class="search-filters">
-                                <select id="invoiceFilterSelect" class="filter-select">
-                                    <option value="all">All Invoices</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="paid">Paid</option>
-                                    <option value="overdue">Overdue</option>
-                                    <option value="current-year">Current Year</option>
-                                </select>
+                                <div class="custom-filter-dropdown">
+                                    <button type="button" class="custom-filter-trigger" id="invoiceFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                        <span class="filter-trigger-text">All Invoices</span>
+                                        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <div class="custom-filter-options" id="invoiceFilterOptions" role="listbox">
+                                        <div class="filter-option" data-value="all" role="option" aria-selected="true">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M8 8C10.2091 8 12 6.20914 12 4C12 1.79086 10.2091 0 8 0C5.79086 0 4 1.79086 4 4C4 6.20914 5.79086 8 8 8Z" fill="currentColor"/>
+                                                <path d="M8 9C4.68629 9 2 11.6863 2 15H14C14 11.6863 11.3137 9 8 9Z" fill="currentColor"/>
+                                            </svg>
+                                            <span>All Invoices</span>
+                                            <svg class="filter-check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        <div class="filter-option" data-value="pending" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M8 4V8L11 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                            <span>Pending</span>
+                                        </div>
+                                        <div class="filter-option" data-value="paid" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <span>Paid</span>
+                                        </div>
+                                        <div class="filter-option" data-value="overdue" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M8 4V8L11 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                            <span>Overdue</span>
+                                        </div>
+                                        <div class="filter-option" data-value="current-year" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <rect x="2" y="3" width="12" height="11" rx="1" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M2 6H14" stroke="currentColor" stroke-width="2"/>
+                                            </svg>
+                                            <span>Current Year</span>
+                                        </div>
+                                    </div>
+                                    <select id="invoiceFilterSelect" class="filter-select-hidden" aria-hidden="true">
+                                        <option value="all">All Invoices</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="paid">Paid</option>
+                                        <option value="overdue">Overdue</option>
+                                        <option value="current-year">Current Year</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -8780,6 +8827,126 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (filterSelect) {
                 filterSelect.addEventListener('change', handleInvoiceSearch);
             }
+            
+            // Setup custom filter dropdown for invoices
+            setupInvoiceFilterDropdown();
+        }
+        
+        // Setup custom filter dropdown for invoices
+        function setupInvoiceFilterDropdown() {
+            const trigger = document.getElementById('invoiceFilterTrigger');
+            const options = document.getElementById('invoiceFilterOptions');
+            const hiddenSelect = document.getElementById('invoiceFilterSelect');
+            
+            if (!trigger || !options || !hiddenSelect) {
+                console.warn('Invoice filter dropdown elements not found');
+                return;
+            }
+            
+            // Remove existing listeners by cloning
+            const newTrigger = trigger.cloneNode(true);
+            trigger.parentNode.replaceChild(newTrigger, trigger);
+            const newOptions = options.cloneNode(true);
+            options.parentNode.replaceChild(newOptions, options);
+            
+            const optionElements = newOptions.querySelectorAll('.filter-option');
+            
+            // Toggle dropdown
+            newTrigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isExpanded = newTrigger.getAttribute('aria-expanded') === 'true';
+                
+                if (isExpanded) {
+                    closeInvoiceFilterDropdown();
+                } else {
+                    openInvoiceFilterDropdown();
+                }
+            });
+            
+            // Handle option selection
+            optionElements?.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = option.getAttribute('data-value');
+                    const text = option.querySelector('span')?.textContent || '';
+                    
+                    // Update hidden select
+                    hiddenSelect.value = value;
+                    
+                    // Update trigger text
+                    newTrigger.querySelector('.filter-trigger-text').textContent = text;
+                    
+                    // Update aria-selected
+                    optionElements.forEach(opt => {
+                        opt.setAttribute('aria-selected', 'false');
+                    });
+                    option.setAttribute('aria-selected', 'true');
+                    
+                    // Close dropdown
+                    closeInvoiceFilterDropdown();
+                    
+                    // Trigger change event
+                    hiddenSelect.dispatchEvent(new Event('change'));
+                });
+            });
+            
+            // Close on outside click
+            const outsideClickHandler = (e) => {
+                if (!newTrigger.contains(e.target) && !newOptions.contains(e.target)) {
+                    closeInvoiceFilterDropdown();
+                }
+            };
+            document.addEventListener('click', outsideClickHandler);
+            
+            // Close on escape key
+            const escapeKeyHandler = (e) => {
+                if (e.key === 'Escape' && newTrigger.getAttribute('aria-expanded') === 'true') {
+                    closeInvoiceFilterDropdown();
+                }
+            };
+            document.addEventListener('keydown', escapeKeyHandler);
+            
+            function openInvoiceFilterDropdown() {
+                // Get trigger position
+                const triggerRect = newTrigger.getBoundingClientRect();
+                
+                // Position dropdown below trigger with fixed positioning
+                newOptions.style.position = 'fixed';
+                newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                newOptions.style.left = triggerRect.left + 'px';
+                newOptions.style.width = triggerRect.width + 'px';
+                newOptions.style.zIndex = '10002';
+                
+                newTrigger.setAttribute('aria-expanded', 'true');
+                newOptions.classList.add('show');
+                // Force reflow to ensure animation
+                newOptions.offsetHeight;
+            }
+            
+            function closeInvoiceFilterDropdown() {
+                newTrigger.setAttribute('aria-expanded', 'false');
+                newOptions.classList.remove('show');
+            }
+            
+            // Reposition on scroll/resize
+            const scrollHandler = () => {
+                if (newTrigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = newTrigger.getBoundingClientRect();
+                    newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                    newOptions.style.left = triggerRect.left + 'px';
+                }
+            };
+            window.addEventListener('scroll', scrollHandler, true);
+            
+            const resizeHandler = () => {
+                if (newTrigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = newTrigger.getBoundingClientRect();
+                    newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                    newOptions.style.left = triggerRect.left + 'px';
+                    newOptions.style.width = triggerRect.width + 'px';
+                }
+            };
+            window.addEventListener('resize', resizeHandler);
         }
         
         // Handle invoice search and filtering
@@ -8996,7 +9163,13 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             console.log('🧹 Cleaned invoice count:', cleanedInvoices.length);
             
             updateInvoicesDisplay(cleanedInvoices);
-            setupInvoiceSearch();
+            
+            // Setup search and dropdown after section is visible
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    setupInvoiceSearch();
+                }, 50);
+            });
         }
         
         // Clean up duplicate invoices
