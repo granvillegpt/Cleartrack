@@ -6,6 +6,9 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Cleartrack - Practitioner Dashboard</title>
     <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
     <link rel="stylesheet" href="global-styles.css">
@@ -44,10 +47,16 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #e5f3f7;
             color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
         
         /* ============================================
            HEADER CONTAINER - Desktop Base Styles
+           ============================================ */
+        /* ============================================
+           HEADER - FULL WIDTH WITH CENTERED CONTENT
            ============================================ */
         .header {
             background: #0b7285;
@@ -56,9 +65,23 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
             box-sizing: border-box;
             display: block;
+            padding: 0;
+            margin: 0 !important;
+        }
+        
+        /* Desktop: Header stays full width, content inside is centered */
+        @media (min-width: 769px) {
+            .header {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
+            }
         }
         
         /* ============================================
@@ -68,10 +91,20 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 2.5rem;
+            padding: 1.5rem 2rem;
             position: relative;
             width: 100%;
             box-sizing: border-box;
+        }
+        
+        /* Desktop: Constrain header-top to match container */
+        @media (min-width: 769px) {
+            .header-top {
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 1.5rem 2rem !important;
+            }
         }
         
         /* ============================================
@@ -113,6 +146,16 @@
             border-top: 1px solid rgba(255, 255, 255, 0.3);
             width: 100%;
             box-sizing: border-box;
+        }
+        
+        /* Desktop: Constrain nav to match container */
+        @media (min-width: 769px) {
+            .nav {
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 1rem 2rem !important;
+            }
         }
         
         .nav a {
@@ -245,6 +288,43 @@
             
             /* Desktop: Remove cursor pointer from header */
             .invoice-card-header {
+                cursor: default !important;
+            }
+            
+            /* Desktop: Profile sections always expanded */
+            .profile-section-card .profile-section-body {
+                max-height: none !important;
+                padding-top: 1.5rem !important;
+                padding-bottom: 1.5rem !important;
+            }
+            
+            /* Desktop: Ensure content doesn't stretch too wide */
+            .section {
+                max-width: 100%;
+            }
+            
+            .card {
+                max-width: 100%;
+            }
+            
+            /* Constrain search containers */
+            .search-container {
+                max-width: 100%;
+            }
+            
+            /* Tables should scroll horizontally if needed, not stretch */
+            .table-container {
+                max-width: 100%;
+                overflow-x: auto;
+            }
+            
+            /* Desktop: Hide toggle icon */
+            .profile-section-toggle {
+                display: none !important;
+            }
+            
+            /* Desktop: Remove cursor pointer from header */
+            .profile-section-header {
                 cursor: default !important;
             }
         }
@@ -426,10 +506,82 @@
             font-weight: 500;
         }
         
+        /* ============================================
+           MAIN CONTENT CONTAINER - CENTERED BLOCKS (GOOGLE STYLE)
+           ============================================ */
         .main {
-            padding: 2rem;
-            max-width: 1200px;
+            padding: 1.5rem;
+            max-width: 960px;
             margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Desktop: Centered block design like Google */
+        @media (min-width: 769px) {
+            .main {
+                padding: 2rem 2rem !important;
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                background: transparent !important;
+            }
+            
+            .section {
+                max-width: 100%;
+                box-sizing: border-box;
+                margin-bottom: 1.5rem;
+            }
+            
+            .card {
+                max-width: 100%;
+                box-sizing: border-box;
+                border-radius: 12px;
+            }
+            
+            .card-body {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .search-container {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .dashboard-grid {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            /* Ensure all content respects container */
+            .table-container,
+            .invoice-content,
+            .whatsapp-messaging,
+            .chat-container {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
+        
+        /* Large desktop screens - maintain centered block */
+        @media (min-width: 1440px) {
+            .main {
+                max-width: 960px !important;
+                width: 100% !important;
+                padding: 2.5rem 2.5rem !important;
+                margin: 0 auto !important;
+            }
+        }
+        
+        /* Ultra-wide screens - maintain centered block */
+        @media (min-width: 1920px) {
+            .main {
+                max-width: 960px !important;
+                width: 100% !important;
+                padding: 2.5rem 2.5rem !important;
+                margin: 0 auto !important;
+            }
         }
         
         .dashboard-grid {
@@ -438,6 +590,17 @@
             gap: 0.75rem;
             margin-bottom: 1.5rem;
             position: relative;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Desktop: Industry standard 4-column grid */
+        @media (min-width: 769px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1rem;
+                max-width: 100%;
+            }
         }
         
         .stat-card {
@@ -445,6 +608,16 @@
             border-radius: 8px;
             padding: 1rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Desktop: Prevent stat cards from getting too wide */
+        @media (min-width: 769px) {
+            .stat-card {
+                min-width: 0;
+                max-width: 100%;
+            }
         }
         
         /* Clickable Tile Styles */
@@ -494,6 +667,8 @@
             padding: 1.5rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 1.5rem;
+            position: relative;
+            overflow: visible !important;
         }
         
         .card-header {
@@ -582,6 +757,8 @@
             gap: 1rem;
             align-items: center;
             flex-wrap: wrap;
+            position: relative;
+            overflow: visible !important;
         }
         
         .search-input-wrapper {
@@ -618,6 +795,20 @@
         
         .search-filters {
             flex-shrink: 0;
+            position: relative;
+            width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .search-filters {
+                width: 100% !important;
+                margin-top: 0.75rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
         }
         
         .filter-select {
@@ -629,12 +820,184 @@
             color: #374151;
             cursor: pointer;
             transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .filter-select:focus {
             outline: none;
             border-color: #0b7285;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Custom Filter Dropdown */
+        .custom-filter-dropdown {
+            position: relative;
+            min-width: 180px;
+            z-index: 1001;
+        }
+        
+        .search-container {
+            position: relative;
+            overflow: visible !important;
+        }
+        
+        .card {
+            overflow: visible !important;
+        }
+        
+        .card-body {
+            overflow: visible !important;
+        }
+        
+        .filter-select-hidden {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .custom-filter-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 0.5rem;
+        }
+        
+        .custom-filter-trigger:hover {
+            border-color: #0b7285;
+            background: #f8fafc;
+        }
+        
+        .custom-filter-trigger:focus {
+            outline: none;
+            border-color: #0b7285;
+            box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1);
+        }
+        
+        .custom-filter-trigger[aria-expanded="true"] {
+            border-color: #0b7285;
+            box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1);
+        }
+        
+        .custom-filter-trigger[aria-expanded="true"] .filter-chevron {
+            transform: rotate(180deg);
+        }
+        
+        .filter-trigger-text {
+            flex: 1;
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        .filter-chevron {
+            flex-shrink: 0;
+            color: #6b7280;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .custom-filter-options {
+            position: fixed;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.2s;
+            z-index: 10002 !important;
+            max-height: 300px;
+            overflow-y: auto;
+            min-width: 200px;
+            width: auto;
+            pointer-events: none;
+        }
+        
+        .custom-filter-options.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        .custom-filter-options.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            color: #374151;
+            font-size: 0.9rem;
+            position: relative;
+        }
+        
+        .filter-option:first-child {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        
+        .filter-option:last-child {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        
+        .filter-option:hover {
+            background: #f3f4f6;
+        }
+        
+        .filter-option[aria-selected="true"] {
+            background: #ecfeff;
+            color: #0b7285;
+            font-weight: 500;
+        }
+        
+        .filter-option-icon {
+            flex-shrink: 0;
+            color: #6b7280;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .filter-option[aria-selected="true"] .filter-option-icon {
+            color: #0b7285;
+        }
+        
+        .filter-option span {
+            flex: 1;
+        }
+        
+        .filter-check-icon {
+            flex-shrink: 0;
+            color: #0b7285;
+            width: 16px;
+            height: 16px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        
+        .filter-option[aria-selected="true"] .filter-check-icon {
+            opacity: 1;
         }
         
         .client-count {
@@ -1281,6 +1644,7 @@
             .search-container {
                 flex-direction: column;
                 gap: 0.75rem;
+                width: 100%;
             }
             
             .search-input-wrapper {
@@ -1289,7 +1653,47 @@
             }
             
             .search-filters {
-                width: 100%;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                position: relative !important;
+                z-index: 1 !important;
+                pointer-events: auto !important;
+            }
+            
+            .filter-select {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                font-size: 1rem !important;
+                padding: 1rem !important;
+                min-height: 48px !important;
+                border: 2px solid #d1d5db !important;
+                border-radius: 8px !important;
+                touch-action: manipulation !important;
+                background: white !important;
+                color: #374151 !important;
+                font-weight: 500 !important;
+                cursor: pointer !important;
+                margin: 0 !important;
+                display: block !important;
+            }
+            
+            .filter-select:active,
+            .filter-select:focus {
+                border-color: #0b7285 !important;
+                outline: none !important;
+                box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1) !important;
+            }
+            
+            /* Ensure containers don't clip */
+            .card-body {
+                overflow: visible !important;
+            }
+            
+            .search-container {
+                overflow: visible !important;
             }
             
             .filter-select {
@@ -1449,7 +1853,44 @@
             
             .filter-select {
                 width: 100% !important;
-                font-size: 0.875rem !important;
+                font-size: 1rem !important;
+                padding: 1rem !important;
+                min-height: 48px !important; /* Touch-friendly size - larger for mobile */
+                -webkit-appearance: menulist !important; /* Use native mobile dropdown */
+                -moz-appearance: menulist !important;
+                appearance: menulist !important;
+                border: 2px solid #d1d5db !important;
+                border-radius: 8px !important;
+                font-weight: 500 !important;
+                cursor: pointer !important;
+                touch-action: manipulation !important; /* Prevents double-tap zoom */
+                background: white !important;
+                color: #374151 !important;
+                position: relative !important;
+                z-index: 1 !important;
+                pointer-events: auto !important;
+            }
+            
+            .filter-select:active,
+            .filter-select:focus {
+                border-color: #0b7285 !important;
+                outline: none !important;
+                box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1) !important;
+            }
+            
+            /* Ensure select is clickable on mobile */
+            .search-filters {
+                position: relative !important;
+                z-index: 1 !important;
+                pointer-events: auto !important;
+            }
+            
+            .custom-filter-dropdown {
+                width: 100% !important;
+            }
+            
+            .custom-filter-options {
+                right: 0 !important;
             }
             
             /* Table Mobile Fixes */
@@ -2305,6 +2746,159 @@
                 width: 12px !important;
                 height: 12px !important;
             }
+            
+            /* Messages Search Bar Mobile Fixes */
+            .whatsapp-search {
+                padding: 12px !important;
+                position: relative !important;
+            }
+            
+            .whatsapp-search input {
+                padding-left: 36px !important;
+                padding-right: 12px !important;
+                font-size: 14px !important;
+                height: 40px !important;
+                position: relative !important;
+                border-radius: 20px !important;
+            }
+            
+            .whatsapp-search .search-icon {
+                position: absolute !important;
+                left: 24px !important;
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                width: 16px !important;
+                height: 16px !important;
+                pointer-events: none !important;
+                z-index: 2 !important;
+            }
+            
+            .whatsapp-search .search-icon img {
+                width: 16px !important;
+                height: 16px !important;
+                display: block !important;
+            }
+            
+            /* Profile Section Collapsible - Mobile Only */
+            .profile-section-card {
+                margin-bottom: 1rem !important;
+            }
+            
+            .profile-section-header {
+                cursor: pointer !important;
+                user-select: none !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                transition: background-color 0.2s ease !important;
+            }
+            
+            .profile-section-header:active {
+                background-color: #f9fafb !important;
+            }
+            
+            .profile-section-header .card-title {
+                margin: 0 !important;
+            }
+            
+            .profile-section-header > div:first-child {
+                flex: 1;
+            }
+            
+            .profile-section-toggle {
+                color: #6b7280;
+                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                flex-shrink: 0;
+                margin-left: 1rem;
+            }
+            
+            .profile-section-card.expanded .profile-section-toggle {
+                transform: rotate(180deg);
+            }
+            
+            .profile-section-card .card-body.profile-section-body {
+                max-height: 0 !important;
+                overflow: hidden !important;
+                transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                            padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                            padding-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                            padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                            padding-right 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                            opacity 0.3s ease 0.1s !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                opacity: 0 !important;
+                will-change: max-height, padding, opacity !important;
+            }
+            
+            .profile-section-card.expanded .card-body.profile-section-body {
+                max-height: 5000px !important;
+                padding-top: 1.5rem !important;
+                padding-bottom: 1.5rem !important;
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+                overflow: visible !important;
+                opacity: 1 !important;
+            }
+            
+            /* Smooth transition end */
+            .profile-section-card .card-body.profile-section-body[style*="max-height"] {
+                transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                            padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                            padding-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                            padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                            padding-right 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                            opacity 0.3s ease 0.1s !important;
+            }
+            
+            /* Form elements fade-in animation */
+            .profile-section-card .card-body.profile-section-body .form-group,
+            .profile-section-card .card-body.profile-section-body .form-row,
+            .profile-section-card .card-body.profile-section-body label,
+            .profile-section-card .card-body.profile-section-body input,
+            .profile-section-card .card-body.profile-section-body select,
+            .profile-section-card .card-body.profile-section-body textarea {
+                opacity: 0;
+                transform: translateY(10px);
+                transition: opacity 0.4s ease 0.2s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+            }
+            
+            .profile-section-card.expanded .card-body.profile-section-body .form-group,
+            .profile-section-card.expanded .card-body.profile-section-body .form-row,
+            .profile-section-card.expanded .card-body.profile-section-body label,
+            .profile-section-card.expanded .card-body.profile-section-body input,
+            .profile-section-card.expanded .card-body.profile-section-body select,
+            .profile-section-card.expanded .card-body.profile-section-body textarea {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            
+            /* Stagger animation for form groups */
+            .profile-section-card.expanded .card-body.profile-section-body .form-group:nth-child(1) {
+                transition-delay: 0.15s;
+            }
+            
+            .profile-section-card.expanded .card-body.profile-section-body .form-group:nth-child(2) {
+                transition-delay: 0.2s;
+            }
+            
+            .profile-section-card.expanded .card-body.profile-section-body .form-group:nth-child(3) {
+                transition-delay: 0.25s;
+            }
+            
+            .profile-section-card.expanded .card-body.profile-section-body .form-group:nth-child(4) {
+                transition-delay: 0.3s;
+            }
+            
+            .profile-section-card.expanded .card-body.profile-section-body .form-group:nth-child(5) {
+                transition-delay: 0.35s;
+            }
+            
+            .profile-section-card.expanded .card-body.profile-section-body .form-group:nth-child(n+6) {
+                transition-delay: 0.4s;
+            }
         }
 
         /* Document Preview Styles */
@@ -2878,12 +3472,53 @@
                             </div>
                             </div>
                             <div class="search-filters">
-                                <select id="clientFilterSelect" class="filter-select">
-                                    <option value="all">All Clients</option>
-                                    <option value="with-documents">With Documents</option>
-                                    <option value="with-expenses">With Expenses</option>
-                                    <option value="recent">Recently Added</option>
-                                </select>
+                                <div class="custom-filter-dropdown">
+                                    <button type="button" class="custom-filter-trigger" id="clientFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                        <span class="filter-trigger-text">All Clients</span>
+                                        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <div class="custom-filter-options" id="clientFilterOptions" role="listbox">
+                                        <div class="filter-option" data-value="all" role="option" aria-selected="true">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M8 8C10.2091 8 12 6.20914 12 4C12 1.79086 10.2091 0 8 0C5.79086 0 4 1.79086 4 4C4 6.20914 5.79086 8 8 8Z" fill="currentColor"/>
+                                                <path d="M8 9C4.68629 9 2 11.6863 2 15H14C14 11.6863 11.3137 9 8 9Z" fill="currentColor"/>
+                                            </svg>
+                                            <span>All Clients</span>
+                                            <svg class="filter-check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        <div class="filter-option" data-value="with-documents" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M14 2H6C5.44772 2 5 2.44772 5 3V13C5 13.5523 5.44772 14 6 14H14C14.5523 14 15 13.5523 15 13V3C15 2.44772 14.5523 2 14 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M5 5H3C2.44772 5 2 5.44772 2 6V15C2 15.5523 2.44772 16 3 16H10C10.5523 16 11 15.5523 11 15V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M10 2V5H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <span>With Documents</span>
+                                        </div>
+                                        <div class="filter-option" data-value="with-expenses" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M8 1V15M1 8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                            <span>With Expenses</span>
+                                        </div>
+                                        <div class="filter-option" data-value="recent" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                                <path d="M8 4V8L10.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            </svg>
+                                            <span>Recently Added</span>
+                                        </div>
+                                    </div>
+                                    <select id="clientFilterSelect" class="filter-select-hidden" aria-hidden="true">
+                                        <option value="all">All Clients</option>
+                                        <option value="with-documents">With Documents</option>
+                                        <option value="with-expenses">With Expenses</option>
+                                        <option value="recent">Recently Added</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3062,28 +3697,74 @@
             <div id="tax-returns" class="section hidden">
                 <h1 class="mb-6">Tax Returns</h1>
                 
-            <!-- Tax Returns Search Bar -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="search-container">
-                        <div class="search-input-wrapper">
-                            <input type="text" id="taxReturnsSearchInput" placeholder="Search tax returns by client name, tax year, or status..." class="search-input">
-                            <div class="search-icon">
-                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
+                <!-- Tax Returns Search Bar -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="search-container">
+                            <div class="search-input-wrapper">
+                                <input type="text" id="taxReturnsSearchInput" placeholder="Search tax returns by client name, tax year, or status..." class="search-input">
+                                <div class="search-icon">
+                                    <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
+                                </div>
                             </div>
-                        </div>
-                        <div class="search-filters">
-                            <select id="taxReturnsFilterSelect" class="filter-select">
-                                <option value="all">All Returns</option>
-                                <option value="pending">Pending</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="completed">Completed</option>
-                                <option value="current-year">Current Year</option>
-                            </select>
+                            <div class="search-filters">
+                                <div class="custom-filter-dropdown">
+                                    <button type="button" class="custom-filter-trigger" id="taxReturnsFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                        <span class="filter-trigger-text">All Returns</span>
+                                        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <div class="custom-filter-options" id="taxReturnsFilterOptions" role="listbox">
+                                        <div class="filter-option" data-value="all" role="option" aria-selected="true">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M8 8C10.2091 8 12 6.20914 12 4C12 1.79086 10.2091 0 8 0C5.79086 0 4 1.79086 4 4C4 6.20914 5.79086 8 8 8Z" fill="currentColor"/>
+                                                <path d="M8 9C4.68629 9 2 11.6863 2 15H14C14 11.6863 11.3137 9 8 9Z" fill="currentColor"/>
+                                            </svg>
+                                            <span>All Returns</span>
+                                            <svg class="filter-check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        <div class="filter-option" data-value="pending" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                                <path d="M8 4V8L10.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            </svg>
+                                            <span>Pending</span>
+                                        </div>
+                                        <div class="filter-option" data-value="in_progress" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M8 1V15M1 8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                            <span>In Progress</span>
+                                        </div>
+                                        <div class="filter-option" data-value="completed" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <span>Completed</span>
+                                        </div>
+                                        <div class="filter-option" data-value="current-year" role="option" aria-selected="false">
+                                            <svg class="filter-option-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                                <path d="M5 1V5M11 1V5M2 7H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            </svg>
+                                            <span>Current Year</span>
+                                        </div>
+                                    </div>
+                                    <select id="taxReturnsFilterSelect" class="filter-select-hidden" aria-hidden="true">
+                                        <option value="all">All Returns</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="current-year">Current Year</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
                 
                 <div class="card">
                     <div class="card-header">
@@ -3159,11 +3840,16 @@
             <div id="profile" class="section hidden">
                 <h1 class="mb-6">Practitioner Profile</h1>
                 
-                <div class="card">
-                    <div class="card-header">
+                <div class="card profile-section-card">
+                    <div class="card-header profile-section-header" onclick="toggleProfileSection('practice-info', event)">
                         <h3 class="card-title">Practice Information</h3>
+                        <div class="profile-section-toggle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                     </div>
-                    <div class="card-body">
+                    </div>
+                    <div class="card-body profile-section-body" id="practice-info-body">
                         <form id="practitionerProfileForm">
                             <div class="form-group">
                                 <label>Profile Image</label>
@@ -3274,12 +3960,19 @@
                             </div>
                             
                 <!-- Bank Details Section -->
-                <div class="card" style="margin-top: 2rem;">
-                    <div class="card-header">
+                <div class="card profile-section-card" style="margin-top: 2rem;">
+                    <div class="card-header profile-section-header" onclick="toggleProfileSection('bank-details', event)">
+                        <div>
                         <h3 class="card-title">Bank Details</h3>
                         <p style="color: #6b7280; font-size: 0.875rem; margin: 0.5rem 0 0 0;">Your bank details will be automatically included in invoices</p>
                     </div>
-                    <div class="card-body">
+                        <div class="profile-section-toggle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card-body profile-section-body" id="bank-details-body">
                         <form id="bankDetailsForm">
                             <div class="form-row">
                                 <div class="form-group">
@@ -3318,12 +4011,19 @@
                 </div>
                 
                 <!-- Invoice Message Section -->
-                <div class="card" style="margin-top: 2rem;">
-                    <div class="card-header">
+                <div class="card profile-section-card" style="margin-top: 2rem;">
+                    <div class="card-header profile-section-header" onclick="toggleProfileSection('invoice-messages', event)">
+                        <div>
                         <h3 class="card-title">Invoice Messages</h3>
                         <p style="color: #6b7280; font-size: 0.875rem; margin: 0.5rem 0 0 0;">Customize messages that appear on your invoices</p>
                     </div>
-                    <div class="card-body">
+                        <div class="profile-section-toggle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card-body profile-section-body" id="invoice-messages-body">
                         <form id="invoiceMessageForm">
                             <div class="form-group">
                                 <label for="defaultInvoiceNotes">Default Invoice Notes</label>
@@ -3560,7 +4260,7 @@
                                 type="text" 
                                 id="newInvoiceClientSelect" 
                                 class="form-control" 
-                                placeholder="Choose a client..." 
+                                placeholder="Search or type client name..." 
                                 autocomplete="off"
                                 required
                             />
@@ -3755,6 +4455,11 @@
             
             // Setup client linking handlers
             setupClientLinkingHandlers();
+            
+            // Initialize profile sections for mobile/desktop
+            setTimeout(() => {
+                initializeProfileSections();
+            }, 500);
             
             // Close modals when clicking outside
             document.addEventListener('click', function(event) {
@@ -3994,6 +4699,33 @@
             console.log('✅ Practitioner messaging ready');
         }
         
+        // Get practitioner avatar HTML for messages
+        function getPractitionerAvatarHTML() {
+            if (practitioner && practitioner.profileImage) {
+                return `<img src="${practitioner.profileImage}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+            }
+            return `<img src="assets/icons/user.svg" class="icon icon-lg" alt="Profile">`;
+        }
+        
+        // Update messages header avatar with practitioner profile image
+        function updateMessagesHeaderAvatar() {
+            const chatHeaderInfo = document.getElementById('chatHeaderInfo');
+            if (!chatHeaderInfo) return;
+            
+            // Check if we're in the empty state (no client selected)
+            const contactInfo = chatHeaderInfo.querySelector('.whatsapp-chat-contact-info');
+            if (contactInfo) {
+                const title = contactInfo.querySelector('h3');
+                if (title && title.textContent.includes('Select a client')) {
+                    // We're in the empty state, update the avatar
+                    const avatar = chatHeaderInfo.querySelector('.whatsapp-chat-contact-avatar');
+                    if (avatar) {
+                        avatar.innerHTML = getPractitionerAvatarHTML();
+                    }
+                }
+            }
+        }
+        
         // Update practitioner interface
         function updatePractitionerInterface() {
             if (practitioner) {
@@ -4035,6 +4767,9 @@
                     if (editBtn) editBtn.style.display = 'none';
                     if (removeBtn) removeBtn.style.display = 'none';
                 }
+                
+                // Update messages header avatar
+                updateMessagesHeaderAvatar();
                 
                 // Load bank details
                 loadBankDetailsInProfile();
@@ -6057,9 +6792,19 @@
             });
             
             if (filtered.length === 0) {
-                dropdown.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">No clients found</div></div>';
+                dropdown.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">No clients found - you can use the typed name</div></div>';
                 dropdown.classList.remove('hidden');
                 selectedAutocompleteIndex = -1;
+                // Clear clientId to allow custom name
+                const clientIdInput = document.getElementById('newInvoiceClientId');
+                if (clientIdInput) {
+                    clientIdInput.value = '';
+                }
+                // Hide selected client info
+                const selectedClientInfo = document.getElementById('selectedClientInfo');
+                if (selectedClientInfo) {
+                    selectedClientInfo.classList.add('hidden');
+                }
                 return;
             }
             
@@ -6117,6 +6862,33 @@
             handleClientSelection({ target: { value: client.id } });
         }
         
+        // Handle when user types a custom name (not selecting from dropdown)
+        function handleCustomClientName() {
+            const clientInput = document.getElementById('newInvoiceClientSelect');
+            const clientIdInput = document.getElementById('newInvoiceClientId');
+            const selectedClientInfo = document.getElementById('selectedClientInfo');
+            
+            if (clientInput && clientInput.value.trim()) {
+                const inputValue = clientInput.value.trim();
+                // Check if this matches any existing client
+                const matchingClient = autocompleteClients.find(c => {
+                    const fullName = `${c.firstName} ${c.lastName}`;
+                    return fullName.toLowerCase() === inputValue.toLowerCase();
+                });
+                
+                if (!matchingClient) {
+                    // This is a custom name, clear clientId
+                    if (clientIdInput) {
+                        clientIdInput.value = '';
+                    }
+                    // Hide selected client info since it's a custom name
+                    if (selectedClientInfo) {
+                        selectedClientInfo.classList.add('hidden');
+                    }
+                }
+            }
+        }
+        
         // Generate new invoice number
         function generateNewInvoiceNumber() {
             const year = new Date().getFullYear();
@@ -6156,7 +6928,35 @@
             if (clientInput) {
                 // Filter on input
                 clientInput.addEventListener('input', (e) => {
-                    filterAutocomplete(e.target.value);
+                    const inputValue = e.target.value.trim();
+                    filterAutocomplete(inputValue);
+                    
+                    // If user is typing and the value doesn't match any selected client, clear clientId
+                    // This allows free-form text input for custom client names
+                    const clientIdInput = document.getElementById('newInvoiceClientId');
+                    if (clientIdInput && clientIdInput.value) {
+                        // Check if the current input matches the selected client
+                        const selectedClient = autocompleteClients.find(c => c.id === clientIdInput.value);
+                        if (selectedClient) {
+                            const selectedClientName = `${selectedClient.firstName} ${selectedClient.lastName}`;
+                            if (inputValue !== selectedClientName) {
+                                // User is typing something different, clear the clientId to allow custom name
+                                clientIdInput.value = '';
+                                // Hide selected client info if showing
+                                const selectedClientInfo = document.getElementById('selectedClientInfo');
+                                if (selectedClientInfo) {
+                                    selectedClientInfo.classList.add('hidden');
+                                }
+                            }
+                        } else {
+                            // No matching client, clear clientId
+                            clientIdInput.value = '';
+                            const selectedClientInfo = document.getElementById('selectedClientInfo');
+                            if (selectedClientInfo) {
+                                selectedClientInfo.classList.add('hidden');
+                            }
+                        }
+                    }
                 });
                 
                 // Show all clients when input is focused and empty
@@ -6197,7 +6997,15 @@
                         e.preventDefault();
                         if (selectedAutocompleteIndex >= 0 && items[selectedAutocompleteIndex]) {
                             const clientId = items[selectedAutocompleteIndex].dataset.clientId;
-                            selectClientFromAutocomplete(clientId);
+                            if (clientId) {
+                                selectClientFromAutocomplete(clientId);
+                            }
+                        } else {
+                            // No selection, treat as custom name
+                            handleCustomClientName();
+                            if (dropdown) {
+                                dropdown.classList.add('hidden');
+                            }
                         }
                     } else if (e.key === 'Escape') {
                         dropdown.classList.add('hidden');
@@ -6234,6 +7042,8 @@
                         if (dropdownToggle) {
                             dropdownToggle.classList.remove('active');
                         }
+                        // Check if user typed a custom name
+                        handleCustomClientName();
                     }
                 });
             
@@ -6316,13 +7126,31 @@
             // Get form data
             const clientIdInput = document.getElementById('newInvoiceClientId');
             const clientInput = document.getElementById('newInvoiceClientSelect');
-            const clientId = clientIdInput ? clientIdInput.value : '';
-            const clientName = clientInput ? clientInput.value : document.getElementById('selectedClientName').textContent;
+            const clientId = clientIdInput ? clientIdInput.value.trim() : '';
+            const clientNameInput = clientInput ? clientInput.value.trim() : '';
+            
+            // Get client name - use input value if available, otherwise try selected client name
+            let clientName = clientNameInput;
+            if (!clientName && clientId) {
+                const selectedClientNameEl = document.getElementById('selectedClientName');
+                if (selectedClientNameEl) {
+                    clientName = selectedClientNameEl.textContent.trim();
+                }
+            }
+            
+            // Get client email - only if clientId exists (existing client)
+            let clientEmail = '';
+            if (clientId) {
+                const selectedClientEmailEl = document.getElementById('selectedClientEmail');
+                if (selectedClientEmailEl) {
+                    clientEmail = selectedClientEmailEl.textContent.trim();
+                }
+            }
             
             const formData = {
                 clientId: clientId,
                 clientName: clientName,
-                clientEmail: document.getElementById('selectedClientEmail').textContent,
+                clientEmail: clientEmail,
                 invoiceNumber: document.getElementById('newInvoiceNumber').value,
                 invoiceDate: document.getElementById('newInvoiceDate').value,
                 dueDate: document.getElementById('newInvoiceDueDate').value,
@@ -6335,8 +7163,12 @@
             };
             
             // Validate form
-            if ((!formData.clientId && !formData.clientName) || !formData.invoiceNumber || !formData.amount || !formData.description) {
-                alert('Please fill in all required fields. Make sure to select or enter a client name.');
+            if (!formData.clientName || formData.clientName.trim() === '') {
+                alert('Please enter or select a client name.');
+                return;
+            }
+            if (!formData.invoiceNumber || !formData.amount || !formData.description) {
+                alert('Please fill in all required fields.');
                 return;
             }
             
@@ -7310,6 +8142,13 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             
             showSection(sectionName);
             
+            // Initialize profile sections when profile tab is opened
+            if (sectionName === 'profile') {
+                setTimeout(() => {
+                    initializeProfileSections();
+                }, 100);
+            }
+            
             // Update active state for ALL nav links (both desktop .nav a and mobile .nav-style6 a)
             document.querySelectorAll('.nav-link, .nav a, .nav-style6 a').forEach(link => {
                 link.classList.remove('active');
@@ -7466,6 +8305,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Update status summary section
         function updateStatusSummary(totalClients, activeClients, pendingReturns, completedReturns) {
+            if (!practitioner || !practitioner.id) {
+                return;
+            }
             const allInvoices = cleartrackData.getInvoicesForPractitioner(practitioner.id);
             const invoicedClients = new Set(allInvoices.map(inv => inv.clientName)).size;
             const readyForInvoicing = completedReturns - invoicedClients;
@@ -7669,6 +8511,110 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (filterSelect) {
                 filterSelect.addEventListener('change', handleClientSearch);
             }
+            
+            // Setup custom filter dropdown
+            setupCustomFilterDropdown();
+        }
+        
+        // Setup custom filter dropdown
+        function setupCustomFilterDropdown() {
+            const trigger = document.getElementById('clientFilterTrigger');
+            const options = document.getElementById('clientFilterOptions');
+            const hiddenSelect = document.getElementById('clientFilterSelect');
+            const optionElements = options?.querySelectorAll('.filter-option');
+            
+            if (!trigger || !options || !hiddenSelect) return;
+            
+            // Toggle dropdown
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                
+                if (isExpanded) {
+                    closeFilterDropdown();
+                } else {
+                    openFilterDropdown();
+                }
+            });
+            
+            // Handle option selection
+            optionElements?.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = option.getAttribute('data-value');
+                    const text = option.querySelector('span')?.textContent || '';
+                    
+                    // Update hidden select
+                    hiddenSelect.value = value;
+                    
+                    // Update trigger text
+                    trigger.querySelector('.filter-trigger-text').textContent = text;
+                    
+                    // Update aria-selected
+                    optionElements.forEach(opt => {
+                        opt.setAttribute('aria-selected', 'false');
+                    });
+                    option.setAttribute('aria-selected', 'true');
+                    
+                    // Close dropdown
+                    closeFilterDropdown();
+                    
+                    // Trigger change event
+                    hiddenSelect.dispatchEvent(new Event('change'));
+                });
+            });
+            
+            // Close on outside click
+            document.addEventListener('click', (e) => {
+                if (!trigger.contains(e.target) && !options.contains(e.target)) {
+                    closeFilterDropdown();
+                }
+            });
+            
+            // Close on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
+                    closeFilterDropdown();
+                }
+            });
+            
+            function openFilterDropdown() {
+                // Get trigger position
+                const triggerRect = trigger.getBoundingClientRect();
+                
+                // Position dropdown below trigger
+                options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
+                options.style.left = (triggerRect.left + window.scrollX) + 'px';
+                options.style.width = triggerRect.width + 'px';
+                
+                trigger.setAttribute('aria-expanded', 'true');
+                options.classList.add('show');
+                // Force reflow to ensure animation
+                options.offsetHeight;
+            }
+            
+            function closeFilterDropdown() {
+                trigger.setAttribute('aria-expanded', 'false');
+                options.classList.remove('show');
+            }
+            
+            // Reposition on scroll/resize
+            window.addEventListener('scroll', () => {
+                if (trigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = trigger.getBoundingClientRect();
+                    options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
+                    options.style.left = (triggerRect.left + window.scrollX) + 'px';
+                }
+            }, true);
+            
+            window.addEventListener('resize', () => {
+                if (trigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = trigger.getBoundingClientRect();
+                    options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
+                    options.style.left = (triggerRect.left + window.scrollX) + 'px';
+                    options.style.width = triggerRect.width + 'px';
+                }
+            });
         }
         
         // Setup tax returns search functionality
@@ -7683,7 +8629,112 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (filterSelect) {
                 filterSelect.addEventListener('change', handleTaxReturnsSearch);
             }
+            
+            // Setup custom filter dropdown for tax returns
+            setupTaxReturnsFilterDropdown();
         }
+        
+        // Setup custom filter dropdown for tax returns
+        function setupTaxReturnsFilterDropdown() {
+            const trigger = document.getElementById('taxReturnsFilterTrigger');
+            const options = document.getElementById('taxReturnsFilterOptions');
+            const hiddenSelect = document.getElementById('taxReturnsFilterSelect');
+            const optionElements = options?.querySelectorAll('.filter-option');
+            
+            if (!trigger || !options || !hiddenSelect) return;
+            
+            // Toggle dropdown
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                
+                if (isExpanded) {
+                    closeTaxReturnsFilterDropdown();
+                } else {
+                    openTaxReturnsFilterDropdown();
+                }
+            });
+            
+            // Handle option selection
+            optionElements?.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = option.getAttribute('data-value');
+                    const text = option.querySelector('span')?.textContent || '';
+                    
+                    // Update hidden select
+                    hiddenSelect.value = value;
+                    
+                    // Update trigger text
+                    trigger.querySelector('.filter-trigger-text').textContent = text;
+                    
+                    // Update aria-selected
+                    optionElements.forEach(opt => {
+                        opt.setAttribute('aria-selected', 'false');
+                    });
+                    option.setAttribute('aria-selected', 'true');
+                    
+                    // Close dropdown
+                    closeTaxReturnsFilterDropdown();
+                    
+                    // Trigger change event
+                    hiddenSelect.dispatchEvent(new Event('change'));
+                });
+            });
+            
+            // Close on outside click
+            document.addEventListener('click', (e) => {
+                if (!trigger.contains(e.target) && !options.contains(e.target)) {
+                    closeTaxReturnsFilterDropdown();
+                }
+            });
+            
+            // Close on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
+                    closeTaxReturnsFilterDropdown();
+                }
+            });
+            
+            function openTaxReturnsFilterDropdown() {
+                // Get trigger position
+                const triggerRect = trigger.getBoundingClientRect();
+                
+                // Position dropdown below trigger
+                options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
+                options.style.left = (triggerRect.left + window.scrollX) + 'px';
+                options.style.width = triggerRect.width + 'px';
+                
+                trigger.setAttribute('aria-expanded', 'true');
+                options.classList.add('show');
+                // Force reflow to ensure animation
+                options.offsetHeight;
+            }
+            
+            function closeTaxReturnsFilterDropdown() {
+                trigger.setAttribute('aria-expanded', 'false');
+                options.classList.remove('show');
+            }
+            
+            // Reposition on scroll/resize
+            window.addEventListener('scroll', () => {
+                if (trigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = trigger.getBoundingClientRect();
+                    options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
+                    options.style.left = (triggerRect.left + window.scrollX) + 'px';
+                }
+            }, true);
+            
+            window.addEventListener('resize', () => {
+                if (trigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = trigger.getBoundingClientRect();
+                    options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
+                    options.style.left = (triggerRect.left + window.scrollX) + 'px';
+                    options.style.width = triggerRect.width + 'px';
+                }
+            });
+        }
+        
         
         // Setup invoice search functionality
         function setupInvoiceSearch() {
@@ -7884,7 +8935,14 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             
             taxReturns = cleartrackData.getTaxReturnsForPractitioner(practitioner.id);
             updateTaxReturnsDisplay();
-            setupTaxReturnsSearch();
+            
+            // Setup search and dropdown after section is visible
+            // Use requestAnimationFrame to ensure DOM is ready and section is visible
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    setupTaxReturnsSearch();
+                }, 50);
+            });
         }
         
         // Load invoices from real data storage
@@ -9799,6 +10857,103 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             }
         }
         
+        // Toggle profile section (mobile only)
+        function toggleProfileSection(sectionId, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            // Only work on mobile
+            if (window.innerWidth > 768) return;
+            
+            const card = document.querySelector(`#${sectionId}-body`)?.closest('.profile-section-card');
+            if (!card) return;
+            
+            const body = card.querySelector('.profile-section-body');
+            if (!body) return;
+            
+            const isExpanded = card.classList.contains('expanded');
+            
+            if (isExpanded) {
+                // Collapse - get current height first
+                const currentHeight = body.scrollHeight;
+                body.style.maxHeight = currentHeight + 'px';
+                // Force reflow
+                body.offsetHeight;
+                // Remove expanded class and animate to 0
+                card.classList.remove('expanded');
+                requestAnimationFrame(() => {
+                    body.style.maxHeight = '0';
+                    body.style.paddingTop = '0';
+                    body.style.paddingBottom = '0';
+                });
+            } else {
+                // Expand - set to 0 first, then animate to full height
+                body.style.maxHeight = '0';
+                body.style.paddingTop = '0';
+                body.style.paddingBottom = '0';
+                // Force reflow
+                body.offsetHeight;
+                // Add expanded class
+                card.classList.add('expanded');
+                // Get full height and animate
+                requestAnimationFrame(() => {
+                    const fullHeight = body.scrollHeight;
+                    body.style.maxHeight = fullHeight + 'px';
+                    body.style.paddingTop = '1.5rem';
+                    body.style.paddingBottom = '1.5rem';
+                });
+            }
+        }
+        
+        // Initialize profile sections for mobile/desktop
+        function initializeProfileSections() {
+            const cards = document.querySelectorAll('.profile-section-card');
+            cards.forEach(card => {
+                const body = card.querySelector('.profile-section-body');
+                if (!body) return;
+                
+                // On desktop, always show content
+                if (window.innerWidth > 768) {
+                    card.classList.add('expanded');
+                    body.style.maxHeight = 'none';
+                    body.style.paddingTop = '';
+                    body.style.paddingBottom = '';
+                } else {
+                    // On mobile, start collapsed
+                    card.classList.remove('expanded');
+                    body.style.maxHeight = '0';
+                    body.style.paddingTop = '0';
+                    body.style.paddingBottom = '0';
+                }
+            });
+            
+            // Handle window resize
+            const resizeHandler = () => {
+                const cards = document.querySelectorAll('.profile-section-card');
+                cards.forEach(card => {
+                    const body = card.querySelector('.profile-section-body');
+                    if (!body) return;
+                    
+                    if (window.innerWidth > 768) {
+                        card.classList.add('expanded');
+                        body.style.maxHeight = 'none';
+                        body.style.paddingTop = '';
+                        body.style.paddingBottom = '';
+                    } else {
+                        // Only collapse if not already expanded
+                        if (!card.classList.contains('expanded')) {
+                            body.style.maxHeight = '0';
+                        }
+                    }
+                });
+            };
+            
+            // Remove existing listener if any, then add new one
+            window.removeEventListener('resize', resizeHandler);
+            window.addEventListener('resize', resizeHandler);
+        }
+        
         // Update practitioner profile
         async function updatePractitionerProfile() {
             const firstName = document.getElementById('firstName').value.trim();
@@ -9861,6 +11016,10 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 practitioner = updatedPractitioner;
                 window.practitioner = practitioner; // Update global reference
                 updatePractitionerInterface();
+                // Re-initialize profile sections after update
+                setTimeout(() => {
+                    initializeProfileSections();
+                }, 100);
                 alert('Practitioner profile updated successfully!');
             } else {
                 alert('Error updating profile. Please try again.');
@@ -10067,7 +11226,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         let currentConversationClient = null;
         
         function loadConversations() {
-            if (!practitioner) {
+            if (!practitioner || !practitioner.id) {
                 return;
             }
             
@@ -10075,7 +11234,17 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             window.loadConversations = loadConversations;
             
             const conversationsList = document.getElementById('conversationsList');
+            if (!conversationsList) {
+                return;
+            }
+            
             const connectedUsers = cleartrackData.getConnectedUsers(practitioner.id);
+            
+            // Ensure connectedUsers is an array
+            if (!Array.isArray(connectedUsers)) {
+                conversationsList.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 2rem;">No clients connected yet</p>';
+                return;
+            }
             
             if (connectedUsers.length === 0) {
                 conversationsList.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 2rem;">No clients connected yet</p>';
@@ -11522,6 +12691,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 if (practitioner) {
                     practitioner.profileImage = processedDataUrl;
                     cleartrackData.updatePractitioner(practitioner.id, { profileImage: processedDataUrl });
+                    // Update messages header avatar
+                    updateMessagesHeaderAvatar();
                 }
             } catch (err) {
                 console.error('Profile image processing failed:', err);
@@ -11610,6 +12781,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 cleartrackData.updatePractitioner(practitioner.id, {
                     profileImage: null
                 });
+                // Update messages header avatar
+                updateMessagesHeaderAvatar();
             }
         }
         
@@ -11820,6 +12993,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         cleartrackData.updatePractitioner(practitioner.id, {
                             profileImage: croppedDataUrl
                         });
+                        // Update messages header avatar
+                        updateMessagesHeaderAvatar();
                     }
                     
                     // Show success

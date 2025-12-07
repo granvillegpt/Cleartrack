@@ -178,10 +178,13 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #e5f3f7;
             color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
         
         /* ============================================
-           HEADER CONTAINER - Desktop Base Styles
+           HEADER - FULL WIDTH WITH CENTERED CONTENT
            ============================================ */
         .header {
             background: #0b7285;
@@ -190,9 +193,23 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
             box-sizing: border-box;
             display: block;
+            padding: 0;
+            margin: 0 !important;
+        }
+        
+        /* Desktop: Header stays full width, content inside is centered */
+        @media (min-width: 769px) {
+            .header {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
+            }
         }
         
         /* ============================================
@@ -202,10 +219,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 2.5rem;
+            padding: 1.5rem 2rem;
             position: relative;
             width: 100%;
             box-sizing: border-box;
+            max-width: 100%;
+        }
+        
+        /* Desktop: Constrain header-top to match container */
+        @media (min-width: 769px) {
+            .header-top {
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 1.5rem 2rem !important;
+            }
         }
         
         /* ============================================
@@ -247,6 +275,17 @@
             border-top: 1px solid rgba(255, 255, 255, 0.3);
             width: 100%;
             box-sizing: border-box;
+            max-width: 100%;
+        }
+        
+        /* Desktop: Constrain nav to match container */
+        @media (min-width: 769px) {
+            .nav {
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 1rem 2rem !important;
+            }
         }
         
         .nav a {
@@ -541,10 +580,73 @@
             gap: 1rem;
         }
         
+        /* ============================================
+           MAIN CONTENT CONTAINER - CENTERED BLOCKS (GOOGLE STYLE)
+           ============================================ */
         .main {
-            padding: 2rem;
-            max-width: 1200px;
+            padding: 1.5rem;
+            max-width: 960px;
             margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Desktop: Centered block design like Google */
+        @media (min-width: 769px) {
+            .main {
+                padding: 2rem 2rem !important;
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                background: transparent !important;
+            }
+            
+            .section {
+                max-width: 100%;
+                box-sizing: border-box;
+                margin-bottom: 1.5rem;
+            }
+            
+            .card {
+                max-width: 100%;
+                box-sizing: border-box;
+                border-radius: 12px;
+            }
+            
+            .card-body {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .search-container {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .dashboard-grid {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
+        
+        /* Large desktop screens - maintain centered block */
+        @media (min-width: 1440px) {
+            .main {
+                max-width: 960px !important;
+                width: 100% !important;
+                padding: 2.5rem 2.5rem !important;
+                margin: 0 auto !important;
+            }
+        }
+        
+        /* Ultra-wide screens - maintain centered block */
+        @media (min-width: 1920px) {
+            .main {
+                max-width: 960px !important;
+                width: 100% !important;
+                padding: 2.5rem 2.5rem !important;
+                margin: 0 auto !important;
+            }
         }
         
         .dashboard-grid {

@@ -29,14 +29,24 @@
             box-sizing: border-box;
         }
         
+        html {
+            background: #e5f3f7;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #e5f3f7;
             color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            width: 100%;
         }
         
         /* ============================================
-           HEADER CONTAINER
+           HEADER - FULL WIDTH WITH CENTERED CONTENT
            ============================================ */
         .header {
             background: #0b7285;
@@ -45,11 +55,25 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
             box-sizing: border-box;
             display: block;
             visibility: visible;
             opacity: 1;
+            padding: 0;
+            margin: 0 !important;
+        }
+        
+        /* Desktop: Header stays full width, content inside is centered */
+        @media (min-width: 769px) {
+            .header {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
+            }
         }
         
         /* ============================================
@@ -59,10 +83,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 2.5rem;
+            padding: 1.5rem 2rem;
             position: relative;
             width: 100%;
             box-sizing: border-box;
+            max-width: 100%;
+        }
+        
+        /* Desktop: Constrain header-top to match container */
+        @media (min-width: 769px) {
+            .header-top {
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 1.5rem 2rem !important;
+            }
         }
         
         /* Logout Button - Desktop positioning */
@@ -104,6 +139,16 @@
             box-sizing: border-box;
         }
         
+        /* Desktop: Constrain nav to match container */
+        @media (min-width: 769px) {
+            .nav {
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 1rem 2rem !important;
+            }
+        }
+        
         .nav a {
             text-decoration: none;
             color: #e0fbff;
@@ -140,6 +185,29 @@
             font-weight: 600;
             font-size: 1rem;
             letter-spacing: 0.5px;
+        }
+        
+        /* Center nav-style6 content at 960px while nav is full width */
+        .nav-style6-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 2rem;
+        }
+        
+        @media (min-width: 769px) {
+            .nav-style6 {
+                display: flex;
+                justify-content: center;
+                padding: 1rem 0 !important;
+            }
+            
+            .nav-style6-content {
+                max-width: 960px;
+                width: 100%;
+                padding: 0 2rem;
+            }
         }
         
         /* ============================================
@@ -192,6 +260,16 @@
             border-top: 1px solid rgba(255, 255, 255, 0.3);
             width: 100%;
             box-sizing: border-box;
+        }
+        
+        /* Desktop: nav-style6 full width, content inside centered */
+        @media (min-width: 769px) {
+            .nav-style6 {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 1rem 2rem !important;
+            }
         }
         
         /* ============================================
@@ -392,21 +470,102 @@
             }
         }
         
+        /* ============================================
+           MAIN CONTENT CONTAINER - CENTERED BLOCKS (GOOGLE STYLE)
+           ============================================ */
         main {
-            max-width: 1400px;
+            padding: 1.5rem;
+            max-width: 960px;
             margin: 0 auto;
-            padding: 2rem;
             width: 100%;
             box-sizing: border-box;
         }
         
-        /* Admin-specific styles */
-        body {
-            margin: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f5f7fa;
-            color: #1f2933;
+        /* Desktop: Centered block design like Google */
+        @media (min-width: 769px) {
+            html {
+                background: #e5f3f7 !important;
+                width: 100% !important;
+            }
+            
+            body {
+                background: #e5f3f7 !important;
+                width: 100% !important;
+            }
+            
+            main {
+                padding: 2rem 2rem !important;
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                background: transparent !important;
+            }
+            
+            .section {
+                max-width: 100%;
+                box-sizing: border-box;
+                margin-bottom: 1.5rem;
+            }
+            
+            .card {
+                background: white;
+                border-radius: 8px;
+                padding: 1.5rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                margin-bottom: 1.5rem;
+                position: relative;
+                overflow: visible !important;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .card-body {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+                padding-bottom: 1rem;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            .card-title {
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: #111827;
+            }
+            
+            .search-container {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
         }
+        
+        /* Large desktop screens - maintain centered block */
+        @media (min-width: 1440px) {
+            main {
+                max-width: 960px !important;
+                width: 100% !important;
+                padding: 2.5rem 2.5rem !important;
+                margin: 0 auto !important;
+            }
+        }
+        
+        /* Ultra-wide screens - maintain centered block */
+        @media (min-width: 1920px) {
+            main {
+                max-width: 960px !important;
+                width: 100% !important;
+                padding: 2.5rem 2.5rem !important;
+                margin: 0 auto !important;
+            }
+        }
+        
+        /* Admin-specific styles - removed duplicate body styles */
 
         /* Mobile Dropdown Menu */
         .mobile-admin-menu {
@@ -464,13 +623,7 @@
             color: #991b1b;
         }
         
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f7fa;
-      color: #1f2933;
-    }
-
+    /* Body styles already defined above with #e5f3f7 background */
     /* Header styles now handled by unified-header.css */
     /* Admin-specific overrides only */
 
@@ -531,11 +684,29 @@
     }
 
     main {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      width: 100%;
+      max-width: 960px !important;
+      margin: 0 auto !important;
+      padding: 2rem !important;
+      width: 100% !important;
       box-sizing: border-box;
+    }
+    
+    @media (min-width: 769px) {
+      main {
+        max-width: 960px !important;
+        width: 100% !important;
+        padding: 2rem 2rem !important;
+        margin: 0 auto !important;
+      }
+    }
+    
+    @media (min-width: 1440px) {
+      main {
+        max-width: 960px !important;
+        width: 100% !important;
+        padding: 2.5rem 2.5rem !important;
+        margin: 0 auto !important;
+      }
     }
 
     @media (max-width: 768px) {
@@ -924,7 +1095,7 @@
       background: #fff;
       padding: 1rem;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .stat-value {
@@ -943,8 +1114,8 @@
       background: #fff;
       padding: 1.5rem;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
       display: flex;
       gap: 1rem;
       flex-wrap: wrap;
@@ -1526,8 +1697,10 @@
       <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
     </div>
     <nav class="nav nav-style6" id="mainNav">
-      <span class="nav-title">Admin Dashboard</span>
-      <button class="btn btn-secondary header-action-btn" onclick="window.reassignClientsFromFraudTaggedPractitioners(); return false;" title="Reassign clients from fraud-tagged practitioners past their appeal deadline">Reassign Fraud Clients</button>
+      <div class="nav-style6-content">
+        <span class="nav-title">Admin Dashboard</span>
+        <button class="btn btn-secondary header-action-btn" onclick="window.reassignClientsFromFraudTaggedPractitioners(); return false;" title="Reassign clients from fraud-tagged practitioners past their appeal deadline">Reassign Fraud Clients</button>
+      </div>
     </nav>
   </header>
   
@@ -1541,23 +1714,23 @@
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-value" id="statPending">-</div>
+        <div class="stat-value" id="statPending">0</div>
         <div class="stat-label">Pending</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="statApproved">-</div>
+        <div class="stat-value" id="statApproved">0</div>
         <div class="stat-label">Approved</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="statSuspended">-</div>
+        <div class="stat-value" id="statSuspended">0</div>
         <div class="stat-label">Suspended</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="statRejected">-</div>
+        <div class="stat-value" id="statRejected">0</div>
         <div class="stat-label">Rejected</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="statTotal">-</div>
+        <div class="stat-value" id="statTotal">0</div>
         <div class="stat-label">Total</div>
       </div>
     </div>
