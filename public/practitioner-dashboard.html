@@ -8521,14 +8521,24 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             const trigger = document.getElementById('clientFilterTrigger');
             const options = document.getElementById('clientFilterOptions');
             const hiddenSelect = document.getElementById('clientFilterSelect');
-            const optionElements = options?.querySelectorAll('.filter-option');
             
-            if (!trigger || !options || !hiddenSelect) return;
+            if (!trigger || !options || !hiddenSelect) {
+                console.warn('Client filter dropdown elements not found');
+                return;
+            }
+            
+            // Remove existing listeners by cloning
+            const newTrigger = trigger.cloneNode(true);
+            trigger.parentNode.replaceChild(newTrigger, trigger);
+            const newOptions = options.cloneNode(true);
+            options.parentNode.replaceChild(newOptions, options);
+            
+            const optionElements = newOptions.querySelectorAll('.filter-option');
             
             // Toggle dropdown
-            trigger.addEventListener('click', (e) => {
+            newTrigger.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                const isExpanded = newTrigger.getAttribute('aria-expanded') === 'true';
                 
                 if (isExpanded) {
                     closeFilterDropdown();
@@ -8548,7 +8558,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     hiddenSelect.value = value;
                     
                     // Update trigger text
-                    trigger.querySelector('.filter-trigger-text').textContent = text;
+                    newTrigger.querySelector('.filter-trigger-text').textContent = text;
                     
                     // Update aria-selected
                     optionElements.forEach(opt => {
@@ -8565,56 +8575,62 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             });
             
             // Close on outside click
-            document.addEventListener('click', (e) => {
-                if (!trigger.contains(e.target) && !options.contains(e.target)) {
+            const outsideClickHandler = (e) => {
+                if (!newTrigger.contains(e.target) && !newOptions.contains(e.target)) {
                     closeFilterDropdown();
                 }
-            });
+            };
+            document.addEventListener('click', outsideClickHandler);
             
             // Close on escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
+            const escapeKeyHandler = (e) => {
+                if (e.key === 'Escape' && newTrigger.getAttribute('aria-expanded') === 'true') {
                     closeFilterDropdown();
                 }
-            });
+            };
+            document.addEventListener('keydown', escapeKeyHandler);
             
             function openFilterDropdown() {
                 // Get trigger position
-                const triggerRect = trigger.getBoundingClientRect();
+                const triggerRect = newTrigger.getBoundingClientRect();
                 
-                // Position dropdown below trigger
-                options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
-                options.style.left = (triggerRect.left + window.scrollX) + 'px';
-                options.style.width = triggerRect.width + 'px';
+                // Position dropdown below trigger with fixed positioning
+                newOptions.style.position = 'fixed';
+                newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                newOptions.style.left = triggerRect.left + 'px';
+                newOptions.style.width = triggerRect.width + 'px';
+                newOptions.style.zIndex = '10002';
                 
-                trigger.setAttribute('aria-expanded', 'true');
-                options.classList.add('show');
+                newTrigger.setAttribute('aria-expanded', 'true');
+                newOptions.classList.add('show');
                 // Force reflow to ensure animation
-                options.offsetHeight;
+                newOptions.offsetHeight;
             }
             
             function closeFilterDropdown() {
-                trigger.setAttribute('aria-expanded', 'false');
-                options.classList.remove('show');
+                newTrigger.setAttribute('aria-expanded', 'false');
+                newOptions.classList.remove('show');
             }
             
             // Reposition on scroll/resize
-            window.addEventListener('scroll', () => {
-                if (trigger.getAttribute('aria-expanded') === 'true') {
-                    const triggerRect = trigger.getBoundingClientRect();
-                    options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
-                    options.style.left = (triggerRect.left + window.scrollX) + 'px';
+            const scrollHandler = () => {
+                if (newTrigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = newTrigger.getBoundingClientRect();
+                    newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                    newOptions.style.left = triggerRect.left + 'px';
                 }
-            }, true);
+            };
+            window.addEventListener('scroll', scrollHandler, true);
             
-            window.addEventListener('resize', () => {
-                if (trigger.getAttribute('aria-expanded') === 'true') {
-                    const triggerRect = trigger.getBoundingClientRect();
-                    options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
-                    options.style.left = (triggerRect.left + window.scrollX) + 'px';
-                    options.style.width = triggerRect.width + 'px';
+            const resizeHandler = () => {
+                if (newTrigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = newTrigger.getBoundingClientRect();
+                    newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                    newOptions.style.left = triggerRect.left + 'px';
+                    newOptions.style.width = triggerRect.width + 'px';
                 }
-            });
+            };
+            window.addEventListener('resize', resizeHandler);
         }
         
         // Setup tax returns search functionality
@@ -8639,14 +8655,24 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             const trigger = document.getElementById('taxReturnsFilterTrigger');
             const options = document.getElementById('taxReturnsFilterOptions');
             const hiddenSelect = document.getElementById('taxReturnsFilterSelect');
-            const optionElements = options?.querySelectorAll('.filter-option');
             
-            if (!trigger || !options || !hiddenSelect) return;
+            if (!trigger || !options || !hiddenSelect) {
+                console.warn('Tax returns filter dropdown elements not found');
+                return;
+            }
+            
+            // Remove existing listeners by cloning
+            const newTrigger = trigger.cloneNode(true);
+            trigger.parentNode.replaceChild(newTrigger, trigger);
+            const newOptions = options.cloneNode(true);
+            options.parentNode.replaceChild(newOptions, options);
+            
+            const optionElements = newOptions.querySelectorAll('.filter-option');
             
             // Toggle dropdown
-            trigger.addEventListener('click', (e) => {
+            newTrigger.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                const isExpanded = newTrigger.getAttribute('aria-expanded') === 'true';
                 
                 if (isExpanded) {
                     closeTaxReturnsFilterDropdown();
@@ -8666,7 +8692,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     hiddenSelect.value = value;
                     
                     // Update trigger text
-                    trigger.querySelector('.filter-trigger-text').textContent = text;
+                    newTrigger.querySelector('.filter-trigger-text').textContent = text;
                     
                     // Update aria-selected
                     optionElements.forEach(opt => {
@@ -8683,56 +8709,62 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             });
             
             // Close on outside click
-            document.addEventListener('click', (e) => {
-                if (!trigger.contains(e.target) && !options.contains(e.target)) {
+            const outsideClickHandler = (e) => {
+                if (!newTrigger.contains(e.target) && !newOptions.contains(e.target)) {
                     closeTaxReturnsFilterDropdown();
                 }
-            });
+            };
+            document.addEventListener('click', outsideClickHandler);
             
             // Close on escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
+            const escapeKeyHandler = (e) => {
+                if (e.key === 'Escape' && newTrigger.getAttribute('aria-expanded') === 'true') {
                     closeTaxReturnsFilterDropdown();
                 }
-            });
+            };
+            document.addEventListener('keydown', escapeKeyHandler);
             
             function openTaxReturnsFilterDropdown() {
                 // Get trigger position
-                const triggerRect = trigger.getBoundingClientRect();
+                const triggerRect = newTrigger.getBoundingClientRect();
                 
-                // Position dropdown below trigger
-                options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
-                options.style.left = (triggerRect.left + window.scrollX) + 'px';
-                options.style.width = triggerRect.width + 'px';
+                // Position dropdown below trigger with fixed positioning
+                newOptions.style.position = 'fixed';
+                newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                newOptions.style.left = triggerRect.left + 'px';
+                newOptions.style.width = triggerRect.width + 'px';
+                newOptions.style.zIndex = '10002';
                 
-                trigger.setAttribute('aria-expanded', 'true');
-                options.classList.add('show');
+                newTrigger.setAttribute('aria-expanded', 'true');
+                newOptions.classList.add('show');
                 // Force reflow to ensure animation
-                options.offsetHeight;
+                newOptions.offsetHeight;
             }
             
             function closeTaxReturnsFilterDropdown() {
-                trigger.setAttribute('aria-expanded', 'false');
-                options.classList.remove('show');
+                newTrigger.setAttribute('aria-expanded', 'false');
+                newOptions.classList.remove('show');
             }
             
             // Reposition on scroll/resize
-            window.addEventListener('scroll', () => {
-                if (trigger.getAttribute('aria-expanded') === 'true') {
-                    const triggerRect = trigger.getBoundingClientRect();
-                    options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
-                    options.style.left = (triggerRect.left + window.scrollX) + 'px';
+            const scrollHandler = () => {
+                if (newTrigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = newTrigger.getBoundingClientRect();
+                    newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                    newOptions.style.left = triggerRect.left + 'px';
                 }
-            }, true);
+            };
+            window.addEventListener('scroll', scrollHandler, true);
             
-            window.addEventListener('resize', () => {
-                if (trigger.getAttribute('aria-expanded') === 'true') {
-                    const triggerRect = trigger.getBoundingClientRect();
-                    options.style.top = (triggerRect.bottom + window.scrollY + 8) + 'px';
-                    options.style.left = (triggerRect.left + window.scrollX) + 'px';
-                    options.style.width = triggerRect.width + 'px';
+            const resizeHandler = () => {
+                if (newTrigger.getAttribute('aria-expanded') === 'true') {
+                    const triggerRect = newTrigger.getBoundingClientRect();
+                    newOptions.style.top = (triggerRect.bottom + 8) + 'px';
+                    newOptions.style.left = triggerRect.left + 'px';
+                    newOptions.style.width = triggerRect.width + 'px';
                 }
-            });
+            };
+            window.addEventListener('resize', resizeHandler);
         }
         
         
