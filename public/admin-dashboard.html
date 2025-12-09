@@ -6,18 +6,11 @@
   <title>Admin Dashboard - ClearTrack</title>
   <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
   
-  <!-- PWA Features - Only on app.cleartrack.co.za -->
-  <script>
-    if (window.location.hostname === 'app.cleartrack.co.za') {
-      document.write('<link rel="manifest" href="/manifest.json">');
-      document.write('<meta name="theme-color" content="#0b7285">');
-      document.write('<link rel="apple-touch-icon" sizes="192x192" href="/icons/cleartrack-192.png">');
-      document.write('<link rel="apple-touch-icon" sizes="512x512" href="/icons/cleartrack-512.png">');
-      document.write('<meta name="apple-mobile-web-app-capable" content="yes">');
-      document.write('<meta name="mobile-web-app-capable" content="yes">');
-      document.write('<meta name="apple-mobile-web-app-status-bar-style" content="default">');
-    }
-  </script>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+  <script defer src="/js/pwa-loader.js"></script>
   <link rel="stylesheet" href="global-styles.css">
   <link rel="stylesheet" href="whatsapp-messaging.css">
   <link rel="stylesheet" href="responsive-fixes.css">

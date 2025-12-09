@@ -6,86 +6,11 @@
     <title>Cleartrack - User Dashboard</title>
     <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
     
-    <!-- PWA Features - Only on app.cleartrack.co.za -->
-    <script>
-      (function() {
-        if (window.location.hostname === 'app.cleartrack.co.za') {
-          // Use DOM manipulation instead of document.write to prevent blocking
-          const head = document.head || document.getElementsByTagName('head')[0];
-          
-          // Manifest
-          const manifest = document.createElement('link');
-          manifest.rel = 'manifest';
-          manifest.href = '/manifest.json';
-          head.appendChild(manifest);
-          
-          // Theme color
-          const themeColor = document.createElement('meta');
-          themeColor.name = 'theme-color';
-          themeColor.content = '#0b7285';
-          head.appendChild(themeColor);
-          
-          // Apple Touch Icons
-          const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
-          iconSizes.forEach(size => {
-            const icon = document.createElement('link');
-            icon.rel = 'apple-touch-icon';
-            icon.sizes = size + 'x' + size;
-            icon.href = '/icons/cleartrack-' + size + '.png';
-            head.appendChild(icon);
-          });
-          
-          // PWA Meta Tags
-          const metaTags = [
-            { name: 'apple-mobile-web-app-capable', content: 'yes' },
-            { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
-            { name: 'apple-mobile-web-app-title', content: 'ClearTrack' },
-            { name: 'mobile-web-app-capable', content: 'yes' }
-          ];
-          metaTags.forEach(tag => {
-            const meta = document.createElement('meta');
-            meta.name = tag.name;
-            meta.content = tag.content;
-            head.appendChild(meta);
-          });
-          
-          // iOS Splash Screens
-          const splashScreens = [
-            { media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
-            { media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
-            { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-xr.png' },
-            { media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs.png' },
-            { media: '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12.png' },
-            { media: '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro.png' },
-            { media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-8-plus.png' },
-            { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs-max.png' },
-            { media: '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12-pro-max.png' },
-            { media: '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro-max.png' },
-            { media: '(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-mini.png' },
-            { media: '(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad.png' },
-            { media: '(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-air.png' },
-            { media: '(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-11.png' },
-            { media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-12.png' }
-          ];
-          splashScreens.forEach(screen => {
-            const link = document.createElement('link');
-            link.rel = 'apple-touch-startup-image';
-            link.media = screen.media;
-            link.href = screen.href;
-            head.appendChild(link);
-          });
-        }
-      })();
-    </script>
-    
-    <!-- Service Worker Registration - Only on app.cleartrack.co.za -->
-    <script>
-      if (window.location.hostname === 'app.cleartrack.co.za') {
-        var script = document.createElement('script');
-        script.src = '/sw-register.js';
-        document.head.appendChild(script);
-      }
-    </script>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <script defer src="/js/pwa-loader.js"></script>
     
     <!-- CRITICAL: Define handleNavClick in head so it's available immediately -->
     <script>
