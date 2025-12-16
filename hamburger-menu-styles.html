@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hamburger Menu Styles - ClearTrack</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fa;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    .demo-section {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .demo-section h2 {
+      color: #0b7285;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .demo-section p {
+      color: #6b7785;
+      margin-bottom: 1.5rem;
+    }
+
+    .demo-container {
+      border: 2px dashed #d8e2ec;
+      border-radius: 8px;
+      padding: 1rem;
+      background: #f9fbfd;
+      position: relative;
+      min-height: 200px;
+    }
+
+    /* ============================================
+       STYLE 1: Simple Slide Down
+       ============================================ */
+    .header-style1 {
+      background: #0b7285;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .brand-style1 {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .menu-toggle-style1 {
+      background: transparent;
+      border: 2px solid #e0fbff;
+      color: #e0fbff;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle-style1:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .menu-toggle-style1.active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-style1 {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #0b7285;
+      flex-direction: column;
+      padding: 1rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+
+    .nav-style1.active {
+      display: flex;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .nav-style1 a {
+      color: #e0fbff;
+      text-decoration: none;
+      padding: 0.75rem 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      transition: background 0.2s;
+    }
+
+    .nav-style1 a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      padding-left: 1rem;
+    }
+
+    .nav-style1 a:last-child {
+      border-bottom: none;
+    }
+
+    /* ============================================
+       STYLE 2: Slide from Right
+       ============================================ */
+    .header-style2 {
+      background: #0b7285;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .brand-style2 {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .menu-toggle-style2 {
+      background: transparent;
+      border: none;
+      color: #e0fbff;
+      cursor: pointer;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      position: relative;
+      z-index: 1001;
+    }
+
+    .menu-toggle-style2 span {
+      display: block;
+      width: 25px;
+      height: 3px;
+      background: #e0fbff;
+      margin: 5px 0;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle-style2.active span:nth-child(1) {
+      transform: rotate(45deg) translate(8px, 8px);
+    }
+
+    .menu-toggle-style2.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle-style2.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    .nav-style2 {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 280px;
+      height: 100vh;
+      background: #0b7285;
+      flex-direction: column;
+      padding: 4rem 2rem 2rem;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .nav-style2.active {
+      right: 0;
+    }
+
+    .nav-overlay-style2 {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+
+    .nav-overlay-style2.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .nav-style2 a {
+      color: #e0fbff;
+      text-decoration: none;
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 1.1rem;
+      transition: padding-left 0.2s;
+    }
+
+    .nav-style2 a:hover {
+      padding-left: 1rem;
+    }
+
+    /* ============================================
+       STYLE 3: Full Screen Overlay
+       ============================================ */
+    .header-style3 {
+      background: #0b7285;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1001;
+    }
+
+    .brand-style3 {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .menu-toggle-style3 {
+      background: transparent;
+      border: none;
+      color: #e0fbff;
+      cursor: pointer;
+      font-size: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      gap: 5px;
+      z-index: 1002;
+    }
+
+    .menu-toggle-style3 span {
+      display: block;
+      width: 25px;
+      height: 2px;
+      background: #e0fbff;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle-style3.active span:nth-child(1) {
+      transform: rotate(45deg) translate(7px, 7px);
+    }
+
+    .menu-toggle-style3.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .menu-toggle-style3.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    .nav-style3 {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 114, 133, 0.98);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .nav-style3.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .nav-style3 a {
+      color: #e0fbff;
+      text-decoration: none;
+      font-size: 1.5rem;
+      padding: 1rem 2rem;
+      margin: 0.5rem 0;
+      transition: all 0.3s ease;
+      transform: translateY(20px);
+    }
+
+    .nav-style3.active a {
+      transform: translateY(0);
+    }
+
+    .nav-style3 a:nth-child(1) { transition-delay: 0.1s; }
+    .nav-style3 a:nth-child(2) { transition-delay: 0.2s; }
+    .nav-style3 a:nth-child(3) { transition-delay: 0.3s; }
+    .nav-style3 a:nth-child(4) { transition-delay: 0.4s; }
+    .nav-style3 a:nth-child(5) { transition-delay: 0.5s; }
+
+    .nav-style3 a:hover {
+      color: #fff;
+      transform: scale(1.1);
+    }
+
+    /* ============================================
+       STYLE 4: Dropdown with Fade
+       ============================================ */
+    .header-style4 {
+      background: #0b7285;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .brand-style4 {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .menu-toggle-style4 {
+      background: #e0fbff;
+      border: none;
+      color: #0b7285;
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle-style4:hover {
+      background: #fff;
+      transform: scale(1.05);
+    }
+
+    .nav-style4 {
+      position: absolute;
+      top: 100%;
+      right: 1.5rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 200px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .nav-style4.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .nav-style4 a {
+      color: #1f2933;
+      text-decoration: none;
+      padding: 0.875rem 1.25rem;
+      display: block;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.2s;
+    }
+
+    .nav-style4 a:last-child {
+      border-bottom: none;
+    }
+
+    .nav-style4 a:hover {
+      background: #f5f7fa;
+      color: #0b7285;
+    }
+
+    /* ============================================
+       STYLE 5: Slide from Left with Icon Animation
+       ============================================ */
+    .header-style5 {
+      background: #0b7285;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .brand-style5 {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .menu-toggle-style5 {
+      background: transparent;
+      border: 2px solid #e0fbff;
+      color: #e0fbff;
+      padding: 0.5rem;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1001;
+    }
+
+    .menu-toggle-style5:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: rotate(90deg);
+    }
+
+    .menu-toggle-style5.active {
+      background: rgba(255, 255, 255, 0.2);
+      transform: rotate(180deg);
+    }
+
+    .nav-style5 {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 300px;
+      height: 100vh;
+      background: #0b7285;
+      flex-direction: column;
+      padding: 5rem 2rem 2rem;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      transition: left 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      overflow-y: auto;
+    }
+
+    .nav-style5.active {
+      left: 0;
+    }
+
+    .nav-overlay-style5 {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s ease;
+      z-index: 999;
+    }
+
+    .nav-overlay-style5.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .nav-style5 a {
+      color: #e0fbff;
+      text-decoration: none;
+      padding: 1rem 1.5rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      transition: all 0.3s ease;
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+
+    .nav-style5.active a {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .nav-style5 a:nth-child(1) { transition-delay: 0.1s; }
+    .nav-style5 a:nth-child(2) { transition-delay: 0.15s; }
+    .nav-style5 a:nth-child(3) { transition-delay: 0.2s; }
+    .nav-style5 a:nth-child(4) { transition-delay: 0.25s; }
+    .nav-style5 a:nth-child(5) { transition-delay: 0.3s; }
+
+    .nav-style5 a:hover {
+      background: rgba(255,255,255,0.15);
+      transform: translateX(10px);
+    }
+
+    /* ============================================
+       STYLE 6: Compact Dropdown (Minimal)
+       ============================================ */
+    .header-style6 {
+      background: #0b7285;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .brand-style6 {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .menu-toggle-style6 {
+      background: transparent;
+      border: none;
+      color: #e0fbff;
+      cursor: pointer;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      transition: transform 0.3s ease;
+    }
+
+    .menu-toggle-style6:hover {
+      transform: scale(1.1);
+    }
+
+    .menu-toggle-style6.active {
+      transform: rotate(90deg);
+    }
+
+    .nav-style6 {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 1.5rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      min-width: 220px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      z-index: 1000;
+    }
+
+    .nav-style6.active {
+      max-height: 400px;
+      opacity: 1;
+    }
+
+    .nav-style6 a {
+      color: #1f2933;
+      text-decoration: none;
+      padding: 0.75rem 1.25rem;
+      display: block;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .nav-style6 a:hover {
+      background: #f5f7fa;
+      color: #0b7285;
+      padding-left: 1.5rem;
+    }
+
+    .nav-style6 a:first-child {
+      border-radius: 12px 12px 0 0;
+    }
+
+    .nav-style6 a:last-child {
+      border-radius: 0 0 12px 12px;
+    }
+
+    /* Instructions */
+    .instructions {
+      background: #e0f7fb;
+      border-left: 4px solid #0b7285;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+    }
+
+    .instructions h1 {
+      color: #0b7285;
+      margin-bottom: 0.5rem;
+    }
+
+    .instructions p {
+      color: #1f2933;
+      margin-bottom: 0.5rem;
+    }
+
+    .code-block {
+      background: #1f2933;
+      color: #e0fbff;
+      padding: 1rem;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="instructions">
+    <h1>🍔 Hamburger Menu Styles Demo</h1>
+    <p>Click on each hamburger menu to see the different animation styles. Choose your favorite and let me know which one you'd like to implement!</p>
+  </div>
+
+  <!-- STYLE 1: Simple Slide Down -->
+  <div class="demo-section">
+    <h2>Style 1: Simple Slide Down</h2>
+    <p>Clean dropdown that slides down from the header. Simple and effective.</p>
+    <div class="demo-container">
+      <header class="header-style1">
+        <div class="brand-style1">ClearTrack</div>
+        <button class="menu-toggle-style1" onclick="toggleMenu('style1')">☰</button>
+        <nav class="nav-style1" id="nav-style1">
+          <a href="#features">Features</a>
+          <a href="#who-for">Who it's for</a>
+          <a href="/practitioner-application.html">For Practitioners</a>
+          <a href="/contact.html">Contact</a>
+          <a href="/login.html">Login</a>
+        </nav>
+      </header>
+    </div>
+  </div>
+
+  <!-- STYLE 2: Slide from Right -->
+  <div class="demo-section">
+    <h2>Style 2: Slide from Right</h2>
+    <p>Side panel that slides in from the right with animated hamburger icon. Includes overlay backdrop.</p>
+    <div class="demo-container">
+      <header class="header-style2">
+        <div class="brand-style2">ClearTrack</div>
+        <button class="menu-toggle-style2" onclick="toggleMenu('style2')">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="nav-overlay-style2" id="overlay-style2" onclick="toggleMenu('style2')"></div>
+        <nav class="nav-style2" id="nav-style2">
+          <a href="#features">Features</a>
+          <a href="#who-for">Who it's for</a>
+          <a href="/practitioner-application.html">For Practitioners</a>
+          <a href="/contact.html">Contact</a>
+          <a href="/login.html">Login</a>
+        </nav>
+      </header>
+    </div>
+  </div>
+
+  <!-- STYLE 3: Full Screen Overlay -->
+  <div class="demo-section">
+    <h2>Style 3: Full Screen Overlay</h2>
+    <p>Full-screen menu with centered links and staggered fade-in animation. Very modern and bold.</p>
+    <div class="demo-container">
+      <header class="header-style3">
+        <div class="brand-style3">ClearTrack</div>
+        <button class="menu-toggle-style3" onclick="toggleMenu('style3')">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="nav-style3" id="nav-style3">
+          <a href="#features">Features</a>
+          <a href="#who-for">Who it's for</a>
+          <a href="/practitioner-application.html">For Practitioners</a>
+          <a href="/contact.html">Contact</a>
+          <a href="/login.html">Login</a>
+        </nav>
+      </header>
+    </div>
+  </div>
+
+  <!-- STYLE 4: Dropdown with Fade -->
+  <div class="demo-section">
+    <h2>Style 4: Dropdown with Fade</h2>
+    <p>Elegant dropdown menu that appears below the button with a fade effect. White background for contrast.</p>
+    <div class="demo-container">
+      <header class="header-style4">
+        <div class="brand-style4">ClearTrack</div>
+        <button class="menu-toggle-style4" onclick="toggleMenu('style4')">☰</button>
+        <nav class="nav-style4" id="nav-style4">
+          <a href="#features">Features</a>
+          <a href="#who-for">Who it's for</a>
+          <a href="/practitioner-application.html">For Practitioners</a>
+          <a href="/contact.html">Contact</a>
+          <a href="/login.html">Login</a>
+        </nav>
+      </header>
+    </div>
+  </div>
+
+  <!-- STYLE 5: Slide from Left with Icon Animation -->
+  <div class="demo-section">
+    <h2>Style 5: Slide from Left with Bounce</h2>
+    <p>Side panel from the left with a bouncy animation. Menu items slide in with a delay effect.</p>
+    <div class="demo-container">
+      <header class="header-style5">
+        <div class="brand-style5">ClearTrack</div>
+        <button class="menu-toggle-style5" onclick="toggleMenu('style5')">☰</button>
+        <div class="nav-overlay-style5" id="overlay-style5" onclick="toggleMenu('style5')"></div>
+        <nav class="nav-style5" id="nav-style5">
+          <a href="#features">Features</a>
+          <a href="#who-for">Who it's for</a>
+          <a href="/practitioner-application.html">For Practitioners</a>
+          <a href="/contact.html">Contact</a>
+          <a href="/login.html">Login</a>
+        </nav>
+      </header>
+    </div>
+  </div>
+
+  <!-- STYLE 6: Compact Dropdown (Minimal) -->
+  <div class="demo-section">
+    <h2>Style 6: Compact Dropdown (Minimal)</h2>
+    <p>Minimalist dropdown that expands smoothly. Perfect for a clean, professional look.</p>
+    <div class="demo-container">
+      <header class="header-style6">
+        <div class="brand-style6">ClearTrack</div>
+        <button class="menu-toggle-style6" onclick="toggleMenu('style6')">☰</button>
+        <nav class="nav-style6" id="nav-style6">
+          <a href="#features">Features</a>
+          <a href="#who-for">Who it's for</a>
+          <a href="/practitioner-application.html">For Practitioners</a>
+          <a href="/contact.html">Contact</a>
+          <a href="/login.html">Login</a>
+        </nav>
+      </header>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu(style) {
+      const nav = document.getElementById(`nav-style${style.slice(-1)}`);
+      const toggle = document.querySelector(`.menu-toggle-style${style.slice(-1)}`);
+      const overlay = document.getElementById(`overlay-style${style.slice(-1)}`);
+      
+      if (nav) {
+        nav.classList.toggle('active');
+      }
+      if (toggle) {
+        toggle.classList.toggle('active');
+      }
+      if (overlay) {
+        overlay.classList.toggle('active');
+      }
+    }
+
+    // Close menus when clicking outside (for dropdowns)
+    document.addEventListener('click', function(event) {
+      const dropdowns = ['style4', 'style6'];
+      dropdowns.forEach(style => {
+        const nav = document.getElementById(`nav-${style}`);
+        const toggle = document.querySelector(`.menu-toggle-${style}`);
+        const header = toggle?.closest(`.header-${style}`);
+        
+        if (nav && nav.classList.contains('active')) {
+          if (header && !header.contains(event.target)) {
+            nav.classList.remove('active');
+            if (toggle) toggle.classList.remove('active');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+

@@ -1487,7 +1487,7 @@
       <a href="#" class="nav-link" onclick="window.location.href='/login.html'; return false;">Logout</a>
     </nav>
   </header>
-
+  
   <main>
     <!-- Applications Section -->
     <div id="applications-section" class="admin-section">
@@ -1736,6 +1736,7 @@
           console.error('[initializeAdminDashboard] Firebase not initialized');
           return false;
         }
+
 
         // Get current user
         const user = window.firebaseAuth.currentUser;

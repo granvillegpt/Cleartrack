@@ -292,6 +292,170 @@
                 min-width: 200px;
             }
         }
+
+        /* Style 6: Hamburger menu button */
+        .menu-toggle-style6 {
+            background: transparent;
+            border: none;
+            color: #e0fbff;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-toggle-style6:hover {
+            transform: scale(1.1);
+        }
+
+        .menu-toggle-style6.active {
+            transform: rotate(90deg);
+        }
+
+        /* Style 6: Navigation - Desktop (visible by default) */
+        nav.nav-style6 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        nav.nav-style6 a {
+            color: #e0fbff;
+            font-size: 0.95rem;
+            text-decoration: none;
+            white-space: nowrap;
+            padding: 0.25rem 0.5rem;
+        }
+
+        nav.nav-style6 a:hover {
+            text-decoration: underline;
+        }
+
+        /* Desktop: Hide hamburger, show nav */
+        @media (min-width: 769px) {
+            .menu-toggle-style6 {
+                display: none;
+            }
+
+            nav.nav-style6 {
+                display: flex;
+                position: static;
+                background: transparent;
+                border-radius: 0;
+                box-shadow: none;
+                min-width: auto;
+                max-height: none;
+                opacity: 1;
+                flex-direction: row;
+                gap: 0.75rem;
+                overflow: visible;
+                z-index: auto;
+            }
+
+            nav.nav-style6 a {
+                color: #e0fbff;
+                font-size: 0.95rem;
+                text-decoration: none;
+                white-space: nowrap;
+                padding: 0.25rem 0.5rem;
+                display: inline-block;
+                width: auto;
+            }
+
+            nav.nav-style6 a:hover {
+                text-decoration: underline;
+                background: transparent;
+                padding-left: 0.5rem;
+            }
+        }
+
+        /* Mobile: Show hamburger, nav as dropdown */
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+            }
+
+            .brand img {
+                height: 30px;
+            }
+
+            .menu-toggle-style6 {
+                display: flex;
+            }
+
+            /* Style 6: Nav as dropdown - exactly like demo */
+            nav.nav-style6 {
+                position: absolute;
+                top: calc(100% + 0.5rem);
+                right: 1.5rem;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+                min-width: 220px;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease, opacity 0.3s ease;
+                opacity: 0;
+                z-index: 1000;
+                display: block;
+                flex-direction: initial;
+                align-items: initial;
+                gap: 0;
+                flex-wrap: initial;
+            }
+
+            nav.nav-style6.active {
+                max-height: 400px;
+                opacity: 1;
+            }
+
+            nav.nav-style6 a {
+                color: #1f2933;
+                text-decoration: none;
+                padding: 0.75rem 1.25rem;
+                display: block;
+                font-size: 0.95rem;
+                transition: all 0.2s;
+                border: none;
+                margin: 0;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            nav.nav-style6 a:hover {
+                background: #f5f7fa;
+                color: #0b7285;
+                padding-left: 1.5rem;
+            }
+
+            nav.nav-style6 a:first-child {
+                border-radius: 12px 12px 0 0;
+            }
+
+            nav.nav-style6 a:last-child {
+                border-radius: 0 0 12px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 0.75rem;
+            }
+
+            .brand img {
+                height: 28px;
+            }
+
+            nav.nav-style6 {
+                right: 0.75rem;
+                min-width: 200px;
+            }
+        }
         
         main {
             max-width: 800px;

@@ -533,6 +533,34 @@
       }
     }
 
+    @media (max-width: 480px) {
+
+      .hero {
+
+        margin-top: 1rem;
+
+        gap: 1rem;
+
+      }
+
+      .hero-actions {
+
+        flex-direction: column;
+
+      }
+
+      .hero-actions .btn-primary,
+
+      .hero-actions .btn-secondary {
+
+        width: 100%;
+
+        justify-content: center;
+
+      }
+
+    }
+
     .btn-primary,
     .btn-secondary {
       padding: clamp(0.875rem, 2.5vw, 1rem) clamp(2rem, 5vw, 2.5rem);
@@ -555,6 +583,12 @@
       transform: translateY(1px);
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
+
+    .btn-primary:active,
+    .btn-secondary:active {
+      transform: scale(0.98);
+    }
+
 
     .btn-primary {
       background: #0b7285;
