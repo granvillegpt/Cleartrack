@@ -19,49 +19,155 @@
   />
 
   <link rel="icon" type="image/png" href="assets/images/icon%20logo.png" />
+  
+  <!-- PWA Features - Only on app.cleartrack.co.za -->
+  <script>
+    (function() {
+      if (window.location.hostname === 'app.cleartrack.co.za') {
+        // Use DOM manipulation instead of document.write to prevent blocking
+        const head = document.head || document.getElementsByTagName('head')[0];
+        
+        // Manifest
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = '/manifest.json';
+        head.appendChild(manifest);
+        
+        // Theme color
+        const themeColor = document.createElement('meta');
+        themeColor.name = 'theme-color';
+        themeColor.content = '#0b7285';
+        head.appendChild(themeColor);
+        
+        // Apple Touch Icons
+        const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        iconSizes.forEach(size => {
+          const icon = document.createElement('link');
+          icon.rel = 'apple-touch-icon';
+          icon.sizes = size + 'x' + size;
+          icon.href = '/icons/cleartrack-' + size + '.png';
+          head.appendChild(icon);
+        });
+        
+        // PWA Meta Tags
+        const metaTags = [
+          { name: 'apple-mobile-web-app-capable', content: 'yes' },
+          { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+          { name: 'apple-mobile-web-app-title', content: 'ClearTrack' },
+          { name: 'mobile-web-app-capable', content: 'yes' }
+        ];
+        metaTags.forEach(tag => {
+          const meta = document.createElement('meta');
+          meta.name = tag.name;
+          meta.content = tag.content;
+          head.appendChild(meta);
+        });
+        
+        // iOS Splash Screens
+        const splashScreens = [
+          { media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
+          { media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
+          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-xr.png' },
+          { media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs.png' },
+          { media: '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12.png' },
+          { media: '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro.png' },
+          { media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-8-plus.png' },
+          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs-max.png' },
+          { media: '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12-pro-max.png' },
+          { media: '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro-max.png' },
+          { media: '(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-mini.png' },
+          { media: '(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad.png' },
+          { media: '(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-air.png' },
+          { media: '(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-11.png' },
+          { media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-12.png' }
+        ];
+        splashScreens.forEach(screen => {
+          const link = document.createElement('link');
+          link.rel = 'apple-touch-startup-image';
+          link.media = screen.media;
+          link.href = screen.href;
+          head.appendChild(link);
+        });
+      }
+    })();
+  </script>
 
   <link rel="stylesheet" href="/css/ct-theme.css" />
+  <link rel="stylesheet" href="/header-responsive-fixes.css" />
+  <link rel="stylesheet" href="/global-styles.css" />
+  
+  <!-- Service Worker Registration - Only on app.cleartrack.co.za -->
+  <script>
+    if (window.location.hostname === 'app.cleartrack.co.za') {
+      var script = document.createElement('script');
+      script.src = '/sw-register.js';
+      document.head.appendChild(script);
+    }
+  </script>
 
   <style>
 
     body {
-
       margin: 0;
-
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-
       background: #e5f3f7;
-
       display: flex;
-
       min-height: 100vh;
-
       align-items: center;
-
       justify-content: center;
-
+      padding: 1rem;
     }
 
     .wrapper {
-
-      max-width: 420px;
-
-      width: 100%;
-
+      max-width: 420px !important;
+      width: 420px !important;
+      min-width: 0;
       padding: 1.5rem;
-
+      margin: 0;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+    
+    /* Desktop: Keep compact, similar to mobile - fixed width */
+    @media (min-width: 768px) {
+      body {
+        padding: 2rem;
+      }
+      .wrapper {
+        max-width: 420px !important;
+        width: 420px !important;
+        padding: 1.5rem;
+        margin: 0;
+      }
+      .card {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+    }
+    
+    /* Mobile: Full width with padding */
+    @media (max-width: 767px) {
+      body {
+        padding: 1rem;
+      }
+      .wrapper {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+      .card {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
     }
 
     .card {
-
       background: #ffffff;
-
       border-radius: 16px;
-
       box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
-
       padding: 1.75rem 1.5rem 1.5rem;
-
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     h1 {
@@ -120,6 +226,7 @@
 
     }
 
+
     button {
 
       width: 100%;
@@ -169,6 +276,41 @@
 
       cursor: not-allowed;
 
+    }
+    
+    /* Password toggle buttons - override default button styles */
+    button[type="button"][id="togglePassword"],
+    button[type="button"][id="toggleRegisterPassword"] {
+      width: auto !important;
+      padding: 0.5rem !important;
+      background: transparent !important;
+      color: #6b7280 !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      font-weight: normal !important;
+      position: absolute !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 100 !important;
+      top: 35% !important;
+      transform: translateY(-50%) !important;
+    }
+    
+    button[type="button"][id="togglePassword"]:hover,
+    button[type="button"][id="toggleRegisterPassword"]:hover {
+      background: transparent !important;
+      color: #0b7285 !important;
+    }
+    
+    /* Ensure password input containers are properly aligned */
+    div:has(> #password),
+    div:has(> #registerPassword) {
+      display: flex;
+      align-items: center;
+      position: relative;
     }
 
     .meta-text {
@@ -373,11 +515,186 @@
       margin: 0;
     }
 
+    /* Loading Screen Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 10000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      /* Splash screen background - mobile */
+      background-image: url('/splash/Splash Screen cleartrack.png');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-color: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+    
+    /* Desktop splash screen */
+    @media (min-width: 768px) {
+      .loading-overlay {
+        background-image: url('/splash/Splash Screen Travel App Mobile Prototypes (1920 x 1080 px).png');
+        background-position: center 25%;
+      }
+    }
+
+    .loading-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .loading-spinner-wrapper {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .loading-spinner {
+      width: 100px;
+      height: 100px;
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #0b7285;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: transparent;
+      z-index: 1;
+    }
+    
+    /* Logo inside spinner - static, doesn't rotate (separate element) */
+    .loading-spinner-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 75px;
+      height: 75px;
+      z-index: 10 !important;
+      pointer-events: none;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 0;
+      visibility: visible !important;
+      opacity: 1 !important;
+      /* No animation - logo stays static */
+    }
+    
+    .loading-spinner-logo img,
+    #loadingLogoImg {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;
+      object-position: center center !important;
+      display: block !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 10 !important;
+    }
+    
+    /* Ensure no duplicate logos - but allow the correct one */
+    .loading-spinner-wrapper .loading-spinner-logo:not(:first-child) {
+      display: none !important;
+    }
+    
+    /* Ensure the loading logo is always visible - override any hiding rules */
+    .loading-spinner-logo,
+    .loading-spinner-logo img,
+    #loadingLogoImg,
+    .loading-spinner-logo img#loadingLogoImg {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 10 !important;
+    }
+    
+    .loading-spinner-logo img,
+    #loadingLogoImg {
+      display: block !important;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+
+    .loading-text {
+      font-size: 1.1rem;
+      color: #0b7285;
+      font-weight: 500;
+      margin-top: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      background: transparent;
+      padding: 0;
+    }
+
+    .loading-subtext {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      background: transparent;
+      padding: 0;
+    }
+
   </style>
 
 </head>
 
 <body>
+
+  <!-- Loading Screen Overlay (shown on initial app load, then faded out) -->
+  <div id="loadingOverlay" class="loading-overlay show">
+    <div class="loading-spinner-wrapper" style="position: relative !important; width: 100px !important; height: 100px !important; margin: 0 auto 1.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;">
+      <div class="loading-spinner" style="width: 100px !important; height: 100px !important; border: 4px solid #e5e7eb !important; border-top: 4px solid #0b7285 !important; border-radius: 50% !important; animation: spin 1s linear infinite !important; margin: 0 !important; position: absolute !important; top: 0 !important; left: 0 !important; background: transparent !important; z-index: 1 !important;"></div>
+      <div class="loading-spinner-logo" id="loginLoadingLogo" style="position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 75px !important; height: 75px !important; z-index: 10 !important; display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; background: transparent !important;">
+        <img src="/assets/images/icon%20logo.png" alt="ClearTrack Logo" id="loadingLogoImg" style="width: 100% !important; height: 100% !important; display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 10 !important; object-fit: contain !important; object-position: center center !important; border: none !important;" onload="console.log('✅ LOGO LOADED:', this.src);" onerror="console.error('❌ LOGO FAILED:', this.src);">
+      </div>
+    </div>
+    <div class="loading-text" id="loadingText">Signing in to ClearTrack...</div>
+    <div class="loading-subtext" id="loadingSubtext">Please wait</div>
+  </div>
+  
+  <script>
+    // Simple in-app splash: show immediately, fade out shortly after load
+    (function () {
+      function hideSplash() {
+        try {
+          const overlay = document.getElementById('loadingOverlay');
+          if (!overlay) return;
+          overlay.classList.remove('show');
+        } catch (error) {
+          console.warn('[login.html] Error hiding splash overlay:', error);
+        }
+      }
+
+      // Keep splash visible while the page and scripts are loading,
+      // then fade it out shortly after the full load event.
+      window.addEventListener('load', function () {
+        setTimeout(hideSplash, 800);
+      });
+    })();
+  </script>
 
   <div class="wrapper">
 
@@ -414,7 +731,15 @@
 
         <label for="password">Password</label>
 
-        <input id="password" type="password" autocomplete="current-password" required />
+        <div style="position: relative; display: flex; align-items: center;">
+          <input id="password" type="password" autocomplete="current-password" required style="padding-right: 3rem; width: 100%; box-sizing: border-box; flex: 1;" />
+          <button type="button" id="togglePassword" style="position: absolute !important; right: 0.75rem !important; top: 35% !important; transform: translateY(-50%) !important; background: transparent !important; border: none !important; cursor: pointer !important; padding: 0.5rem !important; color: #6b7280 !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 32px !important; height: 32px !important; z-index: 100 !important; pointer-events: auto !important; visibility: visible !important; opacity: 1 !important; margin: 0 !important;" aria-label="Toggle password visibility" title="Show/Hide password">
+            <svg id="passwordIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
 
         <a href="#" id="forgotPasswordLink" class="forgot-password-link">Forgot password?</a>
 
@@ -444,7 +769,15 @@
         <input id="registerEmail" type="email" autocomplete="email" required />
 
         <label for="registerPassword">Password</label>
-        <input id="registerPassword" type="password" autocomplete="new-password" required minlength="6" />
+        <div style="position: relative; display: flex; align-items: center;">
+          <input id="registerPassword" type="password" autocomplete="new-password" required minlength="6" style="padding-right: 3rem; width: 100%; box-sizing: border-box; flex: 1;" />
+          <button type="button" id="toggleRegisterPassword" style="position: absolute !important; right: 0.75rem !important; top: 35% !important; transform: translateY(-50%) !important; background: transparent !important; border: none !important; cursor: pointer !important; padding: 0.5rem !important; color: #6b7280 !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 32px !important; height: 32px !important; z-index: 100 !important; pointer-events: auto !important; visibility: visible !important; opacity: 1 !important; margin: 0 !important;" aria-label="Toggle password visibility" title="Show/Hide password">
+            <svg id="registerPasswordIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
 
         <button id="registerBtn" type="submit">Create Account</button>
 
@@ -464,23 +797,31 @@
 
       </p>
 
-      <p class="meta-text">
+    </div>
 
-        <strong>Are you a tax practitioner?</strong><br>
-
-        <a href="/practitioner-application.html">Apply to become a ClearTrack practitioner</a>
-
-      </p>
-
+    <!-- PWA Install Instructions (shown when ?install=true) -->
+    <div id="pwa-install-container" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: #f8fafc; border-radius: 8px; border-left: 3px solid #0b7285;">
+      <h3 style="color: #0b7285; font-size: 1.1rem; margin-bottom: 0.75rem; font-weight: 600;">Install ClearTrack as a standalone app</h3>
+      <p style="margin-bottom: 1rem; color: #475569; font-size: 0.9rem; line-height: 1.6;">Once installed, ClearTrack will appear on your desktop or home screen and can be launched like a regular app, without opening a browser.</p>
+      
+      <div style="text-align: left;">
+        <div style="margin-bottom: 1rem; padding: 0.875rem; background: #ffffff; border-radius: 6px;">
+          <strong style="color: #0b7285; display: block; margin-bottom: 0.5rem; font-size: 0.95rem;">Desktop (Chrome/Edge):</strong>
+          <p style="margin: 0; font-size: 0.9rem; color: #475569; line-height: 1.5;">Look for the install icon <span style="color: #0b7285; font-weight: 600;">➕</span> in your browser's address bar and click it, then select "Install".</p>
+        </div>
+        <div style="margin-bottom: 1rem; padding: 0.875rem; background: #ffffff; border-radius: 6px;">
+          <strong style="color: #0b7285; display: block; margin-bottom: 0.5rem; font-size: 0.95rem;">Android (Chrome):</strong>
+          <p style="margin: 0; font-size: 0.9rem; color: #475569; line-height: 1.5;">Tap the menu <span style="color: #0b7285; font-weight: 600;">⋮</span> → "Add to Home screen" or look for the install banner at the bottom of the screen.</p>
+        </div>
+        <div style="padding: 0.875rem; background: #ffffff; border-radius: 6px;">
+          <strong style="color: #0b7285; display: block; margin-bottom: 0.5rem; font-size: 0.95rem;">iPhone/iPad (Safari):</strong>
+          <p style="margin: 0; font-size: 0.9rem; color: #475569; line-height: 1.5;">Tap the Share button <span style="color: #0b7285; font-weight: 600;">□↑</span> → "Add to Home Screen" → "Add".</p>
+        </div>
+      </div>
     </div>
 
 
 
-    <div class="brand" id="backToHomeLink">
-
-      <a href="/index.html" class="back-link">← Back to ClearTrack home</a>
-
-    </div>
 
   </div>
 
@@ -493,15 +834,160 @@
   <!-- Config and Initialization -->
   <script src="firebase-config.js"></script>
   <script src="firebase-init.js"></script>
+  <!-- Loading Screen Utility -->
+  <script src="loading-screen.js"></script>
   <!-- Page Logic - Uses Firebase directly, no wrapper needed -->
   <script src="login.js"></script>
 
   <script>
-    // Hide "Back to ClearTrack home" link on app.cleartrack.co.za
+    // Prevent refresh loops - guard against multiple initializations
     (function() {
-      const backLink = document.getElementById('backToHomeLink');
-      if (backLink && window.location.hostname === 'app.cleartrack.co.za') {
-        backLink.style.display = 'none';
+      'use strict';
+      
+      // Prevent service worker from causing refresh loops
+      if ('serviceWorker' in navigator) {
+        let isRefreshing = false;
+        
+        // Prevent automatic reloads
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+          if (!isRefreshing) {
+            console.log('[login.html] Service worker controller changed, but preventing auto-refresh');
+            isRefreshing = true;
+          }
+        });
+        
+        // Prevent reload messages from service worker
+        navigator.serviceWorker.addEventListener('message', function(event) {
+          if (event.data && (event.data.type === 'RELOAD' || event.data.type === 'SKIP_WAITING')) {
+            console.log('[login.html] Service worker requested reload, ignoring');
+            event.stopImmediatePropagation();
+            return false;
+          }
+        });
+      }
+      
+      // Prevent multiple page loads
+      if (window.loginPageLoaded) {
+        console.warn('[login.html] Page already loaded, preventing duplicate initialization');
+        return;
+      }
+      window.loginPageLoaded = true;
+    })();
+    
+    // Password visibility toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    
+    // Eye icon SVG (show password) - matches HTML format
+    const eyeIcon = `<svg id="passwordIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>`;
+    
+    // Eye-slash icon SVG (hide password) - matches HTML format
+    const eyeSlashIcon = `<svg id="passwordIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    </svg>`;
+    
+    // Register eye icon SVG (show password) - matches HTML format
+    const registerEyeIcon = `<svg id="registerPasswordIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>`;
+    
+    // Register eye-slash icon SVG (hide password) - matches HTML format
+    const registerEyeSlashIcon = `<svg id="registerPasswordIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    </svg>`;
+    
+    // Sign In password toggle
+    if (togglePassword && passwordInput) {
+      togglePassword.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentType = passwordInput.getAttribute('type');
+        const newType = currentType === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', newType);
+        passwordInput.focus(); // Keep focus on input after toggle
+        
+        // Update icon - show eye when password is hidden, eye-slash when visible
+        const passwordIcon = document.getElementById('passwordIcon');
+        if (passwordIcon) {
+          passwordIcon.outerHTML = newType === 'password' ? eyeIcon : eyeSlashIcon;
+        }
+        
+        console.log('[login] Password visibility toggled:', newType);
+      });
+      
+      // Add hover effect
+      togglePassword.addEventListener('mouseenter', function() {
+        this.style.color = '#0b7285';
+      });
+      togglePassword.addEventListener('mouseleave', function() {
+        this.style.color = '#6b7280';
+      });
+    } else {
+      console.warn('[login] Password toggle elements not found for Sign In form');
+    }
+
+    // Register password toggle
+    const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
+    const registerPasswordInput = document.getElementById('registerPassword');
+    
+    if (toggleRegisterPassword && registerPasswordInput) {
+      toggleRegisterPassword.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentType = registerPasswordInput.getAttribute('type');
+        const newType = currentType === 'password' ? 'text' : 'password';
+        registerPasswordInput.setAttribute('type', newType);
+        registerPasswordInput.focus(); // Keep focus on input after toggle
+        
+        // Update icon - show eye when password is hidden, eye-slash when visible
+        const registerPasswordIcon = document.getElementById('registerPasswordIcon');
+        if (registerPasswordIcon) {
+          registerPasswordIcon.outerHTML = newType === 'password' ? registerEyeIcon : registerEyeSlashIcon;
+        }
+        
+        console.log('[login] Register password visibility toggled:', newType);
+      });
+      
+      // Add hover effect
+      toggleRegisterPassword.addEventListener('mouseenter', function() {
+        this.style.color = '#0b7285';
+      });
+      toggleRegisterPassword.addEventListener('mouseleave', function() {
+        this.style.color = '#6b7280';
+      });
+    } else {
+      console.warn('[login] Password toggle elements not found for Register form');
+    }
+
+  </script>
+
+  <!-- PWA Install Prompt Handler -->
+  <script>
+    (function() {
+      // Only handle install on app.cleartrack.co.za
+      if (window.location.hostname !== 'app.cleartrack.co.za') {
+        return;
+      }
+
+      // Check if user came from install button (has ?install=true parameter)
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldShowInstall = urlParams.get('install') === 'true';
+
+      const installContainer = document.getElementById('pwa-install-container');
+      
+      if (!installContainer) {
+        return;
+      }
+
+      // Show install instructions if install parameter is present
+      if (shouldShowInstall) {
+        installContainer.style.display = 'block';
       }
     })();
   </script>

@@ -54,9 +54,22 @@ body {
     padding-right: 1rem;
 }
 
-/* Prevent All Elements from Overflowing (except tables) */
-*:not(table):not(.table-container):not(.table) {
+/* Prevent All Elements from Overflowing (except tables and main element) */
+*:not(table):not(.table-container):not(.table):not(main) {
     max-width: 100%;
+}
+
+/* Allow main element to be centered box on index.html - matches terms.html style */
+/* This applies to all screen sizes, not just mobile */
+html body > main {
+    max-width: 1000px !important;
+    width: 100% !important;
+    margin: 2rem auto !important;
+    background: #ffffff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    padding: clamp(1.5rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem) clamp(2rem, 5vw, 3rem) !important;
+    box-sizing: border-box !important;
 }
 
 /* Ensure tables can scroll horizontally but container respects viewport */
@@ -124,20 +137,9 @@ a {
         max-width: 100% !important;
     }
     
-    /* Ensure cards don't overflow */
-    .card, .stat-card {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box;
-    }
+    /* Card and stat-card styles moved to dashboard-styles.css (single source of truth for dashboards) */
     
-    /* Ensure modals fit on screen */
-    .modal {
-        width: 95vw !important;
-        max-width: 95vw !important;
-        margin: 0.5rem auto !important;
-        box-sizing: border-box;
-    }
+    /* Modal styles moved to dashboard-styles.css (single source of truth for dashboards) */
     
     /* Fix header overflow */
     .header-top {
@@ -151,7 +153,9 @@ a {
     }
     
     /* Ensure grids don't overflow */
-    .dashboard-grid,
+    /* Dashboard-grid styles moved to dashboard-styles.css (single source of truth for dashboards) */
+    
+    /* Dashboard-grid styles moved to dashboard-styles.css (single source of truth for dashboards) */
     .stats-grid,
     .client-stats {
         width: 100%;
@@ -198,7 +202,7 @@ a {
         max-width: 100% !important;
     }
     
-    /* Ensure containers respect viewport */
+    /* Ensure containers respect viewport (but not main element for centered box) */
     .container,
     .main,
     .header,
@@ -206,6 +210,18 @@ a {
         width: 100% !important;
         max-width: 100vw !important;
         box-sizing: border-box;
+    }
+    
+    /* Allow main element to be centered box on index.html - matches terms.html style */
+    body > main {
+        max-width: 1000px !important;
+        width: 100% !important;
+        margin: 2rem auto !important;
+        background: #ffffff !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        padding: clamp(1.5rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem) clamp(2rem, 5vw, 3rem) !important;
+        box-sizing: border-box !important;
     }
 }
 
@@ -234,11 +250,7 @@ a {
         padding: 0.5rem 0.875rem;
     }
     
-    .modal {
-        width: 98vw !important;
-        max-width: 98vw !important;
-        padding: 1rem !important;
-    }
+    /* Modal styles moved to dashboard-styles.css (single source of truth for dashboards) */
     
     .header-top {
         padding: 0.5rem 0.75rem !important;

@@ -344,6 +344,15 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
     margin-bottom: 1rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #e5e7eb;
+    outline: none !important;
+}
+
+.card-header:focus,
+.card-header:focus-visible,
+.card-header:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .card-title {
@@ -352,6 +361,53 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
     color: #1a202c;
     letter-spacing: -0.01em;
     margin-bottom: 0;
+    outline: none !important;
+    border: none !important;
+}
+
+.card-title:focus,
+.card-title:focus-visible,
+.card-title:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Remove any outline or border from card titles */
+.card-header h3.card-title,
+.card-header h3,
+h3.card-title,
+.card-header .card-title {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.card-header h3.card-title:focus,
+.card-header h3.card-title:focus-visible,
+.card-header h3.card-title:active,
+.card-header h3.card-title:hover,
+h3.card-title:focus,
+h3.card-title:focus-visible,
+h3.card-title:active,
+h3.card-title:hover,
+.card-header .card-title:focus,
+.card-header .card-title:focus-visible,
+.card-header .card-title:active,
+.card-header .card-title:hover {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Specifically target the practitioner code heading */
+.card-header:has(h3.card-title:contains("Your Practitioner Code")) h3,
+.card-header h3.card-title {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .btn {

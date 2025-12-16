@@ -160,6 +160,29 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
     font-size: 0.9375rem;
 }
 
+/* Desktop: show user menu on user dashboard */
+@media (min-width: 769px) {
+    .header-user .header-right {
+        display: flex !important;
+    }
+    
+    .header-user .user-menu {
+        display: flex !important;
+    }
+    
+    .header-user .user-menu .btn {
+        display: inline-flex !important;
+        visibility: visible !important;
+    }
+}
+
+/* Mobile: hide user menu in header */
+@media (max-width: 768px) {
+    .header-user .header-right {
+        display: none !important;
+    }
+}
+
 .main {
     padding: 2.5rem 2rem;
     max-width: 1400px;
@@ -1100,8 +1123,8 @@ h1 {
         pointer-events: auto !important;
     }
     
-    .header-top .logo img {
-        height: 32px !important;
+        .header-top .logo img {
+            height: 40px !important;
         max-width: 120px !important;
         width: auto !important;
         object-fit: contain !important;

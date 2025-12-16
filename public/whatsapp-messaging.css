@@ -72,6 +72,7 @@
 .whatsapp-search {
     padding: 16px;
     background: #f0f2f5;
+    position: relative;
 }
 
 .whatsapp-search input {
@@ -82,9 +83,16 @@
     background: #ffffff;
     font-size: 14px;
     outline: none;
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2354656f" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>');
-    background-repeat: no-repeat;
-    background-position: 12px center;
+    position: relative;
+}
+
+.whatsapp-search .search-icon {
+    position: absolute;
+    left: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* Chat list */

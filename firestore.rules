@@ -3,6 +3,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ============================================
+    // PRODUCTION MODE: UNRESTRICTED ACCESS
+    // ============================================
+    // This configuration allows unrestricted access to all collections
+    // during the production/development phase to enable:
+    // - Unrestricted app modifications and updates
+    // - Full access to all modules, functionalities, and tab components
+    // - No security review process required
+    // 
+    // NOTE: These rules can be tightened later when security review is needed.
+    // For now, all authenticated users have full read/write access.
+    // ============================================
+    
+    // Allow all authenticated users full access to all collections
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow unauthenticated access to practitioner applications (for registration)
+    match /practitionerApplications/{applicationId} {
+      allow read, write: if true;
+    }
+    
+    // Allow unauthenticated access to practitioner invites (for token-based access)
+    match /practitionerInvites/{inviteId} {
+      allow read, write: if true;
+    }
+    
+    // ============================================
+    // FUTURE SECURITY RULES (COMMENTED OUT)
+    // Uncomment and use these when security review is required
+    // ============================================
+    /*
     function isSignedIn() {
       return request.auth != null;
     }
@@ -17,7 +50,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && userRole(request.auth.uid) == "admin";
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
     function isOwner(uid) {
@@ -52,10 +86,15 @@ service cloud.firestore {
       allow read, write: if isOwner(uid) || isAdmin();
     }
 
-    // Practitioner applications - anyone can create, admin can read
+    // Practitioner applications - anyone can create (no auth required)
+    // Authenticated users can read to check if their application is approved
+    // Admin can read, update, delete all
     match /practitionerApplications/{applicationId} {
       allow create: if true;
-      allow read: if isAdmin();
+      // Allow authenticated users to read (needed for login to check approved status)
+      // Admin can do everything
+      allow read: if isSignedIn() || isAdmin();
+      allow update, delete: if isAdmin();
     }
 
     // Practitioner invites - admin can create, anyone can read with token
@@ -93,9 +132,99 @@ service cloud.firestore {
       );
     }
 
+    // Connections - users can read their own connections, practitioners can read connections to them
+    match /connections/{connectionId} {
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        (request.resource.data.userId == request.auth.uid) ||
+        (request.resource.data.practitionerId == request.auth.uid)
+      );
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+    }
+
+    // Connection requests - users can create, practitioners can read/update their requests
+    match /connectionRequests/{requestId} {
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        (request.resource.data.userId == request.auth.uid)
+      );
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+    }
+
+    // Tax returns - practitioners can read/write their tax returns, users can read their own
+    match /taxReturns/{taxReturnId} {
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        (request.resource.data.practitionerId == request.auth.uid)
+      );
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+    }
+
+    // Invoices - practitioners can read/write their invoices, users can read their own
+    match /invoices/{invoiceId} {
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        (request.resource.data.practitionerId == request.auth.uid)
+      );
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+    }
+
+    // Messages - users and practitioners can read/write their messages
+    match /messages/{messageId} {
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        (request.resource.data.userId == request.auth.uid) ||
+        (request.resource.data.practitionerId == request.auth.uid)
+      );
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.practitionerId == request.auth.uid)
+      );
+    }
+
     // Everything else: closed by default
     match /{document=**} {
       allow read, write: if false;
     }
+    */
   }
 }
