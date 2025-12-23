@@ -390,6 +390,21 @@ async function routeUserAfterLogin(user, role, userData) {
   const email = user.email?.toLowerCase().trim();
   let finalRole = String(role || userData?.role || 'user').toLowerCase().trim();
   
+  // OPTIMIZATION: For new users (just registered), skip complex queries and route directly
+  // Check if this is a newly registered user by checking if userData is minimal (just created)
+  const isNewUser = userData && userData.createdAt && 
+                    (Date.now() - new Date(userData.createdAt).getTime()) < 60000; // Created within last minute
+  
+  if (isNewUser && finalRole === 'user' && !userData.practitionerId && !userData.connectedPractitioner) {
+    console.log('[login.js] ✅ New user detected - routing directly to onboarding (skipping complex queries)');
+    setLoginLoading(true, 'Welcome to ClearTrack!', 'Setting up your account');
+    // Small delay to show welcome message, then redirect
+    setTimeout(() => {
+      safeRedirect('/client-onboarding.html');
+    }, 500);
+    return;
+  }
+  
   // CRITICAL: ALWAYS check by email FIRST - this is the most reliable method
   if (email) {
     console.log('[login.js] 🔍🔍🔍 CHECKING BY EMAIL FIRST (MOST RELIABLE) 🔍🔍🔍');
@@ -475,15 +490,22 @@ async function routeUserAfterLogin(user, role, userData) {
   console.log('[login.js] FINAL ROLE FOR ROUTING:', finalRole);
   console.log('[login.js] ========================================');
   
+  // Hide loading screen before redirect to prevent it from persisting
+  setLoginLoading(false);
+  
   if (finalRole === 'practitioner') {
     console.log('[login.js] ✅✅✅✅✅ ROUTING TO PRACTITIONER DASHBOARD');
-    safeRedirect('/practitioner-dashboard.html');
+    setTimeout(() => {
+      safeRedirect('/practitioner-dashboard.html');
+    }, 100);
     return;
   }
   
   if (finalRole === 'admin') {
     console.log('[login.js] ✅✅✅✅✅ ROUTING TO ADMIN DASHBOARD');
-    safeRedirect('/admin-dashboard.html');
+    setTimeout(() => {
+      safeRedirect('/admin-dashboard.html');
+    }, 100);
     return;
   }
   
@@ -491,13 +513,20 @@ async function routeUserAfterLogin(user, role, userData) {
   const practitionerId = userData?.practitionerId || userData?.connectedPractitioner || null;
   if (practitionerId) {
     console.log('[login.js] ✅ User has practitioner - routing to user dashboard');
-    safeRedirect('/user-dashboard.html');
+    setTimeout(() => {
+      safeRedirect('/user-dashboard.html');
+    }, 100);
     return;
   }
   
   // Default: onboarding (only for regular users)
   console.log('[login.js] ✅ Routing to client onboarding (regular user)');
-  safeRedirect('/client-onboarding.html');
+  // Hide loading screen before redirect to prevent it from persisting
+  setLoginLoading(false);
+  // Small delay to ensure loading screen is hidden
+  setTimeout(() => {
+    safeRedirect('/client-onboarding.html');
+  }, 100);
 }
 
 function safeRedirect(url) {
