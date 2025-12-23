@@ -48,9 +48,18 @@
     db: !!window.firebaseDb
   });
   
-  // GLOBAL PRACTITIONER REDIRECT - Runs on EVERY page EXCEPT login
-  // This ensures practitioners are ALWAYS redirected, even if login routing failed
+  // GLOBAL PRACTITIONER REDIRECT - Only runs on non-dashboard pages
+  // This ensures practitioners are redirected from onboarding/other pages
+  // Dashboard pages have their own auth guards (dashboard-auth.js)
+  let globalRedirectProcessing = false;
+  let globalRedirectProcessed = false;
+  
   async function globalPractitionerRedirect() {
+    // Prevent multiple simultaneous redirects
+    if (globalRedirectProcessing || globalRedirectProcessed) {
+      return;
+    }
+    
     // Use window.firebaseAuth and window.firebaseDb (exposed globally)
     if (!window.firebaseAuth || !window.firebaseDb) {
       return;
@@ -61,16 +70,21 @@
       return;
     }
     
-    // Skip if on login page (let login.js handle routing)
     const currentPath = window.location.pathname;
+    
+    // Skip if on login page (let login.js handle routing)
     if (currentPath.includes('login.html')) {
       return;
     }
     
-    // Skip if already on practitioner/admin dashboard
-    if (currentPath.includes('practitioner-dashboard') || currentPath.includes('admin-dashboard')) {
+    // Skip if already on dashboard pages (they have their own auth guards)
+    if (currentPath.includes('practitioner-dashboard') || 
+        currentPath.includes('admin-dashboard') || 
+        currentPath.includes('user-dashboard')) {
       return;
     }
+    
+    globalRedirectProcessing = true;
     
     try {
       const email = user.email.toLowerCase().trim();
@@ -79,57 +93,76 @@
       // Check by email FIRST
       const emailDocs = await window.firebaseDb.collection('users')
         .where('email', '==', email)
+        .limit(1)
         .get();
       
-      console.log('[GLOBAL REDIRECT] Found', emailDocs.size, 'doc(s) by email');
-      
-      for (const doc of emailDocs.docs) {
-        const data = doc.data();
+      if (emailDocs.size > 0) {
+        const data = emailDocs.docs[0].data();
         const role = String(data.role || '').toLowerCase().trim();
-        console.log('[GLOBAL REDIRECT] Doc ID:', doc.id, 'Role:', role);
         
         if (role === 'practitioner') {
-          console.log('[GLOBAL REDIRECT] ✅✅✅ REDIRECTING PRACTITIONER!');
-          window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+          console.log('[GLOBAL REDIRECT] ✅ Redirecting practitioner');
+          globalRedirectProcessed = true;
+          window.location.replace('/practitioner-dashboard.html');
           return;
         } else if (role === 'admin') {
-          console.log('[GLOBAL REDIRECT] ✅✅✅ REDIRECTING ADMIN!');
-          window.location.replace('/admin-dashboard.html?v=' + Date.now());
+          console.log('[GLOBAL REDIRECT] ✅ Redirecting admin');
+          globalRedirectProcessed = true;
+          window.location.replace('/admin-dashboard.html');
           return;
         }
       }
       
-      // Also check by UID
+      // Also check by UID (faster fallback)
       const uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
       if (uidDoc.exists) {
         const data = uidDoc.data();
         const role = String(data.role || '').toLowerCase().trim();
-        console.log('[GLOBAL REDIRECT] UID doc role:', role);
         if (role === 'practitioner') {
-          console.log('[GLOBAL REDIRECT] ✅✅✅ REDIRECTING PRACTITIONER (UID)!');
-          window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+          console.log('[GLOBAL REDIRECT] ✅ Redirecting practitioner (UID)');
+          globalRedirectProcessed = true;
+          window.location.replace('/practitioner-dashboard.html');
+          return;
         } else if (role === 'admin') {
-          console.log('[GLOBAL REDIRECT] ✅✅✅ REDIRECTING ADMIN (UID)!');
-          window.location.replace('/admin-dashboard.html?v=' + Date.now());
+          console.log('[GLOBAL REDIRECT] ✅ Redirecting admin (UID)');
+          globalRedirectProcessed = true;
+          window.location.replace('/admin-dashboard.html');
+          return;
         }
       }
     } catch (e) {
       console.error('[GLOBAL REDIRECT] Error:', e);
+    } finally {
+      globalRedirectProcessing = false;
     }
   }
   
-  // Run once when Firebase is ready (not on login page)
-  setTimeout(() => {
-    if (!window.location.pathname.includes('login.html')) {
+  // Only run on non-dashboard pages, and only once
+  const currentPath = window.location.pathname;
+  if (!currentPath.includes('login.html') && 
+      !currentPath.includes('dashboard') &&
+      !currentPath.includes('onboarding')) {
+    setTimeout(() => {
       globalPractitionerRedirect();
-    }
-  }, 1000);
+    }, 1500);
+  }
   
-  // Also run when auth state changes (but not on login page)
-  if (window.firebaseAuth) {
-    window.firebaseAuth.onAuthStateChanged(() => {
-      if (!window.location.pathname.includes('login.html')) {
-        setTimeout(globalPractitionerRedirect, 500);
+  // Only listen to auth changes on non-dashboard pages
+  if (window.firebaseAuth && 
+      !currentPath.includes('dashboard') && 
+      !currentPath.includes('login.html')) {
+    let authListenerActive = true;
+    const unsubscribe = window.firebaseAuth.onAuthStateChanged(() => {
+      if (authListenerActive && !globalRedirectProcessed) {
+        setTimeout(() => {
+          if (!window.location.pathname.includes('dashboard')) {
+            globalPractitionerRedirect();
+          } else {
+            // If we're now on a dashboard, stop listening
+            authListenerActive = false;
+            unsubscribe();
+          }
+        }, 500);
       }
     });
   }

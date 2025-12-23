@@ -63,9 +63,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Prevent multiple redirects
   let isProcessingAuth = false;
   let authProcessed = false;
+  let authUnsubscribe = null;
   
-  // Observe authentication state
-  window.firebaseAuth.onAuthStateChanged(async function(user) {
+  // Observe authentication state - only listen once
+  authUnsubscribe = window.firebaseAuth.onAuthStateChanged(async function(user) {
     // Prevent multiple simultaneous auth checks
     if (isProcessingAuth) {
       console.log('[dashboard-auth] Auth check already in progress, skipping...');
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       console.log('[dashboard-auth] No user logged in, redirecting to login page');
       authProcessed = true;
+      if (authUnsubscribe) authUnsubscribe();
       window.location.href = '/login.html';
       return;
     }
@@ -137,11 +139,26 @@ document.addEventListener('DOMContentLoaded', function() {
         // On admin dashboard
         if (role !== 'admin') {
           console.log(`[dashboard-auth] Access denied: User role "${role}" cannot access admin dashboard. Redirecting...`);
-          window.cleartrackAuthApi.redirectByRole(role);
+          if (!authProcessed) {
+            authProcessed = true;
+            isProcessingAuth = false;
+            if (authUnsubscribe) {
+              authUnsubscribe();
+              authUnsubscribe = null;
+            }
+            window.cleartrackAuthApi.redirectByRole(role);
+          }
           return;
         }
         // Role is admin and on admin page - access granted
         console.log('[dashboard-auth] Access granted for role: admin');
+        authProcessed = true;
+        isProcessingAuth = false;
+        // Unsubscribe after successful auth check to prevent re-triggering
+        if (authUnsubscribe) {
+          authUnsubscribe();
+          authUnsubscribe = null;
+        }
       } else if (isPractitionerPage) {
         // On practitioner dashboard
         if (role !== 'practitioner') {
@@ -186,6 +203,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[dashboard-auth] Access granted for role: practitioner');
         authProcessed = true;
         isProcessingAuth = false;
+        // Unsubscribe after successful auth check to prevent re-triggering
+        if (authUnsubscribe) {
+          authUnsubscribe();
+          authUnsubscribe = null;
+        }
       } else if (isUserPage) {
         // On user dashboard
         if (role === 'practitioner' || role === 'admin') {
@@ -193,6 +215,10 @@ document.addEventListener('DOMContentLoaded', function() {
           if (!authProcessed) {
             authProcessed = true;
             isProcessingAuth = false;
+            if (authUnsubscribe) {
+              authUnsubscribe();
+              authUnsubscribe = null;
+            }
             window.cleartrackAuthApi.redirectByRole(role);
           }
           return;
@@ -201,6 +227,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`[dashboard-auth] Access granted for role: ${role}`);
         authProcessed = true;
         isProcessingAuth = false;
+        // Unsubscribe after successful auth check to prevent re-triggering
+        if (authUnsubscribe) {
+          authUnsubscribe();
+          authUnsubscribe = null;
+        }
       }
 
     } catch (error) {
@@ -209,6 +240,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!authProcessed) {
         authProcessed = true;
         isProcessingAuth = false;
+        if (authUnsubscribe) {
+          authUnsubscribe();
+          authUnsubscribe = null;
+        }
         window.location.href = '/login.html';
       }
     }
