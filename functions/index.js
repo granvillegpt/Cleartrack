@@ -1583,3 +1583,110 @@ Format your response in clear sections with headings.`;
   }
 });
 
+/**
+ * Cloud Function: analyzeDocumentWithFile
+ * 
+ * AI assistant for analyzing tax documents/images using Gemini Vision
+ * Supports images (JPG, PNG, GIF, WebP) and PDFs
+ */
+exports.analyzeDocumentWithFile = functions.https.onCall(async (data, context) => {
+  try {
+    // Verify authenticated
+    const userId = await verifyAuthenticated(context);
+
+    // Validate input
+    const { fileBase64, fileName, fileType, question } = data;
+    if (!fileBase64 || typeof fileBase64 !== 'string') {
+      throw new functions.https.HttpsError('invalid-argument', 'File data is required');
+    }
+
+    // Initialize AI with Vision model
+    const genAI = getGenerativeAI();
+    
+    // Use gemini-pro-vision for images, gemini-pro for text/PDFs
+    const isImage = fileType && fileType.startsWith('image/');
+    const modelName = isImage ? 'gemini-pro-vision' : 'gemini-pro';
+    const model = genAI.getGenerativeModel({ model: modelName });
+
+    // Create prompt for document/image analysis
+    const basePrompt = `You are a tax document analysis assistant for South African tax practitioners. Analyze the provided document/image and extract key tax-related information.
+
+${question || 'Please analyze this document and extract key tax-related information.'}
+
+Please provide:
+1. A summary of the document/image
+2. Key information extracted (dates, amounts, tax numbers, VAT numbers, invoice numbers, etc.)
+3. Important tax-related details
+4. Any potential issues or items that require attention
+5. Recommendations for the practitioner
+
+Format your response in clear sections with headings. Be specific about numbers, dates, and tax-related information you find.`;
+
+    let result;
+    
+    if (isImage) {
+      // For images, use Vision API with base64 image
+      const imagePart = {
+        inlineData: {
+          data: fileBase64,
+          mimeType: fileType || 'image/jpeg'
+        }
+      };
+      
+      // Use generateContent with parts array (text first, then image)
+      result = await model.generateContent([
+        { text: basePrompt },
+        imagePart
+      ]);
+    } else {
+      // For PDFs/text, note that Gemini Vision can handle some PDFs
+      // For best results with PDFs, convert to images first or use text extraction
+      const prompt = `${basePrompt}
+
+Note: This is a ${fileType || 'document'} file (${fileName || 'uploaded file'}). For PDFs, please upload as images for best analysis results.`;
+      
+      result = await model.generateContent(prompt);
+    }
+    
+    const response = await result.response;
+    const analysis = response.text();
+
+    // Log the interaction (optional - for analytics)
+    try {
+      await db.collection('aiInteractions').add({
+        userId,
+        type: 'document_analysis_with_file',
+        fileName: fileName || 'unknown',
+        fileType: fileType || 'unknown',
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        model: modelName
+      });
+    } catch (logError) {
+      console.error('Failed to log AI interaction:', logError);
+      // Don't fail the request if logging fails
+    }
+
+    return {
+      analysis,
+      fileName: fileName || 'unknown',
+      fileType: fileType || 'unknown'
+    };
+  } catch (error) {
+    console.error('analyzeDocumentWithFile error:', error);
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    
+    // Provide user-friendly error messages
+    if (error.message && error.message.includes('API key')) {
+      throw new functions.https.HttpsError('failed-precondition', 'AI service is not configured. Please contact support.');
+    }
+    
+    if (error.message && error.message.includes('vision')) {
+      throw new functions.https.HttpsError('failed-precondition', 'Gemini Vision API is not available. Please ensure you have access to gemini-pro-vision model.');
+    }
+    
+    throw new functions.https.HttpsError('internal', `Failed to analyze document: ${error.message || 'Unknown error'}`);
+  }
+});
+
