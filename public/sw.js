@@ -2,7 +2,7 @@
 // Auto-versioning: Version is updated automatically via update-sw-version.js script
 // Format: YYYYMMDD-HHMM (updates automatically on deploy)
 // Run: node update-sw-version.js (or it runs automatically on deploy)
-const CACHE_VERSION = '20251223-1309';
+const CACHE_VERSION = '20251223-1316';
 const CACHE_NAME = `cleartrack-v${CACHE_VERSION}`;
 const STATIC_CACHE = `cleartrack-static-v${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `cleartrack-dynamic-v${CACHE_VERSION}`;

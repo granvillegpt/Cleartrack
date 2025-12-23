@@ -5426,36 +5426,39 @@
         }
         
         // Dashboard Tile Modal Functions
-        function showClientsModal() {
+        async function showClientsModal() {
             try {
                 if (!practitioner || !practitioner.id) {
                     console.error('Practitioner not loaded');
                     return;
                 }
                 
-                // Show modal first
+                if (!cleartrackData) {
+                    console.error('cleartrackData not available');
+                    alert('Data service not available. Please refresh the page.');
+                    return;
+                }
+                
                 const modal = document.getElementById('allClientsModal');
                 if (!modal) {
                     console.error('[showClientsModal] Modal allClientsModal not found');
                     return;
                 }
-                modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
                 
-                const allClients = cleartrackData.getConnectedUsers(practitioner.id);
                 const content = document.getElementById('allClientsContent');
-                
                 if (!content) {
                     console.error('allClientsContent element not found');
-                    const modal = document.getElementById('allClientsModal');
-                    if (modal) {
-                        modal.classList.add('hidden');
-                        document.body.style.overflow = '';
-                    }
                     return;
                 }
                 
-                if (allClients.length === 0) {
+                // Load data first before showing modal
+                const allClients = await cleartrackData.getConnectedUsers(practitioner.id);
+                
+                // Now show modal after data is loaded
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                
+                if (!allClients || allClients.length === 0) {
                     content.innerHTML = '<p class="no-client-selected">No clients connected yet</p>';
                 } else {
                     // Escape client data to prevent XSS
@@ -5501,10 +5504,6 @@
                         </div>
                     `;
                 }
-                
-                if (allClientsModalEl) {
-                    allClientsModalEl.classList.remove('hidden');
-                }
             } catch (error) {
                 console.error('Error showing clients modal:', error);
                 alert('An error occurred while loading clients. Please try again.');
@@ -5518,37 +5517,40 @@
             }
         }
         
-        function showActiveClientsModal() {
+        async function showActiveClientsModal() {
             try {
                 if (!practitioner || !practitioner.id) {
                     console.error('Practitioner not loaded');
                     return;
                 }
                 
-                // Show modal first
+                if (!cleartrackData) {
+                    console.error('cleartrackData not available');
+                    alert('Data service not available. Please refresh the page.');
+                    return;
+                }
+                
                 const modal = document.getElementById('activeClientsModal');
                 if (!modal) {
                     console.error('[showActiveClientsModal] Modal activeClientsModal not found');
                     return;
                 }
-                modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
                 
-                const allClients = cleartrackData.getConnectedUsers(practitioner.id);
-                const activeClients = allClients.filter(client => 
-                    (client.documentCount || 0) > 0 || (client.expenseCount || 0) > 0
-                );
                 const content = document.getElementById('activeClientsContent');
-                
                 if (!content) {
                     console.error('activeClientsContent element not found');
-                    const modal = document.getElementById('activeClientsModal');
-                    if (modal) {
-                        modal.classList.add('hidden');
-                        document.body.style.overflow = '';
-                    }
                     return;
                 }
+                
+                // Load data first before showing modal
+                const allClients = await cleartrackData.getConnectedUsers(practitioner.id);
+                const activeClients = (allClients || []).filter(client => 
+                    (client.documentCount || 0) > 0 || (client.expenseCount || 0) > 0
+                );
+                
+                // Now show modal after data is loaded
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
                 
                 if (activeClients.length === 0) {
                     content.innerHTML = '<p class="no-client-selected">No active clients found</p>';
@@ -5602,10 +5604,6 @@
                             `).join('')}
                         </div>
                     `;
-                }
-                
-                if (activeClientsModalEl) {
-                    activeClientsModalEl.classList.remove('hidden');
                 }
             } catch (error) {
                 console.error('Error showing active clients modal:', error);
