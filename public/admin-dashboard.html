@@ -4945,7 +4945,7 @@
             conversationHtml += `
               <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e5e7eb;">
                 <h4 style="margin: 0 0 1rem 0; color: #0b7285; font-size: 1rem; font-weight: 600;">Reply to ${escapeHtml(senderName)}</h4>
-                <textarea id="adminReplyText-${docId}" rows="5" placeholder="Type your reply here or use AI Assist to generate one..." style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 0.95rem; resize: vertical; box-sizing: border-box; margin-bottom: 0.75rem;"></textarea>
+                <textarea id="adminReplyText-${docId}" rows="5" placeholder="Type your reply here or use AI Assist to generate one..." style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 16px; resize: vertical; box-sizing: border-box; margin-bottom: 0.75rem;"></textarea>
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                   <button id="aiAssistBtn-${docId}" onclick="generateAIReply('${docId}', '${safeSenderName}', '${safeOriginalMessage}', '${previousRepliesText}')" class="btn btn-outline" style="display: flex; align-items: center; gap: 0.5rem;">
                     <img src="assets/icons/chatbot-14050.svg" class="icon icon-sm" alt="AI" style="width: 16px; height: 16px;"> AI Assist
