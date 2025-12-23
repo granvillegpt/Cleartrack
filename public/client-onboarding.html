@@ -1323,11 +1323,51 @@
                     
                     // No redirect needed - user is a client, show the page
                     console.log('[BODY] ✅ User is a client - showing onboarding page');
-                    showPageContent();
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    } else {
+                        // Fallback
+                        const overlay = document.getElementById('loadingOverlay');
+                        if (overlay) {
+                            overlay.style.display = 'none';
+                            overlay.style.visibility = 'hidden';
+                            overlay.style.opacity = '0';
+                        }
+                        if (document.body) {
+                            var children = document.body.children;
+                            for (var i = 0; i < children.length; i++) {
+                                if (children[i].id !== 'loadingOverlay') {
+                                    children[i].style.display = '';
+                                    children[i].style.visibility = 'visible';
+                                    children[i].style.opacity = '1';
+                                }
+                            }
+                        }
+                    }
                 } catch (e) {
                     console.error('[BODY] Error:', e);
                     // On error, show content anyway (better UX than blank page)
-                    showPageContent();
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    } else {
+                        // Fallback
+                        const overlay = document.getElementById('loadingOverlay');
+                        if (overlay) {
+                            overlay.style.display = 'none';
+                            overlay.style.visibility = 'hidden';
+                            overlay.style.opacity = '0';
+                        }
+                        if (document.body) {
+                            var children = document.body.children;
+                            for (var i = 0; i < children.length; i++) {
+                                if (children[i].id !== 'loadingOverlay') {
+                                    children[i].style.display = '';
+                                    children[i].style.visibility = 'visible';
+                                    children[i].style.opacity = '1';
+                                }
+                            }
+                        }
+                    }
                 }
             }
             
@@ -1633,23 +1673,23 @@
                 setTimeout(() => clearInterval(waitForAuth), 5000);
             }
             
-            // Backup checks - run multiple times
-            setTimeout(() => {
-                console.log('[onboarding] 🔄 Backup check 1s');
+            // Single check after 1 second - if user is confirmed regular user, show content
+            let checkCount = 0;
+            const maxChecks = 3;
+            const checkInterval = setInterval(() => {
+                checkCount++;
+                if (checkCount > maxChecks) {
+                    clearInterval(checkInterval);
+                    // After max checks, if still on page, show content
+                    if (window.showOnboardingContent && !document.getElementById('loadingOverlay')?.classList.contains('hidden')) {
+                        console.log('[onboarding] ✅ Max checks reached - showing onboarding content');
+                        window.showOnboardingContent();
+                    }
+                    return;
+                }
+                console.log('[onboarding] 🔄 Backup check', checkCount);
                 redirectPractitioners();
             }, 1000);
-            setTimeout(() => {
-                console.log('[onboarding] 🔄 Backup check 2s');
-                redirectPractitioners();
-            }, 2000);
-            setTimeout(() => {
-                console.log('[onboarding] 🔄 Backup check 3s');
-                redirectPractitioners();
-            }, 3000);
-            setTimeout(() => {
-                console.log('[onboarding] 🔄 Backup check 5s');
-                redirectPractitioners();
-            }, 5000);
         })();
         
         // Setup handlers
