@@ -580,7 +580,7 @@ h3.card-title:hover,
     padding: 0.875rem 1rem;
     border: 2px solid #e5e7eb;
     border-radius: 10px;
-    font-size: 0.9375rem;
+    font-size: 16px; /* Prevents zoom on iOS */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -1308,7 +1308,7 @@ h1 {
     .form-group select,
     .form-group textarea {
         padding: 0.625rem;
-        font-size: 0.9375rem;
+        font-size: 16px; /* Prevents zoom on iOS */
         width: 100%;
         box-sizing: border-box;
         max-width: 100%;
