@@ -746,6 +746,12 @@
 
         <div id="forgotPasswordSuccess" class="success-notification" style="display: none;">Password reset email sent! Please check your inbox and follow the instructions to reset your password.</div>
 
+        <!-- Remember Me checkbox (only shown in PWA mode) -->
+        <div id="rememberMeContainer" style="display: none; margin: 0.75rem 0; display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="rememberMe" style="width: auto; margin: 0; cursor: pointer; flex-shrink: 0;">
+          <label for="rememberMe" style="display: inline; margin: 0; font-size: 0.9rem; color: #334e68; cursor: pointer; user-select: none;">Remember me</label>
+        </div>
+
         <button id="submitBtn" type="submit">Sign in</button>
 
         <div id="errorMessage" class="error"></div>

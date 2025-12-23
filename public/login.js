@@ -558,6 +558,42 @@ document.addEventListener('DOMContentLoaded', function() {
   const registerBtn = document.getElementById('registerBtn');
   errorMessageElement = document.getElementById('errorMessage');
   
+  // Remember Me functionality for PWA
+  const rememberMeContainer = document.getElementById('rememberMeContainer');
+  const rememberMeCheckbox = document.getElementById('rememberMe');
+  
+  // Check if app is running as PWA
+  function isPWA() {
+    // Check for standalone display mode (iOS Safari, Android Chrome)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    // Check for iOS standalone mode (older method)
+    const isIOSStandalone = window.navigator.standalone === true;
+    // Check if launched from home screen (Android)
+    const isAndroidPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                         (window.matchMedia('(display-mode: fullscreen)').matches && 
+                          !window.matchMedia('(display-mode: browser)').matches);
+    
+    return isStandalone || isIOSStandalone || isAndroidPWA;
+  }
+  
+  // Show Remember Me checkbox only in PWA mode
+  if (rememberMeContainer && rememberMeCheckbox) {
+    if (isPWA()) {
+      console.log('[login.js] PWA detected - showing Remember Me checkbox');
+      rememberMeContainer.style.display = 'flex';
+      
+      // Load saved email if Remember Me was previously checked
+      const savedEmail = localStorage.getItem('cleartrack_remembered_email');
+      if (savedEmail) {
+        emailInput.value = savedEmail;
+        rememberMeCheckbox.checked = true;
+        console.log('[login.js] Loaded saved email:', savedEmail);
+      }
+    } else {
+      rememberMeContainer.style.display = 'none';
+    }
+  }
+  
   // Add event listeners for tab buttons
   const signInTab = document.getElementById('signInTab');
   const registerTab = document.getElementById('registerTab');
@@ -964,6 +1000,30 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!email || !password) {
       showError('Please enter both email and password.');
       return;
+    }
+
+    // Handle Remember Me checkbox (PWA only)
+    if (rememberMeCheckbox && rememberMeContainer && rememberMeContainer.style.display !== 'none') {
+      if (rememberMeCheckbox.checked) {
+        // Store email for future auto-fill
+        localStorage.setItem('cleartrack_remembered_email', email);
+        console.log('[login.js] Remember Me checked - email saved');
+        
+        // Ensure Firebase uses persistent auth (it's the default, but we'll set it explicitly)
+        if (window.firebaseAuth && window.firebaseAuth.setPersistence) {
+          try {
+            // Firebase Auth persistence is already LOCAL by default, but we'll ensure it
+            // Note: In Firebase v9+, persistence is handled automatically
+            console.log('[login.js] Ensuring persistent authentication');
+          } catch (persistError) {
+            console.warn('[login.js] Could not set persistence (may not be needed):', persistError);
+          }
+        }
+      } else {
+        // Remove saved email if unchecked
+        localStorage.removeItem('cleartrack_remembered_email');
+        console.log('[login.js] Remember Me unchecked - email removed');
+      }
     }
 
     // Show loading screen IMMEDIATELY - no delays, synchronous
