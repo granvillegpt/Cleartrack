@@ -76,7 +76,9 @@
     <script src="loading-screen.js"></script>
     <script>
         // Show splash screen immediately on page load (before DOMContentLoaded)
-        if (window.showLoadingScreen) {
+        // Prevent showing multiple times if page reloads
+        if (!window.loadingScreenShown && window.showLoadingScreen) {
+            window.loadingScreenShown = true;
             window.showLoadingScreen('Loading ClearTrack...', 'Please wait');
         }
     </script>

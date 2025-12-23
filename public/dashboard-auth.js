@@ -60,14 +60,32 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
+  // Prevent multiple redirects
+  let isProcessingAuth = false;
+  let authProcessed = false;
+  
   // Observe authentication state
   window.firebaseAuth.onAuthStateChanged(async function(user) {
+    // Prevent multiple simultaneous auth checks
+    if (isProcessingAuth) {
+      console.log('[dashboard-auth] Auth check already in progress, skipping...');
+      return;
+    }
+    
     // User is not logged in - redirect to login page
     if (!user) {
+      if (authProcessed) {
+        console.log('[dashboard-auth] Auth already processed, skipping redirect');
+        return;
+      }
       console.log('[dashboard-auth] No user logged in, redirecting to login page');
+      authProcessed = true;
       window.location.href = '/login.html';
       return;
     }
+    
+    // Mark as processing
+    isProcessingAuth = true;
 
     // User is logged in - check their role
     try {
@@ -166,21 +184,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Role is practitioner and on practitioner page - access granted
         console.log('[dashboard-auth] Access granted for role: practitioner');
+        authProcessed = true;
+        isProcessingAuth = false;
       } else if (isUserPage) {
         // On user dashboard
         if (role === 'practitioner' || role === 'admin') {
           console.log('[dashboard-auth] Access denied: Practitioner/Admin cannot access user dashboard. Redirecting...');
-          window.cleartrackAuthApi.redirectByRole(role);
+          if (!authProcessed) {
+            authProcessed = true;
+            isProcessingAuth = false;
+            window.cleartrackAuthApi.redirectByRole(role);
+          }
           return;
         }
         // Role is user and on user page - access granted
         console.log(`[dashboard-auth] Access granted for role: ${role}`);
+        authProcessed = true;
+        isProcessingAuth = false;
       }
 
     } catch (error) {
       console.error('[dashboard-auth] Error loading user profile:', error);
-      // On error, redirect to login page
-      window.location.href = '/login.html';
+      // On error, redirect to login page (only once)
+      if (!authProcessed) {
+        authProcessed = true;
+        isProcessingAuth = false;
+        window.location.href = '/login.html';
+      }
     }
   });
 });
