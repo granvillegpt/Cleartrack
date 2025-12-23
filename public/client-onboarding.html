@@ -1629,9 +1629,18 @@
                             }
                         }
                     }
+                    // Regular user confirmed - show onboarding content
                     console.log('[onboarding] ✅ User is regular user - staying on page');
+                    if (window.showOnboardingContent) {
+                        console.log('[onboarding] ✅ Calling showOnboardingContent()');
+                        window.showOnboardingContent();
+                    }
                 } catch (err) {
                     console.error('[onboarding] ❌ Error in redirectPractitioners:', err);
+                    // On error, show content anyway
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
                 }
             }
             
