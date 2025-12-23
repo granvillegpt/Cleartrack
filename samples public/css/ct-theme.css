@@ -1,0 +1,39 @@
+/**
+ * ClearTrack Theme Stylesheet
+ * 
+ * Central theme variables and utility classes for consistent teal branding
+ */
+
+:root {
+  --ct-primary: #0b7285;
+  --ct-primary-dark: #095a69;
+  --ct-bg-soft: #e5f3f7;
+  --ct-header-text: #ffffff;
+}
+
+/* Utility classes */
+.ct-primary-bg {
+  background-color: var(--ct-primary);
+  color: var(--ct-header-text);
+}
+
+.ct-primary-btn {
+  background-color: var(--ct-primary);
+  color: #ffffff;
+}
+
+.ct-primary-btn:hover {
+  background-color: var(--ct-primary-dark);
+}
+
+/* Link styling for consistency */
+a {
+  color: var(--ct-primary);
+}
+
+a:hover {
+  color: var(--ct-primary-dark);
+}
+
+
+

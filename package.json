@@ -1,7 +1,10 @@
 {
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "update-sw": "node update-sw-version.js",
+    "predeploy": "node update-sw-version.js",
+    "deploy": "npm run update-sw && firebase deploy"
   },
   "devDependencies": {
     "firebase-tools": "^14.26.0",

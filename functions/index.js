@@ -7,6 +7,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const sgMail = require('@sendgrid/mail');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 admin.initializeApp();
 
@@ -1261,6 +1262,324 @@ exports.onPractitionerApproved = functions.firestore
       console.error('[onPractitionerApproved] Error handling approval for', applicationId, error);
       // We do NOT throw here because it would retry repeatedly; just log.
       return null;
+  }
+});
+
+/**
+ * Cloud Function: deleteUser
+ * 
+ * Admin deletes a user from Firebase Authentication and Firestore
+ * This is called from the admin dashboard when deleting a practitioner
+ */
+exports.deleteUser = functions.https.onCall(async (data, context) => {
+  try {
+    // Verify admin
+    const { uid: adminUid } = await verifyAdmin(context);
+
+    // Validate input
+    const { email, userId } = data;
+    if (!email && !userId) {
+      throw new functions.https.HttpsError('invalid-argument', 'Email or userId is required');
+    }
+
+    let targetUserId = userId;
+    let targetEmail = email;
+
+    // If email provided but not userId, find userId
+    if (email && !userId) {
+      try {
+        const userRecord = await admin.auth().getUserByEmail(email);
+        targetUserId = userRecord.uid;
+        targetEmail = userRecord.email;
+      } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+          throw new functions.https.HttpsError('not-found', 'User not found in Firebase Authentication');
+        }
+        throw err;
+      }
+    } else if (userId && !email) {
+      // If userId provided but not email, get email from Auth
+      try {
+        const userRecord = await admin.auth().getUser(userId);
+        targetEmail = userRecord.email;
+      } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+          throw new functions.https.HttpsError('not-found', 'User not found in Firebase Authentication');
+        }
+        throw err;
+      }
+    }
+
+    // Delete user from Firebase Authentication
+    await admin.auth().deleteUser(targetUserId);
+    console.log(`[deleteUser] Deleted user from Firebase Auth: ${targetEmail} (${targetUserId})`);
+
+    return {
+      success: true,
+      userId: targetUserId,
+      email: targetEmail,
+      message: 'User deleted successfully from Firebase Authentication'
+    };
+  } catch (error) {
+    console.error('deleteUser error:', error);
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    throw new functions.https.HttpsError('internal', `Failed to delete user: ${error.message || error.code}`);
+  }
+});
+
+/**
+ * Cloud Function: sendSupportReply
+ * 
+ * Admin sends a reply to a support message
+ * Sends email to the user/practitioner and stores reply in Firestore
+ */
+exports.sendSupportReply = functions.https.onCall(async (data, context) => {
+  try {
+    // Verify admin
+    const { uid: adminUid } = await verifyAdmin(context);
+
+    // Validate input
+    const { to, subject, replyText, originalMessage, messageId } = data;
+    if (!to || !replyText) {
+      throw new functions.https.HttpsError('invalid-argument', 'Email address and reply text are required');
+    }
+
+    // Get admin user data for email signature
+    const adminDoc = await db.collection('users').doc(adminUid).get();
+    const adminData = adminDoc.exists ? adminDoc.data() : {};
+    const adminName = adminData.name || adminData.firstName || 'ClearTrack Admin';
+
+    // Prepare email content
+    const emailSubject = subject || `Re: ClearTrack Support Request`;
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #0b7285;">ClearTrack Support Reply</h2>
+        <p>Hello,</p>
+        <p>Thank you for contacting ClearTrack support. We have received your message and here is our response:</p>
+        <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 4px solid #0b7285;">
+          <p style="margin: 0; white-space: pre-wrap;">${replyText.replace(/\n/g, '<br>')}</p>
+        </div>
+        ${originalMessage ? `
+          <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
+            <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 0.5rem;"><strong>Your original message:</strong></p>
+            <p style="font-size: 0.9rem; color: #374151; background: #f3f4f6; padding: 0.75rem; border-radius: 6px;">${originalMessage.replace(/\n/g, '<br>')}</p>
+          </div>
+        ` : ''}
+        <p style="margin-top: 1.5rem;">If you have any further questions, please don't hesitate to reach out.</p>
+        <p>Best regards,<br><strong>${adminName}</strong><br>ClearTrack Support Team</p>
+        <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="font-size: 0.85rem; color: #6b7280;">This is an automated response to your support request. Please do not reply directly to this email.</p>
+      </div>
+    `;
+    
+    const emailText = `
+ClearTrack Support Reply
+
+Hello,
+
+Thank you for contacting ClearTrack support. We have received your message and here is our response:
+
+${replyText}
+
+${originalMessage ? `Your original message:\n\n${originalMessage}\n\n` : ''}
+If you have any further questions, please don't hesitate to reach out.
+
+Best regards,
+${adminName}
+ClearTrack Support Team
+
+---
+This is an automated response to your support request. Please do not reply directly to this email.
+    `;
+
+    // Send email
+    const emailResult = await sendEmail(to, emailSubject, emailHtml, emailText);
+    
+    if (!emailResult.success) {
+      console.warn('[sendSupportReply] Email sending failed, but reply is stored in Firestore');
+      // Don't throw error - reply is still stored in Firestore
+    }
+
+    return {
+      success: true,
+      emailSent: emailResult.success,
+      message: 'Reply sent successfully'
+    };
+  } catch (error) {
+    console.error('sendSupportReply error:', error);
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    throw new functions.https.HttpsError('internal', `Failed to send support reply: ${error.message || error.code}`);
+  }
+});
+
+/**
+ * Initialize Google Generative AI
+ * Uses API key from environment or Firebase config
+ * Since Vertex AI Gemini API is enabled in Firebase, you can get an API key from:
+ * https://aistudio.google.com/app/apikey or use Vertex AI directly
+ */
+function getGenerativeAI() {
+  // Try to get API key from config or environment
+  const apiKey = process.env.GOOGLE_AI_API_KEY || 
+                 (functions.config().google && functions.config().google.ai_api_key);
+  
+  if (apiKey) {
+    return new GoogleGenerativeAI(apiKey);
+  }
+  
+  // If no API key found, provide helpful error message
+  // Since Vertex AI is enabled, user can either:
+  // 1. Get a Gemini Developer API key from https://aistudio.google.com/app/apikey
+  // 2. Or we can update to use Vertex AI SDK directly (requires @google-cloud/aiplatform)
+  throw new Error('Google AI API key not found. Since Vertex AI Gemini API is enabled, you can:\n' +
+    '1. Get a free API key from https://aistudio.google.com/app/apikey and set it with:\n' +
+    '   firebase functions:config:set google.ai_api_key="YOUR_KEY"\n' +
+    '2. Or the key may already be configured in your Firebase project environment variables.');
+}
+
+/**
+ * Cloud Function: askTaxQuestion
+ * 
+ * AI assistant for answering South African tax questions
+ */
+exports.askTaxQuestion = functions.https.onCall(async (data, context) => {
+  try {
+    // Verify authenticated
+    const userId = await verifyAuthenticated(context);
+
+    // Validate input
+    const { question } = data;
+    if (!question || typeof question !== 'string' || !question.trim()) {
+      throw new functions.https.HttpsError('invalid-argument', 'Question is required');
+    }
+
+    // Initialize AI
+    const genAI = getGenerativeAI();
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+    // Create prompt for tax question (practitioner-focused)
+    const prompt = `You are a helpful AI assistant providing tax information for South African tax practitioners. Answer the following question clearly and concisely with professional detail.
+
+Question: ${question.trim()}
+
+Provide a helpful, accurate answer about South African tax matters. Include relevant tax codes, thresholds, and regulations where applicable. If the question requires specific client information or complex scenarios, recommend consulting SARS directly or referring to official tax guidelines.
+
+Format your response in clear, readable paragraphs.`;
+
+    // Generate response
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const answer = response.text();
+
+    // Log the interaction (optional - for analytics)
+    try {
+      await db.collection('aiInteractions').add({
+        userId,
+        type: 'tax_question',
+        question: question.trim(),
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        model: 'gemini-pro'
+      });
+    } catch (logError) {
+      console.error('Failed to log AI interaction:', logError);
+      // Don't fail the request if logging fails
+    }
+
+    return {
+      answer,
+      question: question.trim()
+    };
+  } catch (error) {
+    console.error('askTaxQuestion error:', error);
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    
+    // Provide user-friendly error messages
+    if (error.message && error.message.includes('API key')) {
+      throw new functions.https.HttpsError('failed-precondition', 'AI service is not configured. Please contact support.');
+    }
+    
+    throw new functions.https.HttpsError('internal', `Failed to get AI response: ${error.message || 'Unknown error'}`);
+  }
+});
+
+/**
+ * Cloud Function: analyzeDocument
+ * 
+ * AI assistant for analyzing tax documents and extracting key information
+ */
+exports.analyzeDocument = functions.https.onCall(async (data, context) => {
+  try {
+    // Verify authenticated
+    const userId = await verifyAuthenticated(context);
+
+    // Validate input
+    const { documentText, documentType, clientId } = data;
+    if (!documentText || typeof documentText !== 'string' || !documentText.trim()) {
+      throw new functions.https.HttpsError('invalid-argument', 'Document text is required');
+    }
+
+    // Initialize AI
+    const genAI = getGenerativeAI();
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+    // Create prompt for document analysis
+    const prompt = `You are a tax document analysis assistant for South African tax practitioners. Analyze the following document and extract key information.
+
+Document Type: ${documentType || 'Tax Document'}
+Document Content:
+${documentText.trim()}
+
+Please provide:
+1. A summary of the document
+2. Key information extracted (dates, amounts, tax numbers, etc.)
+3. Important tax-related details
+4. Any potential issues or items that require attention
+5. Recommendations for the practitioner
+
+Format your response in clear sections with headings.`;
+
+    // Generate response
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const analysis = response.text();
+
+    // Log the interaction (optional - for analytics)
+    try {
+      await db.collection('aiInteractions').add({
+        userId,
+        clientId: clientId || null,
+        type: 'document_analysis',
+        documentType: documentType || 'unknown',
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        model: 'gemini-pro'
+      });
+    } catch (logError) {
+      console.error('Failed to log AI interaction:', logError);
+      // Don't fail the request if logging fails
+    }
+
+    return {
+      analysis,
+      documentType: documentType || 'unknown'
+    };
+  } catch (error) {
+    console.error('analyzeDocument error:', error);
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    
+    // Provide user-friendly error messages
+    if (error.message && error.message.includes('API key')) {
+      throw new functions.https.HttpsError('failed-precondition', 'AI service is not configured. Please contact support.');
+    }
+    
+    throw new functions.https.HttpsError('internal', `Failed to analyze document: ${error.message || 'Unknown error'}`);
   }
 });
 

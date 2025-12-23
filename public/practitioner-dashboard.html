@@ -16,57 +16,22 @@
     <link rel="stylesheet" href="responsive-fixes.css">
     <link rel="stylesheet" href="css/ct-theme.css" />
     <link rel="stylesheet" href="dashboard-styles.css" />
-    
-    <!-- PWA Features - only on app.cleartrack.co.za -->
+    <!-- Load loading screen early so splash shows immediately -->
+    <script src="loading-screen.js"></script>
     <script>
-        (function() {
-            if (window.location.hostname === 'app.cleartrack.co.za') {
-                const head = document.head || document.getElementsByTagName('head')[0];
-                
-                // Manifest
-                const manifest = document.createElement('link');
-                manifest.rel = 'manifest';
-                manifest.href = '/manifest.json';
-                head.appendChild(manifest);
-                
-                // Theme color
-                const themeColor = document.createElement('meta');
-                themeColor.name = 'theme-color';
-                themeColor.content = '#0b7285';
-                head.appendChild(themeColor);
-                
-                // Apple Touch Icons
-                const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
-                iconSizes.forEach(size => {
-                    const icon = document.createElement('link');
-                    icon.rel = 'apple-touch-icon';
-                    icon.sizes = size + 'x' + size;
-                    icon.href = '/icons/cleartrack-' + size + '.png?v=3';
-                    head.appendChild(icon);
-                });
-                
-                // PWA Meta Tags
-                const metaTags = [
-                    { name: 'apple-mobile-web-app-capable', content: 'yes' },
-                    { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
-                    { name: 'apple-mobile-web-app-title', content: 'ClearTrack' },
-                    { name: 'mobile-web-app-capable', content: 'yes' }
-                ];
-                metaTags.forEach(tag => {
-                    const meta = document.createElement('meta');
-                    meta.name = tag.name;
-                    meta.content = tag.content;
-                    head.appendChild(meta);
-                });
-                
-                // Service worker registration
-                var script = document.createElement('script');
-                script.src = '/sw-register.js';
-                head.appendChild(script);
-            }
-        })();
+        // Show splash screen immediately on page load (before DOMContentLoaded)
+        if (window.showLoadingScreen) {
+            window.showLoadingScreen('Loading ClearTrack...', 'Please wait');
+        }
+    </script>
+    <!-- Hamburger menu disabled for practitioner dashboard - using bottom nav only -->
+    <script>
+        // Prevent global-hamburger-menu from initializing on practitioner dashboard
+        window.skipGlobalHamburgerMenu = true;
     </script>
     <script src="global-hamburger-menu.js"></script>
+    <script src="modal-system.js"></script>
+    <script src="unified-section-handler.js"></script>
     <!-- Testing Script (remove in production) -->
     <script src="test-automation.js"></script>
     <!-- Cropper.js CSS -->
@@ -99,43 +64,13 @@
             }
         }
         
-        html {
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #e5f3f7;
             color: #333;
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        /* Ensure app wrapper doesn't block scrolling */
-        .app {
             min-height: 100vh;
-            overflow: visible;
-        }
-        
-        /* Desktop: Ensure mouse wheel scrolling works */
-        @media (min-width: 769px) {
-            html, body {
-                overflow-y: auto !important;
-                overflow-x: hidden !important;
-            }
-        }
-        
-        /* Mobile: Ensure touch scrolling works */
-        @media (max-width: 768px) {
-            body, html {
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                touch-action: pan-y !important;
-            }
         }
         
         /* ============================================
@@ -1166,7 +1101,26 @@
                 grid-template-columns: 1fr;
             }
             
-            /* Dashboard grid, stat-card, stat-value, stat-label mobile styles moved to dashboard-styles.css */
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .stat-card {
+                padding: 0.75rem;
+                border-radius: 8px;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .stat-label {
+                font-size: 0.8rem;
+                font-weight: 500;
+            }
             
             /* Tax Returns Mobile Fixes - 768px */
             .search-container {
@@ -1248,63 +1202,17 @@
         }
         
         @media (max-width: 480px) {
-            /* Dashboard grid, stat-card, stat-value, stat-label mobile styles moved to dashboard-styles.css */
-            
-            /* Tax Returns Mobile Fixes - 480px */
-            .section {
-                padding: 0.75rem;
-            }
-            
-            .card {
-                padding: 0.75rem;
-            }
-            
-            .search-container {
-                flex-direction: column !important;
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
                 gap: 0.75rem !important;
             }
             
-            .search-input-wrapper {
-                width: 100% !important;
-                min-width: 100% !important;
+            .stat-card {
+                padding: 0.75rem !important;
             }
             
-            .search-input {
-                font-size: 0.875rem !important;
-                padding: 0.625rem 0.75rem 0.625rem 2.5rem !important;
-            }
-            
-            .search-filters {
-                width: 100% !important;
-            }
-            
-            .filter-select {
-                width: 100% !important;
-                font-size: 0.875rem !important;
-            }
-            
-            /* Table Mobile Fixes - 480px */
-            .card-body {
-                padding: 0.5rem !important;
-                overflow-x: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-            }
-            
-            .table {
-                min-width: 600px !important;
-                font-size: 0.75rem !important;
-            }
-            
-            .table th,
-            .table td {
-                padding: 0.5rem 0.375rem !important;
-                font-size: 0.75rem !important;
-                white-space: nowrap !important;
-            }
-            
-            .table th {
-                font-size: 0.7rem !important;
-                font-weight: 600 !important;
+            .stat-value {
+                font-size: 1.375rem !important;
             }
             
             .stat-label {
@@ -2954,8 +2862,14 @@
            MOBILE BOTTOM NAVIGATION
            ======================================== */
         
-        /* Hide desktop nav on mobile when bottom nav is active */
+        /* Hide hamburger on mobile when bottom nav is active */
         @media (max-width: 768px) {
+            .menu-toggle-style6,
+            #ctMenuToggle,
+            #menuToggle {
+                display: none !important;
+            }
+            
             .nav-style6,
             #ctMainNav,
             #nav-style6 {
@@ -3025,61 +2939,6 @@
 
         .bottom-nav-item:hover {
             color: #0b7285;
-        }
-        
-        /* Notification Badge Styles */
-        .nav-badge {
-            display: inline-block;
-            background: #dc2626;
-            color: white;
-            border-radius: 10px;
-            padding: 2px 6px;
-            font-size: 11px;
-            font-weight: 600;
-            min-width: 18px;
-            text-align: center;
-            line-height: 1.2;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-        
-        .bottom-nav-badge {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            background: #dc2626;
-            color: white;
-            border-radius: 10px;
-            padding: 2px 6px;
-            font-size: 10px;
-            font-weight: 600;
-            min-width: 16px;
-            text-align: center;
-            line-height: 1.2;
-        }
-        
-        .bottom-nav-item {
-            position: relative;
-        }
-        
-        .more-menu-item {
-            position: relative;
-        }
-        
-        .more-menu-badge {
-            display: inline-block;
-            background: #dc2626;
-            color: white;
-            border-radius: 10px;
-            padding: 2px 6px;
-            font-size: 11px;
-            font-weight: 600;
-            min-width: 18px;
-            height: 18px;
-            text-align: center;
-            line-height: 1.2;
-            margin-left: 8px;
-            vertical-align: middle;
         }
 
         /* More Menu Overlay */
@@ -3244,23 +3103,26 @@
                 <div class="logo">
                     <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
                 </div>
+                <button
+                    id="ctMenuToggle"
+                    class="menu-toggle-style6"
+                    type="button"
+                    aria-label="Toggle navigation menu"
+                    aria-expanded="false"
+                    onclick="toggleMenu('style6')">
+                    ☰
+                </button>
                 <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
             </div>
             <nav class="nav-style6" id="ctMainNav">
                 <a href="#" class="nav-link active" onclick="handleNavClick('dashboard', event)">Dashboard</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('clients', event)">Clients</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('messages', event)" id="messages-nav-link">
-                    Messages
-                    <span id="messages-badge" class="nav-badge" style="display: none;">0</span>
-                </a>
-                <a href="#" class="nav-link" onclick="handleNavClick('requests', event)" id="requests-nav-link">
-                    Requests
-                    <span id="requests-badge" class="nav-badge" style="display: none;">0</span>
-                </a>
+                <a href="#" class="nav-link" onclick="handleNavClick('messages', event)">Messages</a>
+                <a href="#" class="nav-link" onclick="handleNavClick('requests', event)">Requests</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('tax-returns', event)">Tax Returns</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('invoices', event)">Invoices</a>
+                <a href="#" class="nav-link" onclick="handleNavClick('ai-assistant', event)">AI Assistant</a>
                 <a href="#" class="nav-link" onclick="handleNavClick('profile', event)">Profile</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('support', event)">Support</a>
             </nav>
         </header>
         
@@ -3324,6 +3186,128 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Actions</h3>
+                    </div>
+                    <div class="card-body quick-actions-buttons">
+                        <button class="btn btn-primary" onclick="showSection('clients')">Manage Clients</button>
+                        <button class="btn btn-secondary" onclick="showSection('tax-returns')">Tax Returns</button>
+                        <button class="btn btn-success" onclick="showSection('invoices')">Invoices</button>
+                        <button class="btn btn-outline" onclick="showSection('ai-assistant')">AI Assistant</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Assistant Section -->
+            <div id="ai-assistant" class="section hidden">
+                <h1 class="mb-6">AI Assistant</h1>
+                
+                <div style="display: grid; gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- Document Analysis Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <img src="assets/icons/document.svg" class="icon icon-sm" alt="Document" style="width: 20px; height: 20px;"> Document Analysis
+                            </h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin: 0.5rem 0 0 0;">Extract key information from client tax documents</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="practitionerDocumentAnalysisArea">
+                                <div class="form-group">
+                                    <label for="practitionerClientSelect">Select Client</label>
+                                    <select id="practitionerClientSelect" class="form-control" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem;" onchange="populatePractitionerDocumentSelect()">
+                                        <option value="">-- Select a client --</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group" style="margin-top: 1rem;">
+                                    <label for="practitionerAiDocumentSelect">Select Document to Analyze</label>
+                                    <select id="practitionerAiDocumentSelect" class="form-control" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem;" disabled>
+                                        <option value="">-- Select a client first --</option>
+                                    </select>
+                                </div>
+                                
+                                <button id="practitionerAnalyzeDocumentBtn" class="btn btn-primary" onclick="practitionerAnalyzeDocument()" style="width: 100%; margin-top: 1rem;" disabled>
+                                    <span id="practitionerAnalyzeDocumentBtnText">Analyze Document</span>
+                                </button>
+                                
+                                <div id="practitionerDocumentAnalysisResult" style="margin-top: 1.5rem; display: none;">
+                                    <div style="background: #f0f9fb; padding: 1.25rem; border-radius: 12px; border-left: 4px solid #0b7285;">
+                                        <h4 style="margin: 0 0 1rem 0; color: #0b7285; font-size: 1rem;">Analysis Results</h4>
+                                        <div id="practitionerDocumentAnalysisContent" style="color: #374151; line-height: 1.6; white-space: pre-wrap;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tax Questions Chat Interface -->
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <div class="card-header" style="border-bottom: 1px solid #e5e7eb;">
+                            <h3 class="card-title" style="display: flex; align-items: center; gap: 0.5rem; margin: 0px 25px; text-align: center; padding-top: 20px !important; padding-bottom: 20px !important;">
+                                <img src="assets/icons/message.svg" class="icon icon-sm" alt="Message" style="width: 20px; height: 20px;"> Tax Questions
+                            </h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin: 15px 25px 0px 25px;">Ask questions about South African tax and get instant answers</p>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div style="padding: 0 1rem 1rem 1rem;">
+                                <!-- WhatsApp-style chat interface -->
+                                <div class="whatsapp-messaging" style="height: 600px; display: flex; flex-direction: column; border-radius: 12px; overflow: hidden;">
+                                <!-- Chat header -->
+                                <div class="whatsapp-chat-header" style="background: #0b7285; color: white; padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <div class="whatsapp-chat-contact">
+                                        <div class="whatsapp-chat-contact-avatar" style="background: rgba(255,255,255,0.2);">
+                                            <img src="assets/icons/ai-chip-14071.svg" class="icon icon-lg" alt="AI" style="filter: brightness(0) invert(1);">
+                                        </div>
+                                        <div class="whatsapp-chat-contact-info">
+                                            <h3 style="margin: 0; color: white; font-size: 1rem;">AI Tax Assistant</h3>
+                                            <p style="margin: 0; color: rgba(255,255,255,0.8); font-size: 0.85rem;">South African Tax Expert</p>
+                                        </div>
+                                    </div>
+                                    <div class="whatsapp-chat-actions">
+                                        <button onclick="clearAIConversation()" title="Clear Conversation" style="background: rgba(255,255,255,0.2); border: none; border-radius: 6px; padding: 0.5rem; cursor: pointer;">
+                                            <img src="assets/icons/trash.svg" class="icon icon-sm" alt="Clear" style="filter: brightness(0) invert(1);">
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Messages area -->
+                                <div class="whatsapp-messages" id="aiChatMessages" style="flex: 1; overflow-y: auto; padding: 1rem; background: #e5ddd5; background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9IiNmNWY1ZjUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=');">
+                                    <div id="aiChatEmptyState" class="chat-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 2rem;">
+                                        <div class="chat-empty-icon" style="margin-bottom: 1rem;">
+                                            <img src="assets/icons/ai-chip-14071.svg" class="icon icon-2xl icon-gray-500" alt="AI" style="width: 64px; height: 64px; opacity: 0.5;">
+                                        </div>
+                                        <h3 class="chat-empty-title" style="color: #374151; margin: 0 0 0.5rem 0;">Start a conversation</h3>
+                                        <p class="chat-empty-text" style="color: #6b7280; margin: 0;">Ask me anything about South African tax and I'll help you find the answer</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Input area -->
+                                <div class="whatsapp-input-area" id="aiChatInputArea" style="background: #f0f2f5; padding: 0.75rem; border-top: 1px solid #e5e7eb;">
+                                    <div class="whatsapp-input-container" style="display: flex; align-items: flex-end; gap: 0.5rem; background: white; border-radius: 24px; padding: 0.5rem 1rem;">
+                                        <textarea id="practitionerTaxQuestionInput" class="whatsapp-input" placeholder="Ask a tax question..." rows="1" style="flex: 1; border: none; outline: none; resize: none; font-size: 0.95rem; font-family: inherit; max-height: 120px; padding: 0.5rem 0;" onkeydown="handleAIQuestionKeydown(event)" oninput="autoResizeAIInput(this)"></textarea>
+                                        <button id="practitionerAskQuestionBtn" onclick="practitionerAskTaxQuestion()" class="send" title="Send" style="background: #0b7285; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;" disabled>
+                                            <img src="assets/icons/message.svg" class="icon icon-sm" alt="Send" style="filter: brightness(0) invert(1); width: 18px; height: 18px;">
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Warning Banner -->
+                                <div style="padding: 0 1rem 1rem 1rem;">
+                                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.5rem;">
+                                        <img src="assets/icons/information.svg" class="icon icon-sm" alt="Warning" style="width: 16px; height: 16px; flex-shrink: 0; margin-top: 0.1rem;">
+                                        <p style="margin: 0; font-size: 0.8rem; color: #78350f; line-height: 1.4;">
+                                            <strong>Note:</strong> This AI assistant provides general tax information for South Africa. For specific tax advice or complex situations, please consult SARS directly or refer to official tax guidelines.
+                                        </p>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Clients Section -->
@@ -3340,7 +3324,7 @@
                             <div class="search-input-wrapper">
                                 <input type="text" id="clientSearchInput" placeholder="Search clients by name, email, or phone..." class="search-input">
                                 <div class="search-icon">
-                                    <img src="assets/icons/search-magnifier.svg" class="icon icon-gray-500" alt="Search">
+                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
                             </div>
                             </div>
                             <div class="search-filters">
@@ -3428,7 +3412,7 @@
                         <div class="whatsapp-search" style="position: relative;">
                             <input type="text" placeholder="Search clients" id="clientSearch" style="padding-left: 40px; position: relative;">
                             <div class="search-icon" style="position: absolute; left: 28px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 1;">
-                                <img src="assets/icons/search-magnifier.svg" class="icon icon-gray-500" alt="Search" style="width: 18px; height: 18px;">
+                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search" style="width: 18px; height: 18px;">
                             </div>
                         </div>
                         
@@ -3442,7 +3426,7 @@
                         <div class="whatsapp-chat-header" id="chatHeaderInfo">
                             <div class="whatsapp-chat-contact">
                                 <div class="whatsapp-chat-contact-avatar">
-                                    <img src="assets/icons/user.svg" class="icon icon-lg" alt="Profile">
+                                    <img src="assets/icons/profile.svg" class="icon icon-lg" alt="Profile">
                                 </div>
                                 <div class="whatsapp-chat-contact-info">
                                 <h3>Select a client to start chatting</h3>
@@ -3486,7 +3470,7 @@
                                         </button>
                                 <button class="whatsapp-attachment-item" onclick="document.getElementById('fileInput').click(); closeAttachmentMenu();">
                                     <div class="whatsapp-attachment-icon">
-                                        <img src="assets/icons/gallery.svg" class="icon icon-sm" alt="Gallery">
+                                        <img src="assets/icons/photos-10608.svg" class="icon icon-sm" alt="Gallery">
                                     </div>
                                     <div class="whatsapp-attachment-text">Gallery</div>
                                         </button>
@@ -3553,14 +3537,13 @@
                     </div>
                 </div>
                 
-                <!-- Request History Section -->
-                <div id="practitioner-requests-history-section" class="card mb-4">
+                <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Request History</h3>
+                        <h3 class="card-title">Pending Requests</h3>
                     </div>
                     <div class="card-body">
-                        <div id="practitioner-requests-history-list">
-                            <p class="text-muted-center">Loading history...</p>
+                        <div id="connectionRequestsList">
+                            <!-- Connection requests will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -3577,7 +3560,7 @@
                         <div class="search-input-wrapper">
                             <input type="text" id="taxReturnsSearchInput" placeholder="Search tax returns by client name, tax year, or status..." class="search-input">
                             <div class="search-icon">
-                                    <img src="assets/icons/search-magnifier.svg" class="icon icon-gray-500" alt="Search">
+                                    <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
                             </div>
                         </div>
                         <div class="search-filters">
@@ -3637,6 +3620,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
                 
                 <div class="card">
                     <div class="card-header">
@@ -3679,7 +3663,7 @@
                             <div class="search-input-wrapper">
                                 <input type="text" id="invoiceSearchInput" placeholder="Search invoices by client name, invoice number, or amount..." class="search-input">
                                 <div class="search-icon">
-                                    <img src="assets/icons/search-magnifier.svg" class="icon icon-gray-500" alt="Search">
+                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
                             </div>
                             </div>
                             <div class="search-filters">
@@ -3874,11 +3858,6 @@
                                 <label for="bio">Bio</label>
                                 <textarea id="bio" rows="4" placeholder="Tell clients about yourself"></textarea>
                             </div>
-                            
-                            <!-- Primary action button for practice information -->
-                            <div class="form-group" style="margin-top: 1.5rem;">
-                                <button type="button" onclick="updatePractitionerProfile()" class="btn btn-primary" style="width: 100%;">Update Profile</button>
-                            </div>
                         </form>
                     </div>
                             </div>
@@ -3929,7 +3908,7 @@
                                 <small style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem; display: block;">This will be used as the default payment reference on invoices</small>
                             </div>
                             
-                            <button type="button" onclick="saveBankDetailsFromProfile()" class="btn btn-primary" style="width: 100%;">Save Bank Details</button>
+                            <button type="button" onclick="saveBankDetailsFromProfile()" class="btn btn-outline">Save Bank Details</button>
                         </form>
                     </div>
                 </div>
@@ -3967,8 +3946,15 @@
                                 <small style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem; display: block;">Terms and conditions for payment</small>
                             </div>
                             
-                            <button type="button" onclick="saveInvoiceMessages()" class="btn btn-primary" style="width: 100%;">Save Invoice Messages</button>
+                            <button type="button" onclick="saveInvoiceMessages()" class="btn btn-outline">Save Invoice Messages</button>
                         </form>
+                    </div>
+                </div>
+                
+                <!-- Profile Update Section -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-body">
+                        <button type="button" onclick="updatePractitionerProfile()" class="btn btn-primary">Update Profile</button>
                     </div>
                 </div>
             </div>
@@ -4440,52 +4426,7 @@
         
         // Initialize application
         document.addEventListener('DOMContentLoaded', function() {
-            // Force enable scrolling - ensure body and html can scroll
-            function enableScrolling() {
-                document.body.style.overflow = '';
-                document.body.style.overflowX = '';
-                document.body.style.overflowY = '';
-                document.body.style.height = '';
-                document.body.style.maxHeight = '';
-                
-                if (document.documentElement) {
-                    document.documentElement.style.overflow = '';
-                    document.documentElement.style.overflowX = '';
-                    document.documentElement.style.overflowY = '';
-                    document.documentElement.style.height = '';
-                    document.documentElement.style.maxHeight = '';
-                }
-                
-                // Ensure app wrapper doesn't block
-                const app = document.querySelector('.app');
-                if (app) {
-                    app.style.overflow = '';
-                    app.style.height = '';
-                    app.style.maxHeight = '';
-                }
-            }
-            
-            enableScrolling();
-            
-            // Mobile-specific: ensure touch scrolling works
-            if (window.matchMedia('(max-width: 768px)').matches) {
-                document.body.style.touchAction = 'pan-y';
-                document.body.style.webkitOverflowScrolling = 'touch';
-                if (document.documentElement) {
-                    document.documentElement.style.touchAction = 'pan-y';
-                }
-            }
-            
-            // Periodic check to ensure scrolling stays enabled when no modals are open
-            setInterval(function() {
-                const hasOpenModal = document.querySelector('.modal-overlay:not(.hidden)') || 
-                                     document.querySelector('.more-menu.active') ||
-                                     document.querySelector('#moreOverlay.active');
-                if (!hasOpenModal) {
-                    enableScrolling();
-                }
-            }, 200);
-            
+            // Splash screen already shown in head - no need to show again
             // Messaging service is already initialized globally in messaging-service.js
             
             // Clear any sample practitioners that might exist
@@ -4527,6 +4468,33 @@
             setTimeout(() => {
                 initializeProfileSections();
             }, 500);
+            
+            // Hide splash screen after initialization completes
+            // Wait for practitioner to be loaded and dashboard to be fully ready
+            const hideSplashAfterInit = async () => {
+                // Wait for practitioner to be loaded
+                let attempts = 0;
+                const maxAttempts = 20; // 4 seconds max (20 * 200ms)
+                const checkPractitioner = setInterval(() => {
+                    attempts++;
+                    const practitionerReady = window.practitioner && window.practitioner.id;
+                    const dashboardReady = document.getElementById('dashboard') !== null;
+                    const interfaceReady = document.getElementById('mobilePractitionerName') !== null || document.querySelector('.practitioner-code') !== null;
+                    
+                    if ((practitionerReady && dashboardReady && interfaceReady) || attempts >= maxAttempts) {
+                        clearInterval(checkPractitioner);
+                        
+                        // Additional small delay to ensure all rendering is complete
+                        setTimeout(() => {
+                            if (window.hideLoadingScreen) {
+                                window.hideLoadingScreen();
+                                console.log('✅ Splash screen hidden - practitioner dashboard fully ready');
+                            }
+                        }, 500); // Increased delay to ensure smooth transition
+                    }
+                }, 200);
+            };
+            hideSplashAfterInit();
             
             // Close modals when clicking outside
             document.addEventListener('click', function(event) {
@@ -4670,6 +4638,37 @@
                 
                 console.log('🔍 DEBUG: Firestore profile loaded:', firestoreProfile);
                 
+                // Check if practitioner is suspended or fraud-tagged
+                if (firestoreProfile.practitionerStatus === 'suspended') {
+                    console.warn('🔍 DEBUG: Practitioner account is suspended');
+                    alert('Your practitioner account has been suspended. Please contact support for assistance.');
+                    if (window.firebaseAuth) {
+                        window.firebaseAuth.signOut().then(() => {
+                            window.location.href = '/login.html';
+                        }).catch(() => {
+                            window.location.href = '/login.html';
+                        });
+                    } else {
+                        window.location.href = '/login.html';
+                    }
+                    return;
+                }
+                
+                if (firestoreProfile.fraudTagged === true || firestoreProfile.practitionerStatus === 'fraud') {
+                    console.warn('🔍 DEBUG: Practitioner account is fraud-tagged');
+                    alert('Your practitioner account has been flagged. Please contact support for assistance.');
+                    if (window.firebaseAuth) {
+                        window.firebaseAuth.signOut().then(() => {
+                            window.location.href = '/login.html';
+                        }).catch(() => {
+                            window.location.href = '/login.html';
+                        });
+                    } else {
+                        window.location.href = '/login.html';
+                    }
+                    return;
+                }
+                
                 // Get or create practitioner in local storage using Firebase UID as the practitioner ID
                 const data = cleartrackData.getData();
                 
@@ -4697,11 +4696,8 @@
                         isPubliclyVisible: firestoreProfile.isPubliclyVisible !== undefined ? firestoreProfile.isPubliclyVisible : (practitioner.isPubliclyVisible || false),
                         // Ensure practitionerCode exists - generate if missing
                         practitionerCode: firestoreProfile.practitionerCode || practitioner.practitionerCode || cleartrackData.generatePractitionerCode(),
-                        // Prioritize Firestore profileImage over localStorage (Firestore is source of truth)
-                        profileImage: firestoreProfile.profileImage || practitioner.profileImage || null
+                        profileImage: practitioner.profileImage || firestoreProfile.profileImage || ''
                     };
-                    
-                    console.log('🔍 DEBUG: Merged practitioner profileImage:', practitioner.profileImage ? practitioner.profileImage.substring(0, 50) + '...' : 'null');
                     
                     // Update local storage
                     cleartrackData.updatePractitioner(uid, practitioner);
@@ -4722,8 +4718,7 @@
                         bio: firestoreProfile.bio || '',
                         phone: firestoreProfile.phone || '',
                         isPubliclyVisible: firestoreProfile.isPubliclyVisible || false,
-                        practitionerCode: practitionerCode,
-                        profileImage: firestoreProfile.profileImage || null
+                        practitionerCode: practitionerCode
                     });
                 }
                 
@@ -4741,13 +4736,165 @@
                 
                 window.practitioner = practitioner;
                 console.log('🔍 DEBUG: Current practitioner set from Firestore:', practitioner);
-                console.log('🔍 DEBUG: Practitioner profileImage after load:', practitioner.profileImage ? practitioner.profileImage.substring(0, 50) + '...' : 'null');
+                
+                // Update interface
                 updatePractitionerInterface();
+                
+                // Wait a moment for interface to render, then check if we should hide loading screen
+                setTimeout(() => {
+                    // Only hide if dashboard is fully ready
+                    const dashboardReady = document.getElementById('dashboard') !== null;
+                    const practitionerReady = window.practitioner && window.practitioner.id;
+                    
+                    if (dashboardReady && practitionerReady) {
+                        // Dashboard is ready, but let the main hideSplashAfterInit handle it
+                        // to ensure everything is loaded
+                        console.log('🔍 DEBUG: Practitioner and dashboard ready, waiting for full initialization...');
+                    }
+                }, 100);
+                
+                // Set up real-time listener to monitor for status changes (suspension, fraud, etc.)
+                setupPractitionerStatusListener(uid);
                 
             } catch (error) {
                 console.error('🔍 DEBUG: Error loading practitioner from Firestore:', error);
                 // Fallback to local storage
                 loadPractitionerFromLocalStorage();
+                
+                // Still set up status listener even if loading from local storage
+                const firebaseUser = window.firebaseAuth ? window.firebaseAuth.currentUser : null;
+                if (firebaseUser && firebaseUser.uid) {
+                    console.log('🔍 DEBUG: Setting up status listener after local storage fallback');
+                    setupPractitionerStatusListener(firebaseUser.uid);
+                }
+            }
+        }
+        
+        // Set up real-time Firestore listener to detect status changes
+        function setupPractitionerStatusListener(uid) {
+            if (!window.firebaseDb || !uid) {
+                console.warn('🔍 DEBUG: Cannot set up status listener - Firebase DB or UID not available');
+                return;
+            }
+            
+            console.log('🔍 DEBUG: Setting up real-time status listener for practitioner UID:', uid);
+            
+            // Get user email for fallback checking
+            const currentUser = window.firebaseAuth ? window.firebaseAuth.currentUser : null;
+            const userEmail = currentUser ? currentUser.email : null;
+            
+            // Primary listener: Watch the UID-based document
+            const userRef = window.firebaseDb.collection('users').doc(uid);
+            
+            // Helper function to check and block if suspended/fraud
+            const checkAndBlockIfSuspended = (userData, source) => {
+                if (!userData) return false;
+                
+                const currentStatus = userData.practitionerStatus;
+                const isFraudTagged = userData.fraudTagged === true;
+                
+                console.log(`🔍 DEBUG: Status listener (${source}) - Current status:`, currentStatus, 'Fraud tagged:', isFraudTagged);
+                
+                // Check if practitioner was suspended
+                if (currentStatus === 'suspended') {
+                    console.warn('🔍 DEBUG: Practitioner status changed to SUSPENDED - blocking access');
+                    alert('Your practitioner account has been suspended. Please contact support for assistance.');
+                    
+                    // Stop any listeners
+                    if (window._practitionerStatusListener) {
+                        window._practitionerStatusListener();
+                    }
+                    if (window._practitionerStatusListenerByEmail) {
+                        window._practitionerStatusListenerByEmail();
+                    }
+                    
+                    // Sign out and redirect
+                    if (window.firebaseAuth) {
+                        window.firebaseAuth.signOut().then(() => {
+                            window.location.href = '/login.html';
+                        }).catch(() => {
+                            window.location.href = '/login.html';
+                        });
+                    } else {
+                        window.location.href = '/login.html';
+                    }
+                    return true;
+                }
+                
+                // Check if practitioner was fraud-tagged
+                if (isFraudTagged || currentStatus === 'fraud') {
+                    console.warn('🔍 DEBUG: Practitioner status changed to FRAUD - blocking access');
+                    alert('Your practitioner account has been flagged. Please contact support for assistance.');
+                    
+                    // Stop any listeners
+                    if (window._practitionerStatusListener) {
+                        window._practitionerStatusListener();
+                    }
+                    if (window._practitionerStatusListenerByEmail) {
+                        window._practitionerStatusListenerByEmail();
+                    }
+                    
+                    // Sign out and redirect
+                    if (window.firebaseAuth) {
+                        window.firebaseAuth.signOut().then(() => {
+                            window.location.href = '/login.html';
+                        }).catch(() => {
+                            window.location.href = '/login.html';
+                        });
+                    } else {
+                        window.location.href = '/login.html';
+                    }
+                    return true;
+                }
+                
+                return false;
+            };
+            
+            // Set up listener to watch for status changes on UID-based document
+            const unsubscribe = userRef.onSnapshot((doc) => {
+                if (!doc.exists) {
+                    console.warn('🔍 DEBUG: UID-based user document does not exist, will check by email if available');
+                    return;
+                }
+                
+                const userData = doc.data();
+                checkAndBlockIfSuspended(userData, 'UID document');
+            }, (error) => {
+                console.error('🔍 DEBUG: Error in UID-based status listener:', error);
+            });
+            
+            // Also set up listener by email if email is available (for email-based documents)
+            let unsubscribeByEmail = null;
+            if (userEmail) {
+                console.log('🔍 DEBUG: Also setting up email-based status listener for:', userEmail);
+                
+                // Query by email and set up listener on the first matching document
+                const emailQuery = window.firebaseDb.collection('users')
+                    .where('email', '==', userEmail)
+                    .limit(1);
+                
+                emailQuery.onSnapshot((snapshot) => {
+                    if (!snapshot.empty) {
+                        snapshot.docs.forEach(doc => {
+                            // Only process if it's a different document than the UID one
+                            if (doc.id !== uid) {
+                                console.log('🔍 DEBUG: Found email-based document:', doc.id, 'different from UID:', uid);
+                                const userData = doc.data();
+                                if (checkAndBlockIfSuspended(userData, 'email-based document')) {
+                                    return; // Already blocked
+                                }
+                            }
+                        });
+                    }
+                }, (error) => {
+                    console.error('🔍 DEBUG: Error in email-based status listener:', error);
+                });
+            }
+            
+            // Store unsubscribe functions for cleanup if needed
+            window._practitionerStatusListener = unsubscribe;
+            if (unsubscribeByEmail) {
+                window._practitionerStatusListenerByEmail = unsubscribeByEmail;
             }
         }
         
@@ -4841,7 +4988,7 @@
             if (practitioner && practitioner.profileImage) {
                 return `<img src="${practitioner.profileImage}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
             }
-            return `<img src="assets/icons/user.svg" class="icon icon-lg" alt="Profile">`;
+            return `<img src="assets/icons/profile.svg" class="icon icon-lg" alt="Profile">`;
         }
         
         // Update messages header avatar with practitioner profile image
@@ -4916,11 +5063,6 @@
                 
                 // Update messages header avatar
                 updateMessagesHeaderAvatar();
-                
-                // Ensure the More menu profile section stays in sync after refresh/load
-                if (typeof updateMoreMenuProfile === 'function') {
-                    updateMoreMenuProfile();
-                }
                 
                 // Load bank details
                 loadBankDetailsInProfile();
@@ -5284,7 +5426,7 @@
         }
         
         // Dashboard Tile Modal Functions
-        async function showClientsModal() {
+        function showClientsModal() {
             try {
                 if (!practitioner || !practitioner.id) {
                     console.error('Practitioner not loaded');
@@ -5300,12 +5442,7 @@
                 modal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
                 
-                // getConnectedUsers is async – always await and default to []
-                let allClients = await cleartrackData.getConnectedUsers(practitioner.id);
-                if (!Array.isArray(allClients)) {
-                    console.warn('[showClientsModal] getConnectedUsers did not return an array. Value:', allClients);
-                    allClients = [];
-                }
+                const allClients = cleartrackData.getConnectedUsers(practitioner.id);
                 const content = document.getElementById('allClientsContent');
                 
                 if (!content) {
@@ -5365,15 +5502,11 @@
                     `;
                 }
                 
-                // Modal already shown above, no need to show again
+                if (allClientsModalEl) {
+                    allClientsModalEl.classList.remove('hidden');
+                }
             } catch (error) {
                 console.error('Error showing clients modal:', error);
-                // Close modal if it was opened
-                const modal = document.getElementById('allClientsModal');
-                if (modal) {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
                 alert('An error occurred while loading clients. Please try again.');
             }
         }
@@ -5385,7 +5518,7 @@
             }
         }
         
-        async function showActiveClientsModal() {
+        function showActiveClientsModal() {
             try {
                 if (!practitioner || !practitioner.id) {
                     console.error('Practitioner not loaded');
@@ -5401,12 +5534,7 @@
                 modal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
                 
-                // getConnectedUsers is async – always await and default to []
-                let allClients = await cleartrackData.getConnectedUsers(practitioner.id);
-                if (!Array.isArray(allClients)) {
-                    console.warn('[showActiveClientsModal] getConnectedUsers did not return an array. Value:', allClients);
-                    allClients = [];
-                }
+                const allClients = cleartrackData.getConnectedUsers(practitioner.id);
                 const activeClients = allClients.filter(client => 
                     (client.documentCount || 0) > 0 || (client.expenseCount || 0) > 0
                 );
@@ -5463,7 +5591,7 @@
                                             <div style="font-weight: 600; color: #374151;">${client.firstName} ${client.lastName}</div>
                                             <div class="text-sm text-gray-500">${client.email}</div>
                                             <div style="font-size: 0.75rem; color: #059669; margin-top: 0.25rem;">
-                                                <img src="assets/icons/document.svg" class="icon icon-sm icon-gray-500" alt="Documents"> ${client.documentCount} Documents • <img src="assets/icons/money.svg" class="icon icon-sm icon-gray-500" alt="Expenses"> ${client.expenseCount} Expenses
+                                                <img src="assets/icons/document.svg" class="icon icon-sm icon-gray-500" alt="Documents"> ${client.documentCount} Documents • <img src="assets/icons/cash.svg" class="icon icon-sm icon-gray-500" alt="Expenses"> ${client.expenseCount} Expenses
                                             </div>
                                         </div>
                                     </div>
@@ -5476,15 +5604,11 @@
                     `;
                 }
                 
-                // Modal already shown above, no need to show again
+                if (activeClientsModalEl) {
+                    activeClientsModalEl.classList.remove('hidden');
+                }
             } catch (error) {
                 console.error('Error showing active clients modal:', error);
-                // Close modal if it was opened
-                const modal = document.getElementById('activeClientsModal');
-                if (modal) {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
                 alert('An error occurred while loading active clients. Please try again.');
             }
         }
@@ -5571,13 +5695,6 @@
             }
             } catch (error) {
                 console.error('Error in showPendingReturnsModal:', error);
-                // Close modal if it was opened
-                const modal = document.getElementById('pendingReturnsModal');
-                if (modal) {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
-                alert('An error occurred while loading pending returns. Please try again.');
             }
         }
         
@@ -5590,12 +5707,6 @@
         }
         
         function showCompletedReturnsModal() {
-            try {
-                if (!practitioner || !practitioner.id) {
-                    console.error('Practitioner not loaded');
-                    return;
-                }
-                
             // Show modal first
             const modal = document.getElementById('completedReturnsModal');
             if (!modal) {
@@ -5646,16 +5757,6 @@
                         `).join('')}
                     </div>
                 `;
-                }
-            } catch (error) {
-                console.error('Error in showCompletedReturnsModal:', error);
-                // Close modal if it was opened
-                const modal = document.getElementById('completedReturnsModal');
-                if (modal) {
-                    modal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
-                alert('An error occurred while loading completed returns. Please try again.');
             }
         }
         
@@ -5874,7 +5975,7 @@
         // Hide invoice preview modal
         
         // Send invoice via chat
-        function sendInvoiceViaChat() {
+        async function sendInvoiceViaChat() {
             if (!window.currentInvoice) {
                 alert('No invoice available to send.');
                 return;
@@ -5932,18 +6033,43 @@
             // Get the proper client name for display
             const clientDisplayName = client.name || `${client.firstName || ''} ${client.lastName || ''}`.trim() || invoice.clientName;
             
-            // Send message to client
+            // Send message to client - include full invoice data
             const messageData = {
                 sender: 'practitioner',
                 senderName: `${practitioner.firstName} ${practitioner.lastName}`,
                 receiverName: clientDisplayName,
                 text: message,
                 type: 'invoice',
-                invoiceData: invoice
+                invoiceData: {
+                    ...invoice, // Include all invoice fields
+                    id: invoice.id,
+                    invoiceNumber: invoice.invoiceNumber,
+                    clientName: invoice.clientName,
+                    clientId: invoice.clientId || client.id,
+                    practitionerId: invoice.practitionerId || practitioner.id,
+                    total: invoice.total,
+                    amount: invoice.amount,
+                    vat: invoice.vat,
+                    vatType: invoice.vatType,
+                    vatReason: invoice.vatReason,
+                    dueDate: invoice.dueDate,
+                    invoiceDate: invoice.invoiceDate,
+                    description: invoice.description,
+                    taxYear: invoice.taxYear,
+                    notes: invoice.notes,
+                    bankDetails: invoice.bankDetails,
+                    status: invoice.status,
+                    createdAt: invoice.createdAt
+                }
             };
             
             // Save message with correct parameters - CORRECTED PARAMETER ORDER
-            cleartrackData.addMessage(client.id, practitioner.id, messageData);
+            // Use Firestore if available, fallback to localStorage
+            if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                await window.firestoreData.addMessage(client.id, practitioner.id, messageData);
+            } else {
+                cleartrackData.addMessage(client.id, practitioner.id, messageData);
+            }
             
             // Close preview modal
             hideInvoicePreviewModal();
@@ -6040,7 +6166,7 @@
                 // Preview invoice actions
                 actionButtons.innerHTML = `
                     <button class="btn btn-primary" onclick="generateInvoiceFromPreview('${invoice.taxYear}')" style="display: flex; align-items: center; gap: 8px; background: #3b82f6; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
-                        <img src="assets/icons/money.svg" class="icon icon-sm" alt="Generate"> Generate Invoice
+                        <img src="assets/icons/cash.svg" class="icon icon-sm" alt="Generate"> Generate Invoice
                     </button>
                     <button class="btn btn-outline" onclick="hideInvoicePreviewModal()" style="display: flex; align-items: center; gap: 8px; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
                         <img src="assets/icons/trash.svg" class="icon icon-sm" alt="Close"> Close Preview
@@ -6053,7 +6179,7 @@
                         <img src="assets/icons/message.svg" class="icon icon-sm" alt="Chat"> Send via Chat
                     </button>
                     <button class="btn btn-success" onclick="sendInvoiceViaEmail()" style="display: flex; align-items: center; gap: 8px; background: #10b981; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
-                        <img src="assets/icons/email.svg" class="icon icon-sm" alt="Email"> Send via Email
+                        <img src="assets/icons/message.svg" class="icon icon-sm" alt="Email"> Send via Email
                     </button>
                     <button class="btn btn-outline" onclick="downloadCurrentInvoicePDF()" style="display: flex; align-items: center; gap: 8px; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">
                         <img src="assets/icons/download.svg" class="icon icon-sm" alt="Download"> Download PDF
@@ -6094,7 +6220,7 @@
         }
         
         // Send invoice via chat by ID
-        function sendInvoiceViaChatById(invoiceId) {
+        async function sendInvoiceViaChatById(invoiceId) {
             const allInvoices = cleartrackData.getInvoicesForPractitioner(practitioner.id);
             const invoice = allInvoices.find(inv => inv.id === invoiceId);
             
@@ -6780,7 +6906,7 @@
         }
         
         // Handle invoice form submission
-        function handleInvoiceSubmission() {
+        async function handleInvoiceSubmission() {
             console.log('🚀 handleInvoiceSubmission called!');
             
             // Prevent multiple submissions
@@ -6923,9 +7049,14 @@
                 
                 console.log('Invoice created:', invoice);
                 
-                // Save invoice to data storage
+                // Save invoice to data storage - Use Firestore if available, fallback to localStorage
                 console.log('💾 Saving invoice to data storage...');
-                const savedInvoice = cleartrackData.addInvoice(invoice);
+                let savedInvoice;
+                if (window.firestoreData && typeof window.firestoreData.addInvoice === 'function') {
+                    savedInvoice = await window.firestoreData.addInvoice(invoice);
+                } else {
+                    savedInvoice = cleartrackData.addInvoice(invoice);
+                }
                 console.log('💾 Invoice saved:', savedInvoice);
                 
                 // Verify invoice was saved
@@ -7537,7 +7668,7 @@
         }
         
         // Generate new invoice
-        function generateNewInvoice() {
+        async function generateNewInvoice() {
             console.log('🚀 Generating new invoice');
             
             // Get form data
@@ -7652,9 +7783,13 @@
             
             console.log('💾 Saving invoice:', invoice);
             
-            // Save invoice
+            // Save invoice - Use Firestore if available, fallback to localStorage
             try {
-                cleartrackData.addInvoice(invoice);
+                if (window.firestoreData && typeof window.firestoreData.addInvoice === 'function') {
+                    await window.firestoreData.addInvoice(invoice);
+                } else {
+                    cleartrackData.addInvoice(invoice);
+                }
                 console.log('✅ Invoice saved successfully');
                 
                 // If invoice was generated from a tax return, mark the return as invoiced
@@ -8033,7 +8168,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         }
         
         // Send invoice via chat
-        function chatInvoice(invoiceId) {
+        async function chatInvoice(invoiceId) {
             console.log('💬 Sending invoice via chat:', invoiceId);
             
             // First try to find invoice in storage
@@ -8086,7 +8221,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             // Get the proper client name for display
             const clientDisplayName = client.name || `${client.firstName || ''} ${client.lastName || ''}`.trim() || invoice.clientName;
             
-            // Create chat message with invoice - using correct API signature
+            // Create chat message with invoice - include full invoice data
             const messageData = {
                 sender: 'practitioner',
                 senderName: `${practitioner.firstName} ${practitioner.lastName}`,
@@ -8094,21 +8229,36 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 text: `📄 Invoice ${invoice.invoiceNumber}\n\nAmount: R ${invoice.total.toFixed(2)}\nDue Date: ${new Date(invoice.dueDate).toLocaleDateString()}\n\nPlease review your invoice.`,
                 type: 'invoice',
                 invoiceData: {
+                    ...invoice, // Include all invoice fields
                     id: invoice.id,
                     invoiceNumber: invoice.invoiceNumber,
+                    clientName: invoice.clientName,
+                    clientId: invoice.clientId || client.id,
+                    practitionerId: invoice.practitionerId || practitioner.id,
                     total: invoice.total,
                     amount: invoice.amount,
                     vat: invoice.vat,
+                    vatType: invoice.vatType,
+                    vatReason: invoice.vatReason,
                     dueDate: invoice.dueDate,
                     invoiceDate: invoice.invoiceDate,
                     description: invoice.description || 'Tax return preparation and filing services',
-                    taxYear: invoice.taxYear
+                    taxYear: invoice.taxYear,
+                    notes: invoice.notes,
+                    bankDetails: invoice.bankDetails,
+                    status: invoice.status,
+                    createdAt: invoice.createdAt
                 }
             };
             
             // Save message with correct parameters: userId, practitionerId, messageData
             try {
-                cleartrackData.addMessage(client.id, practitioner.id, messageData);
+                // Use Firestore if available, fallback to localStorage
+                if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                    await window.firestoreData.addMessage(client.id, practitioner.id, messageData);
+                } else {
+                    cleartrackData.addMessage(client.id, practitioner.id, messageData);
+                }
                 
                 // Show success message
                 alert(`Invoice sent to ${clientDisplayName} via chat!`);
@@ -8188,7 +8338,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         }
         
         // Simple test to create a test invoice
-        function createTestInvoice() {
+        async function createTestInvoice() {
             console.log('🧪 Creating test invoice...');
             
             // Create a simple test invoice
@@ -8220,8 +8370,12 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             
             console.log('Test invoice created:', testInvoice);
             
-            // Save the test invoice
-            cleartrackData.addInvoice(testInvoice);
+            // Save the test invoice - Use Firestore if available, fallback to localStorage
+            if (window.firestoreData && typeof window.firestoreData.addInvoice === 'function') {
+                await window.firestoreData.addInvoice(testInvoice);
+            } else {
+                cleartrackData.addInvoice(testInvoice);
+            }
             
             // Update display
             loadInvoices();
@@ -8368,7 +8522,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 <div class="mb-8">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h4 style="color: #374151; margin: 0;">
-                            <img src="assets/icons/money.svg" class="icon icon-sm" alt="Expenses"> Expenses (${expenses.length}) - Total: R ${expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0).toLocaleString()}
+                            <img src="assets/icons/cash.svg" class="icon icon-sm" alt="Expenses"> Expenses (${expenses.length}) - Total: R ${expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0).toLocaleString()}
                         </h4>
                         ${expenses.length > 0 ? `
                             <button class="btn btn-outline btn-sm" onclick="openExpenseModal('${clientId}')">
@@ -8517,60 +8671,101 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             }, 3000);
         }
         
-        // Show section
-        function showSection(sectionName) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.add('hidden');
-            });
+        // Show section - direct implementation for practitioner dashboard
+        // Override unified handler to prevent recursion issues
+        function showSection(sectionName, options) {
+            // Prevent infinite recursion - use a more robust check
+            if (window._showSectionCalling) {
+                console.warn('[practitioner-dashboard] showSection recursion prevented for:', sectionName);
+                return false;
+            }
+            window._showSectionCalling = true;
             
-            // Show selected section
-            document.getElementById(sectionName).classList.remove('hidden');
-            
-            // Update nav links
+            try {
+                // Direct implementation - hide all sections
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                
+                // Show target section
+                const targetSection = document.getElementById(sectionName);
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                } else {
+                    console.warn(`[practitioner-dashboard] Section '${sectionName}' not found`);
+                    window._showSectionCalling = false;
+                    return false;
+                }
+                
+                // Update desktop nav links
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('active');
+                    const linkSection = link.getAttribute('onclick');
+                    if (linkSection && linkSection.includes(`'${sectionName}'`)) {
+                        link.classList.add('active');
+                    }
+                });
+                
+                // Update bottom nav active state
+                document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('data-section') === sectionName) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                // Load section-specific data if needed
+                if (options?.loadData !== false) {
+                    if (sectionName === 'dashboard' && typeof updateDashboard === 'function') {
+                        updateDashboard();
+                    } else if (sectionName === 'messages' && typeof loadMessages === 'function') {
+                        loadMessages();
+                    } else if (sectionName === 'clients' && typeof loadClients === 'function') {
+                        loadClients();
+                    } else if (sectionName === 'tax-returns' && typeof loadTaxReturns === 'function') {
+                        loadTaxReturns();
+                    } else if (sectionName === 'invoices' && typeof loadInvoices === 'function') {
+                        loadInvoices();
+                    } else if (sectionName === 'requests' && typeof loadConnectionRequests === 'function') {
+                        loadConnectionRequests();
+                    }
+                }
+                
+                // Scroll to top of section
+                if (targetSection) {
+                    setTimeout(() => {
+                        targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                }
+                
+                return true;
+            } finally {
+                // Clear the flag after a short delay to allow async operations
+                setTimeout(() => {
+                    window._showSectionCalling = false;
+                }, 50);
+            }
+        }
+        // Make it global - override unified handler
+        window.showSection = showSection;
+        
+        // Navigation handler for desktop nav links (hamburger menu disabled on mobile)
+        function handleNavClick(sectionName, event) {
+            if (event) {
+                event.preventDefault();
+            }
+            if (typeof showSection === 'function') {
+                showSection(sectionName);
+            }
+            // Update nav link active state
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('active');
             });
             if (event && event.target) {
                 event.target.classList.add('active');
             }
-            
-            // Update data if needed
-            if (sectionName === 'dashboard') {
-                updateDashboard();
-            } else if (sectionName === 'requests') {
-                loadConnectionRequests();
-                // Also load client requests and history when requests section is shown
-                if (typeof loadClientRequests === 'function') {
-                    loadClientRequests();
-                }
-                if (typeof loadRequestHistory === 'function') {
-                    loadRequestHistory();
-                }
-            } else if (sectionName === 'clients') {
-                loadClients();
-            } else if (sectionName === 'tax-returns') {
-                loadTaxReturns();
-            } else if (sectionName === 'messages') {
-                loadConversations();
-            } else if (sectionName === 'requests') {
-                loadConnectionRequests();
-                // Also load client requests and history when requests section is shown
-                if (typeof loadClientRequests === 'function') {
-                    loadClientRequests();
-                }
-                if (typeof loadRequestHistory === 'function') {
-                    loadRequestHistory();
-                }
-            } else if (sectionName === 'invoices') {
-                loadInvoices();
-            }
         }
-        
-        // Navigation handler removed - using global-hamburger-menu.js
-        
-        // Hamburger menu functions removed - now using global-hamburger-menu.js
-        // All menu toggle, click-outside, and escape key handlers are handled globally
+        window.handleNavClick = handleNavClick;
         
         // Update dashboard statistics
         function updateDashboard() {
@@ -9504,11 +9699,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 invoicesList.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #6b7280;">
                         <div style="margin-bottom: 16px;">
-                            <svg class="icon icon-2xl icon-gray-500" aria-hidden="true" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M 89.235 40.459 c -0.729 -0.976 -1.847 -1.536 -3.065 -1.536 H 74.085 v -8.511 c 0 -2.856 -2.324 -5.181 -5.181 -5.181 h -4.874 V 9.175 c 0 -1.96 -1.594 -3.554 -3.554 -3.554 H 13.819 c -1.96 0 -3.554 1.594 -3.554 3.554 v 6.312 H 5.18 c -2.856 0 -5.181 2.324 -5.181 5.181 v 49.46 v 7.593 v 2.517 c 0 2.284 1.858 4.143 4.142 4.143 h 70.042 c 0.011 0 0.021 0 0.033 0 c 2.389 0 4.245 -1.737 5.093 -4.753 l 10.531 -35.793 C 90.186 42.665 89.965 41.435 89.235 40.459 z M 68.905 28.231 c 1.202 0 2.181 0.978 2.181 2.181 v 8.511 h -7.055 V 28.231 H 68.905 z M 13.819 8.621 h 46.658 c 0.306 0 0.554 0.249 0.554 0.554 v 29.749 H 21.036 c -2.338 0 -4.42 1.57 -5.065 3.817 l -2.706 9.441 V 9.175 C 13.265 8.869 13.514 8.621 13.819 8.621 z M 4.142 81.379 c -0.63 0 -1.142 -0.513 -1.142 -1.143 V 77.72 v -7.593 v -49.46 c 0 -1.203 0.978 -2.181 2.181 -2.181 h 5.085 v 44.161 L 5.341 79.827 C 4.9 81.379 4.388 81.379 4.142 81.379 z M 86.963 42.986 L 76.426 78.797 c -0.331 1.179 -0.983 2.582 -2.222 2.582 c -0.003 0 -0.007 0 -0.011 0 H 7.985 c 0.086 -0.227 0.167 -0.469 0.241 -0.729 l 4.925 -17.184 h 0.114 v -0.397 l 5.59 -19.502 c 0.277 -0.968 1.174 -1.644 2.181 -1.644 h 65.133 c 0.361 0 0.57 0.208 0.663 0.332 S 87.066 42.639 86.963 42.986 z"/>
-                                <path d="M 53.125 20.484 H 20.287 c -0.829 0 -1.5 -0.671 -1.5 -1.5 s 0.671 -1.5 1.5 -1.5 h 32.838 c 0.828 0 1.5 0.671 1.5 1.5 S 53.954 20.484 53.125 20.484 z"/>
-                                <path d="M 53.125 29.484 H 20.287 c -0.829 0 -1.5 -0.671 -1.5 -1.5 s 0.671 -1.5 1.5 -1.5 h 32.838 c 0.828 0 1.5 0.671 1.5 1.5 S 53.954 29.484 53.125 29.484 z"/>
-                            </svg>
+                            <img src="assets/icons/folder.svg" class="icon icon-2xl icon-gray-500" alt="Invoice">
                         </div>
                         <h3 style="margin: 0 0 8px 0; color: #374151;">No invoices found</h3>
                         <p class="no-client-text">Generate your first invoice from the Tax Returns tab.</p>
@@ -9571,7 +9762,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                                 <img src="assets/icons/message.svg" class="icon icon-sm" alt="Send Chat"> Send Chat
                             </button>
                             <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); emailInvoice('${invoice.id}');" class="flex items-center gap-1">
-                                <img src="assets/icons/email.svg" class="icon icon-sm" alt="Email"> Email
+                                <img src="assets/icons/message.svg" class="icon icon-sm" alt="Email"> Email
                             </button>
                             ${invoice.status !== 'paid' ? `
                                 <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); markInvoicePaid('${invoice.id}');" class="flex items-center gap-1">
@@ -9728,7 +9919,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                                 return_.status === 'completed' ? 
                                     `<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                                         <button class="btn btn-sm btn-primary" onclick="generateInvoice('${return_.id}')" title="Generate invoice" style="background: #3b82f6; color: white; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; border: none; transition: all 0.2s;">
-                                        <img src="assets/icons/money.svg" class="icon icon-sm" alt="Invoice"> Generate Invoice
+                                        <img src="assets/icons/cash.svg" class="icon icon-sm" alt="Invoice"> Generate Invoice
                                         </button>
                                         ${hasInvoice ? 
                                             `<span style="color: #10b981; font-size: 0.875rem; font-weight: 500;">✅ Has Invoice</span>` : 
@@ -9840,7 +10031,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         </div>
                         <div class="client-status-badges">
                             ${hasCompletedReturn ? '<span class="status-badge status-completed"><img src="assets/icons/check.svg" class="icon icon-sm" alt="Completed"> Completed</span>' : ''}
-                            ${hasInvoice ? '<span class="status-badge status-invoiced"><img src="assets/icons/money.svg" class="icon icon-sm" alt="Invoiced"> Invoiced</span>' : ''}
+                            ${hasInvoice ? '<span class="status-badge status-invoiced"><img src="assets/icons/cash.svg" class="icon icon-sm" alt="Invoiced"> Invoiced</span>' : ''}
                             ${hasPendingReturn ? '<span class="status-badge status-pending"><img src="assets/icons/clock.svg" class="icon icon-sm" alt="Pending"> Pending</span>' : ''}
                             ${!hasCompletedReturn && !hasInvoice && !hasPendingReturn ? '<span class="status-badge status-new"><img src="assets/icons/document.svg" class="icon icon-sm" alt="New"> New</span>' : ''}
                         </div>
@@ -9856,7 +10047,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 <!-- Quick Actions Section -->
                 <div class="quick-actions-section">
                     <h3 class="section-title">
-                        <img src="assets/icons/star.svg" class="icon icon-sm" alt="Actions">
+                            <img src="assets/icons/information.svg" class="icon icon-sm" alt="Actions">
                         Quick Actions
                     </h3>
                     <div class="actions-grid">
@@ -9865,7 +10056,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                             <span>Generate Tax Return</span>
                         </button>
                         <button class="action-btn" onclick="generateInvoiceForClient('${clientId}')">
-                            <img src="assets/icons/money.svg" class="icon" alt="Invoice">
+                            <img src="assets/icons/cash.svg" class="icon" alt="Invoice">
                             <span>Generate Invoice</span>
                         </button>
                         <button class="action-btn" onclick="markClientAsComplete('${clientId}')">
@@ -9952,7 +10143,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         </div>
                         <div class="document-item">
                             <div class="document-icon">
-                                <img src="assets/icons/money.svg" class="icon" alt="Financial Records">
+                                <img src="assets/icons/cash.svg" class="icon" alt="Financial Records">
                             </div>
                             <div class="document-info">
                                 <div class="document-name">Financial Records</div>
@@ -9974,7 +10165,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 <!-- Invoices Section -->
                 <div class="invoices-section">
                     <h3 class="section-title">
-                        <img src="assets/icons/money.svg" class="icon icon-sm" alt="Invoices">
+                        <img src="assets/icons/cash.svg" class="icon icon-sm" alt="Invoices">
                         Invoices (${clientInvoices.length})
                     </h3>
                     ${clientInvoices.length > 0 ? `
@@ -10066,7 +10257,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 <div class="expense-tab-section">
                     <div class="section-header">
                         <h3 class="section-title">
-                            <img src="assets/icons/money.svg" class="icon icon-sm" alt="Expenses">
+                            <img src="assets/icons/cash.svg" class="icon icon-sm" alt="Expenses">
                             Expense Information (${client.expenseCount || 0})
                         </h3>
                         ${(client.expenseCount || 0) > 0 ? `
@@ -11270,7 +11461,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     <img src="assets/icons/message.svg" class="icon icon-sm" alt="Send Chat"> Send Chat
                 </button>
                 <button class="btn btn-sm btn-secondary" onclick="emailInvoice('${invoiceId}')" class="flex items-center gap-1">
-                    <img src="assets/icons/email.svg" class="icon icon-sm" alt="Email"> Email
+                    <img src="assets/icons/message.svg" class="icon icon-sm" alt="Email"> Email
                 </button>
             `;
             
@@ -11505,49 +11696,72 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         });
         
         // Load connection requests
-        function loadConnectionRequests() {
-            const requests = cleartrackData.getConnectionRequests(practitioner.id);
+        async function loadConnectionRequests() {
             const requestsList = document.getElementById('connectionRequestsList');
             
-            if (requests.length === 0) {
-                requestsList.innerHTML = '<p style="color: #6b7280; text-align: center;">No pending connection requests.</p>';
+            if (!requestsList) {
+                console.warn('[loadConnectionRequests] connectionRequestsList element not found');
                 return;
             }
             
-            requestsList.innerHTML = requests.map(request => {
-                const user = cleartrackData.getData().users[request.userId];
-                if (!user) return '';
+            try {
+                // getConnectionRequests is async, so we need to await it
+                const requests = await cleartrackData.getConnectionRequests(practitioner.id);
                 
-                return `
-                    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; background: white;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                            <div>
-                                <h4 style="margin: 0 0 0.25rem 0; color: #374151;">${user.firstName} ${user.lastName}</h4>
-                                <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">${user.email}</p>
+                // Ensure requests is an array
+                if (!Array.isArray(requests)) {
+                    console.warn('[loadConnectionRequests] requests is not an array:', requests);
+                    requestsList.innerHTML = '<p style="color: #6b7280; text-align: center;">No pending connection requests.</p>';
+                    return;
+                }
+                
+                if (requests.length === 0) {
+                    requestsList.innerHTML = '<p style="color: #6b7280; text-align: center;">No pending connection requests.</p>';
+                    return;
+                }
+                
+                const htmlContent = requests.map(request => {
+                    const user = cleartrackData.getData().users[request.userId];
+                    if (!user) return '';
+                    
+                    return `
+                        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; background: white;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 style="margin: 0 0 0.25rem 0; color: #374151;">${user.firstName} ${user.lastName}</h4>
+                                    <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">${user.email}</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 0.75rem; color: #6b7280;">${new Date(request.timestamp).toLocaleDateString()}</div>
+                                    <div style="font-size: 0.75rem; color: #6b7280;">${new Date(request.timestamp).toLocaleTimeString()}</div>
+                                </div>
                             </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 0.75rem; color: #6b7280;">${new Date(request.timestamp).toLocaleDateString()}</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">${new Date(request.timestamp).toLocaleTimeString()}</div>
+                            
+                            <div class="mb-4">
+                                <div class="attachment-text">
+                                    <strong>Request Status:</strong> <span style="color: #f59e0b; font-weight: 600;">Pending</span>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                <button onclick="approveConnectionRequest('${request.id}')" style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.875rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
+                                    Approve
+                                </button>
+                                <button onclick="rejectConnectionRequest('${request.id}')" style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.875rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
+                                    Reject
+                                </button>
                             </div>
                         </div>
-                        
-                        <div class="mb-4">
-                            <div class="attachment-text">
-                                <strong>Request Status:</strong> <span style="color: #f59e0b; font-weight: 600;">Pending</span>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                            <button onclick="approveConnectionRequest('${request.id}')" style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.875rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
-                                Approve
-                            </button>
-                            <button onclick="rejectConnectionRequest('${request.id}')" style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.875rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
-                                Reject
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+                
+                requestsList.innerHTML = htmlContent;
+            } catch (error) {
+                console.error('[loadConnectionRequests] Error loading connection requests:', error);
+                if (requestsList) {
+                    requestsList.innerHTML = '<p style="color: #ef4444; text-align: center;">Error loading connection requests. Please try again.</p>';
+                }
+            }
         }
         
         // Approve connection request
@@ -11596,6 +11810,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             
             // Close mobile nav if it's open (handled by global-hamburger-menu.js)
             const nav = document.getElementById('nav-style6');
+            const toggle = document.querySelector('.menu-toggle-style6');
             if (nav && nav.classList.contains('active')) {
                 nav.classList.remove('active');
                 if (toggle) toggle.classList.remove('active');
@@ -11773,16 +11988,16 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     </div>
                 `;
             }).join('');
-            
-            // Update messages badge with total unread count
-            const totalUnread = connectedUsers.reduce((sum, client) => {
-                return sum + cleartrackData.getUnreadMessageCount(client.id, practitioner.id);
-            }, 0);
-            updateMessagesBadge(totalUnread);
         }
         
-        function getLastMessage(userId, practitionerId) {
-            const messages = cleartrackData.getMessages(userId, practitionerId);
+        async function getLastMessage(userId, practitionerId) {
+            let messages;
+            // Use Firestore if available, fallback to localStorage
+            if (window.firestoreData && typeof window.firestoreData.getMessages === 'function') {
+                messages = await window.firestoreData.getMessages(userId, practitionerId);
+            } else {
+                messages = cleartrackData.getMessages(userId, practitionerId);
+            }
             return messages.length > 0 ? messages[messages.length - 1] : null;
         }
         
@@ -11931,7 +12146,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             document.getElementById('chatHeaderInfo').innerHTML = `
                 <div class="whatsapp-chat-contact">
                     <div class="whatsapp-chat-contact-avatar">
-                        <img src="assets/icons/user.svg" class="icon icon-lg" alt="Profile">
+                        <img src="assets/icons/profile.svg" class="icon icon-lg" alt="Profile">
                     </div>
                     <div class="whatsapp-chat-contact-info">
                         <h3>Select a client to start chatting</h3>
@@ -11947,11 +12162,6 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     </button>
                 </div>
             `;
-            
-            // Ensure the empty-state avatar reflects the practitioner's profile image
-            if (typeof updateMessagesHeaderAvatar === 'function') {
-                updateMessagesHeaderAvatar();
-            }
             
             // Hide message input area
             const messageInputArea = document.getElementById('messageInputArea');
@@ -12581,15 +12791,20 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         
         // Simple message loading - just like user dashboard
-        function loadPractitionerMessages() {
+        async function loadPractitionerMessages() {
             if (!currentConversationClient || !practitioner) {
                 console.log('❌ Cannot load messages - missing client or practitioner');
                 return;
             }
             
             console.log('📥 Loading messages for:', currentConversationClient.id, practitioner.id);
-            // Use same approach as user dashboard
-            const messages = cleartrackData.getMessages(currentConversationClient.id, practitioner.id);
+            // Use Firestore if available, fallback to localStorage
+            let messages;
+            if (window.firestoreData && typeof window.firestoreData.getMessages === 'function') {
+                messages = await window.firestoreData.getMessages(currentConversationClient.id, practitioner.id);
+            } else {
+                messages = cleartrackData.getMessages(currentConversationClient.id, practitioner.id);
+            }
             console.log('📥 Found messages:', messages.length);
             console.log('📥 Messages:', messages);
             displayConversationMessages(messages);
@@ -12868,7 +13083,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         }
 
         
-        function sendPractitionerMessage() {
+        async function sendPractitionerMessage() {
             const messageText = document.getElementById('practitionerMessageText').value.trim();
             if (!messageText || !currentConversationClient) return;
             
@@ -12884,8 +13099,13 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             console.log('📤 User ID:', currentConversationClient.id);
             console.log('📤 Practitioner ID:', practitioner.id);
             
-            // Store message - same as user dashboard
-            const storedMessage = cleartrackData.addMessage(currentConversationClient.id, practitioner.id, messageData);
+            // Store message - Use Firestore if available, fallback to localStorage
+            let storedMessage;
+            if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                storedMessage = await window.firestoreData.addMessage(currentConversationClient.id, practitioner.id, messageData);
+            } else {
+                storedMessage = cleartrackData.addMessage(currentConversationClient.id, practitioner.id, messageData);
+            }
             console.log('💾 Message stored:', storedMessage);
             
             // Clear input
@@ -13041,16 +13261,29 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             }
         }
         
-        function sendVoiceMessage(audioBlob) {
-            const message = cleartrackData.addMessage(currentConversationClient.id, practitioner.id, {
+        async function sendVoiceMessage(audioBlob) {
+            const messageData = {
                 text: '[Voice Message]',
                 sender: 'practitioner',
                 type: 'voice',
                 audioData: URL.createObjectURL(audioBlob)
-            });
+            };
+            
+            // Use Firestore if available, fallback to localStorage
+            let message;
+            if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                message = await window.firestoreData.addMessage(currentConversationClient.id, practitioner.id, messageData);
+            } else {
+                message = cleartrackData.addMessage(currentConversationClient.id, practitioner.id, messageData);
+            }
             
             if (message) {
-                const messages = cleartrackData.getMessages(currentConversationClient.id, practitioner.id);
+                let messages;
+                if (window.firestoreData && typeof window.firestoreData.getMessages === 'function') {
+                    messages = await window.firestoreData.getMessages(currentConversationClient.id, practitioner.id);
+                } else {
+                    messages = cleartrackData.getMessages(currentConversationClient.id, practitioner.id);
+                }
                 displayConversationMessages(messages);
                 loadConversations();
             }
@@ -13081,14 +13314,15 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             console.log('🔄 Converting file to base64...');
             // Convert file to base64
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 console.log('✅ File converted to base64');
                 const fileData = e.target.result;
                 const messageType = file.type.startsWith('image/') ? 'image' : 'document';
                 
                 console.log('💾 Creating message with attachment...');
-                // Create message with attachment
-                const message = cleartrackData.addMessage(currentConversationClient.id, practitioner.id, {
+                // Create message with attachment - Use Firestore if available, fallback to localStorage
+                let message;
+                const messageData = {
                     text: `[${file.type.startsWith('image/') ? 'Image' : 'Document'}: ${file.name}]`,
                     sender: 'practitioner',
                     type: messageType,
@@ -13096,11 +13330,17 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     fileData: fileData,
                     fileType: file.type,
                     fileSize: file.size
-                });
+                };
+                
+                if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                    message = await window.firestoreData.addMessage(currentConversationClient.id, practitioner.id, messageData);
+                } else {
+                    message = cleartrackData.addMessage(currentConversationClient.id, practitioner.id, messageData);
+                }
                 
                 if (message) {
                     console.log('📎 Document sent successfully:', message);
-                    loadPractitionerMessages();
+                    await loadPractitionerMessages();
                     loadConversations();
                 } else {
                     console.error('❌ Failed to create message');
@@ -13194,26 +13434,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 // Persist to practitioner data store
                 if (practitioner) {
                     practitioner.profileImage = processedDataUrl;
-                    // Persist to local data store
                     cleartrackData.updatePractitioner(practitioner.id, { profileImage: processedDataUrl });
-                    // Also persist to Firestore user profile so it survives full refresh / new devices
-                    if (window.firebaseDb && typeof window.firebaseDb.collection === 'function') {
-                        try {
-                            window.firebaseDb.collection('users').doc(practitioner.id).set({
-                                profileImage: processedDataUrl,
-                                updatedAt: (window.firebase && window.firebase.firestore)
-                                    ? window.firebase.firestore.FieldValue.serverTimestamp()
-                                    : new Date().toISOString()
-                            }, { merge: true });
-                        } catch (e) {
-                            console.warn('Failed to persist practitioner profile image to Firestore:', e);
-                        }
-                    }
-                    // Update avatars that depend on practitioner image
+                    // Update messages header avatar
                     updateMessagesHeaderAvatar();
-                    if (typeof updateMoreMenuProfile === 'function') {
-                        updateMoreMenuProfile();
-                    }
                 }
             } catch (err) {
                 console.error('Profile image processing failed:', err);
@@ -13302,24 +13525,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 cleartrackData.updatePractitioner(practitioner.id, {
                     profileImage: null
                 });
-                // Also clear from Firestore profile
-                if (window.firebaseDb && typeof window.firebaseDb.collection === 'function') {
-                    try {
-                        window.firebaseDb.collection('users').doc(practitioner.id).set({
-                            profileImage: null,
-                            updatedAt: (window.firebase && window.firebase.firestore)
-                                ? window.firebase.firestore.FieldValue.serverTimestamp()
-                                : new Date().toISOString()
-                        }, { merge: true });
-                    } catch (e) {
-                        console.warn('Failed to clear practitioner profile image in Firestore:', e);
-                    }
-                }
-                // Update avatars that depend on practitioner image
+                // Update messages header avatar
                 updateMessagesHeaderAvatar();
-                if (typeof updateMoreMenuProfile === 'function') {
-                    updateMoreMenuProfile();
-                }
             }
         }
         
@@ -13508,28 +13715,11 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     // Save to practitioner data
                     if (practitioner) {
                         practitioner.profileImage = croppedDataUrl;
-                        // Persist to local data store
                         cleartrackData.updatePractitioner(practitioner.id, {
                             profileImage: croppedDataUrl
                         });
-                        // Also persist to Firestore user profile
-                        if (window.firebaseDb && typeof window.firebaseDb.collection === 'function') {
-                            try {
-                                window.firebaseDb.collection('users').doc(practitioner.id).set({
-                                    profileImage: croppedDataUrl,
-                                    updatedAt: (window.firebase && window.firebase.firestore)
-                                        ? window.firebase.firestore.FieldValue.serverTimestamp()
-                                        : new Date().toISOString()
-                                }, { merge: true });
-                            } catch (e) {
-                                console.warn('Failed to persist cropped practitioner image to Firestore:', e);
-                            }
-                        }
-                        // Update avatars that depend on practitioner image
+                        // Update messages header avatar
                         updateMessagesHeaderAvatar();
-                        if (typeof updateMoreMenuProfile === 'function') {
-                            updateMoreMenuProfile();
-                        }
                     }
                     
                     // Show success
@@ -14192,7 +14382,6 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         function setupClientLinkingHandlers() {
             // Load client requests
             loadClientRequests();
-            loadRequestHistory();
             
             // Set up listener for client requests
             if (window.firebaseDb && window.firebaseAuth) {
@@ -14202,77 +14391,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     }
                 });
             }
-            
-            // Initialize badges on page load
-            setTimeout(() => {
-                // Update messages badge
-                if (typeof loadConversations === 'function' && practitioner && practitioner.id) {
-                    loadConversations(); // This will call updateMessagesBadge
-                }
-                // Requests badge is updated by loadClientRequests above
-            }, 1000);
         }
-        
-        // Debug function to check requests in Firestore
-        window.debugClientRequests = async function() {
-            if (!window.firebaseDb || !window.firebaseAuth) {
-                console.error('Firebase not initialized');
-                return;
-            }
-            
-            const user = window.firebaseAuth.currentUser;
-            if (!user) {
-                console.error('No authenticated user');
-                return;
-            }
-            
-            console.log('=== DEBUG: Checking Client Requests ===');
-            console.log('Practitioner UID:', user.uid);
-            
-            try {
-                // Get all requests (no filters)
-                const allRequests = await window.firebaseDb.collection('clientRequests').limit(20).get();
-                console.log('Total requests in database:', allRequests.size);
-                
-                allRequests.docs.forEach(doc => {
-                    const data = doc.data();
-                    console.log('Request:', {
-                        id: doc.id,
-                        clientUid: data.clientUid,
-                        assignedPractitionerId: data.assignedPractitionerId,
-                        status: data.status,
-                        needs: data.needs,
-                        createdAt: data.createdAt
-                    });
-                });
-                
-                // Get requests assigned to this practitioner
-                const myRequests = await window.firebaseDb.collection('clientRequests')
-                    .where('assignedPractitionerId', '==', user.uid)
-                    .get();
-                console.log('Requests assigned to me:', myRequests.size);
-                
-                // Get pending requests assigned to this practitioner
-                const pendingRequests = await window.firebaseDb.collection('clientRequests')
-                    .where('assignedPractitionerId', '==', user.uid)
-                    .where('status', '==', 'pending')
-                    .get();
-                console.log('Pending requests assigned to me:', pendingRequests.size);
-                
-                pendingRequests.docs.forEach(doc => {
-                    const data = doc.data();
-                    console.log('Pending Request:', {
-                        id: doc.id,
-                        clientUid: data.clientUid,
-                        needs: data.needs,
-                        message: data.message
-                    });
-                });
-                
-            } catch (error) {
-                console.error('Debug error:', error);
-            }
-        };
         
         // Load client requests from Firestore
         async function loadClientRequests() {
@@ -14280,422 +14399,63 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (!requestsList || !window.firebaseDb || !window.firebaseAuth) return;
             
             const user = window.firebaseAuth.currentUser;
-            if (!user) {
-                console.log('loadClientRequests: No authenticated user');
-                return;
-            }
-            
-            console.log('loadClientRequests: Loading requests for practitioner:', user.uid);
+            if (!user) return;
             
             try {
                 // Try with orderBy first, fallback to without if index missing
                 let requestsSnapshot;
                 try {
                     requestsSnapshot = await window.firebaseDb.collection('clientRequests')
-                    .where('assignedPractitionerId', '==', user.uid)
-                    .where('status', '==', 'pending')
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                } catch (orderByError) {
-                    console.warn('OrderBy query failed (index may be missing), trying without orderBy:', orderByError);
-                    // Fallback: query without orderBy, then sort in memory
-                    requestsSnapshot = await window.firebaseDb.collection('clientRequests')
                         .where('assignedPractitionerId', '==', user.uid)
                         .where('status', '==', 'pending')
-                    .get();
-                
-                    // Sort in memory
-                    const docs = requestsSnapshot.docs.sort((a, b) => {
-                        const aTime = a.data().createdAt?.toMillis ? a.data().createdAt.toMillis() : 
-                                     (a.data().createdAt ? new Date(a.data().createdAt).getTime() : 0);
-                        const bTime = b.data().createdAt?.toMillis ? b.data().createdAt.toMillis() : 
-                                     (b.data().createdAt ? new Date(b.data().createdAt).getTime() : 0);
-                        return bTime - aTime;
-                    });
-                    // Create a new QuerySnapshot-like object
-                    requestsSnapshot = {
-                        empty: docs.length === 0,
-                        docs: docs,
-                        size: docs.length
-                    };
+                        .orderBy('createdAt', 'desc')
+                        .get();
+                } catch (indexError) {
+                    // If index missing, get without orderBy and sort in memory
+                    if (indexError.code === 'failed-precondition') {
+                        console.warn('Firestore index missing - loading without orderBy');
+                        requestsSnapshot = await window.firebaseDb.collection('clientRequests')
+                            .where('assignedPractitionerId', '==', user.uid)
+                            .where('status', '==', 'pending')
+                            .get();
+                        // Sort in memory by createdAt desc
+                        requestsSnapshot.docs.sort((a, b) => {
+                            const aTime = a.data().createdAt?.toMillis?.() || a.data().createdAt?.seconds * 1000 || 0;
+                            const bTime = b.data().createdAt?.toMillis?.() || b.data().createdAt?.seconds * 1000 || 0;
+                            return bTime - aTime; // desc
+                        });
+                    } else {
+                        throw indexError;
+                    }
                 }
                 
-                const requestCount = requestsSnapshot.size || (requestsSnapshot.docs ? requestsSnapshot.docs.length : 0);
-                console.log('loadClientRequests: Found', requestCount, 'requests');
-                
-                // Update notification badge
-                updateRequestsBadge(requestCount);
-                
-                if (requestsSnapshot.empty || (requestsSnapshot.docs && requestsSnapshot.docs.length === 0)) {
+                if (requestsSnapshot.empty) {
                     requestsList.innerHTML = '<p class="text-muted-center">No new client requests</p>';
                     return;
                 }
                 
-                // Fetch client details for each request
-                const requestsWithClients = await Promise.all(
-                    requestsSnapshot.docs.map(async (doc) => {
+                requestsList.innerHTML = requestsSnapshot.docs.map(doc => {
                     const request = doc.data();
-                        let clientName = 'Unknown Client';
-                        let clientEmail = 'N/A';
-                        
-                        if (request.clientUid) {
-                            try {
-                                const clientDoc = await window.firebaseDb.collection('users').doc(request.clientUid).get();
-                                if (clientDoc.exists) {
-                                    const clientData = clientDoc.data();
-                                    clientName = clientData.name || clientData.firstName + ' ' + (clientData.lastName || '') || clientData.email || 'Unknown Client';
-                                    clientEmail = clientData.email || 'N/A';
-                                }
-                            } catch (err) {
-                                console.error('Error fetching client data:', err);
-                            }
-                        }
-                        
-                        return {
-                            id: doc.id,
-                            request: request,
-                            clientName: clientName,
-                            clientEmail: clientEmail
-                        };
-                    })
-                );
-                
-                requestsList.innerHTML = requestsWithClients.map((item, index) => {
-                    const request = item.request;
-                    const requestId = `request-${item.id}`;
-                    const collapseId = `collapse-${item.id}`;
                     return `
-                        <div class="card mb-3" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-                            <div style="padding: 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;" 
-                                 onclick="toggleRequestDetails('${collapseId}')" 
-                                 onmouseover="this.style.background='#f3f4f6'" 
-                                 onmouseout="this.style.background='#f9fafb'">
-                                <div style="flex: 1;">
-                                    <strong style="font-size: 1rem; color: #111827;">${item.clientName}</strong>
-                                    <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">
-                                        ${request.needs ? request.needs.slice(0, 2).join(', ') + (request.needs.length > 2 ? '...' : '') : 'No needs specified'}
-                                    </div>
-                                </div>
-                                <svg id="icon-${collapseId}" style="width: 20px; height: 20px; color: #6b7280; transition: transform 0.2s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
+                        <div class="card mb-3" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong>Client ID:</strong> ${request.clientUid || 'N/A'}
                             </div>
-                            <div id="${collapseId}" style="display: none; padding: 0 1rem 1rem 1rem; border-top: 1px solid #e5e7eb;">
-                                <div style="margin-top: 1rem;">
-                                    <div style="margin-bottom: 0.75rem;">
-                                        <strong style="color: #374151;">Email:</strong>
-                                        <div style="color: #6b7280; margin-top: 0.25rem;">${item.clientEmail}</div>
-                                    </div>
-                                    <div style="margin-bottom: 0.75rem;">
-                                        <strong style="color: #374151;">Needs:</strong>
-                                        <div style="color: #6b7280; margin-top: 0.25rem;">${request.needs ? request.needs.join(', ') : 'None'}</div>
-                                    </div>
-                                    ${request.message ? `
-                                    <div style="margin-bottom: 0.75rem;">
-                                        <strong style="color: #374151;">Message:</strong>
-                                        <div style="color: #6b7280; margin-top: 0.25rem;">${request.message}</div>
-                                    </div>
-                                    ` : ''}
-                                    <div style="margin-bottom: 0.75rem; font-size: 0.875rem; color: #6b7280;">
-                                        <strong>Requested:</strong> ${request.createdAt ? new Date(request.createdAt.toDate()).toLocaleString() : 'N/A'}
-                                    </div>
-                                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                        <button class="btn btn-success" onclick="event.stopPropagation(); handleAcceptRequest('${item.id}')" style="flex: 1;">Accept</button>
-                                        <button class="btn btn-secondary" onclick="event.stopPropagation(); handleDeclineRequest('${item.id}')" style="flex: 1;">Decline</button>
-                                    </div>
-                                </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong>Needs:</strong> ${request.needs ? request.needs.join(', ') : 'None'}
+                            </div>
+                            ${request.message ? `<div style="margin-bottom: 0.5rem;"><strong>Message:</strong> ${request.message}</div>` : ''}
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                <button class="btn btn-success" onclick="handleAcceptRequest('${doc.id}')">Accept</button>
+                                <button class="btn btn-secondary" onclick="handleDeclineRequest('${doc.id}')">Decline</button>
                             </div>
                         </div>
                     `;
                 }).join('');
             } catch (error) {
                 console.error('Error loading client requests:', error);
-                console.error('Error details:', {
-                    code: error.code,
-                    message: error.message,
-                    stack: error.stack
-                });
-                
-                // Debug: Try to get all requests to see what's in the database
-                try {
-                    const allRequestsSnapshot = await window.firebaseDb.collection('clientRequests').limit(10).get();
-                    console.log('Debug: All requests in database:', allRequestsSnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        assignedPractitionerId: doc.data().assignedPractitionerId,
-                        status: doc.data().status,
-                        clientUid: doc.data().clientUid
-                    })));
-                } catch (debugError) {
-                    console.error('Debug query also failed:', debugError);
-                }
-                
-                requestsList.innerHTML = '<p class="text-muted-center">Error loading requests. Check console for details.</p>';
+                requestsList.innerHTML = '<p class="text-muted-center">Error loading requests</p>';
             }
-        }
-        
-        // Load request history
-        async function loadRequestHistory() {
-            const historyList = document.getElementById('practitioner-requests-history-list');
-            if (!historyList || !window.firebaseDb || !window.firebaseAuth) return;
-            
-            const user = window.firebaseAuth.currentUser;
-            if (!user) return;
-            
-            try {
-                // Get all requests (accepted, declined, unassigned) that were assigned to this practitioner
-                // Try with orderBy first, fallback to without if index missing
-                let requestsSnapshot;
-                try {
-                    requestsSnapshot = await window.firebaseDb.collection('clientRequests')
-                        .where('assignedPractitionerId', '==', user.uid)
-                        .orderBy('createdAt', 'desc')
-                        .limit(50)
-                        .get();
-                } catch (orderByError) {
-                    console.warn('OrderBy query failed for request history (index may be missing), trying without orderBy:', orderByError);
-                    // Fallback: query without orderBy, then sort in memory
-                    requestsSnapshot = await window.firebaseDb.collection('clientRequests')
-                        .where('assignedPractitionerId', '==', user.uid)
-                        .limit(50)
-                        .get();
-                    
-                    // Sort in memory
-                    const docs = requestsSnapshot.docs.sort((a, b) => {
-                        const aTime = a.data().createdAt?.toMillis ? a.data().createdAt.toMillis() : 
-                                     (a.data().createdAt ? new Date(a.data().createdAt).getTime() : 0);
-                        const bTime = b.data().createdAt?.toMillis ? b.data().createdAt.toMillis() : 
-                                     (b.data().createdAt ? new Date(b.data().createdAt).getTime() : 0);
-                        return bTime - aTime;
-                    });
-                    // Create a new QuerySnapshot-like object
-                    requestsSnapshot = {
-                        empty: docs.length === 0,
-                        docs: docs,
-                        size: docs.length
-                    };
-                }
-                
-                if (requestsSnapshot.empty || (requestsSnapshot.docs && requestsSnapshot.docs.length === 0)) {
-                    historyList.innerHTML = '<p class="text-muted-center" style="padding: 2rem; color: #6b7280;">No request history yet. Your past request actions will appear here.</p>';
-                    return;
-                }
-                
-                // Fetch client details for each request
-                const requestsWithClients = await Promise.all(
-                    requestsSnapshot.docs.map(async (doc) => {
-                        const request = doc.data();
-                        let clientName = 'Unknown Client';
-                        let clientEmail = 'N/A';
-                        
-                        if (request.clientUid) {
-                            try {
-                                const clientDoc = await window.firebaseDb.collection('users').doc(request.clientUid).get();
-                                if (clientDoc.exists) {
-                                    const clientData = clientDoc.data();
-                                    clientName = clientData.name || clientData.firstName + ' ' + (clientData.lastName || '') || clientData.email || 'Unknown Client';
-                                    clientEmail = clientData.email || 'N/A';
-                                }
-                            } catch (err) {
-                                console.error('Error fetching client data:', err);
-                            }
-                        }
-                        
-                        return {
-                            id: doc.id,
-                            request: request,
-                            clientName: clientName,
-                            clientEmail: clientEmail
-                        };
-                    })
-                );
-                
-                historyList.innerHTML = requestsWithClients.map(item => {
-                    const request = item.request;
-                    const statusColor = request.status === 'accepted' ? '#059669' : 
-                                      request.status === 'declined' ? '#dc2626' : 
-                                      request.status === 'unassigned' ? '#d97706' : '#6b7280';
-                    const statusText = request.status === 'accepted' ? 'Accepted' : 
-                                      request.status === 'declined' ? 'Declined' : 
-                                      request.status === 'unassigned' ? 'Unassigned' : 
-                                      request.status || 'Unknown';
-                    
-                    return `
-                        <div class="card mb-3" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                <div>
-                                    <div style="margin-bottom: 0.25rem;">
-                                        <strong>Client:</strong> ${item.clientName}
-                                    </div>
-                                    <div style="margin-bottom: 0.25rem; font-size: 0.875rem; color: #6b7280;">
-                                        <strong>Email:</strong> ${item.clientEmail}
-                                    </div>
-                                </div>
-                                <span style="padding: 0.25rem 0.75rem; border-radius: 6px; background: ${statusColor}20; color: ${statusColor}; font-size: 0.875rem; font-weight: 500;">
-                                    ${statusText}
-                                </span>
-                            </div>
-                            <div style="margin-bottom: 0.5rem;">
-                                <strong>Needs:</strong> ${request.needs ? request.needs.join(', ') : 'None'}
-                            </div>
-                            ${request.message ? `<div style="margin-bottom: 0.5rem;"><strong>Message:</strong> ${request.message}</div>` : ''}
-                            <div style="font-size: 0.875rem; color: #6b7280;">
-                                <strong>Requested:</strong> ${request.createdAt ? new Date(request.createdAt.toDate()).toLocaleString() : 'N/A'}
-                                ${request.updatedAt ? ` | <strong>Updated:</strong> ${new Date(request.updatedAt.toDate()).toLocaleString()}` : ''}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('Error loading request history:', error);
-                console.error('Error details:', {
-                    code: error.code,
-                    message: error.message,
-                    stack: error.stack
-                });
-                
-                // Check if it's actually an error or just no data
-                // Try a simpler query to see if we can access the collection at all
-                try {
-                    const testSnapshot = await window.firebaseDb.collection('clientRequests')
-                        .where('assignedPractitionerId', '==', user.uid)
-                        .limit(1)
-                        .get();
-                    
-                    if (testSnapshot.empty) {
-                        // No data, not an error
-                        historyList.innerHTML = '<p class="text-muted-center" style="padding: 2rem; color: #6b7280;">No request history yet. Your past request actions will appear here.</p>';
-                    } else {
-                        // There is data but we had an error - show friendly message
-                        historyList.innerHTML = '<p class="text-muted-center" style="padding: 2rem; color: #6b7280;">Unable to load request history at this time. Please refresh the page or try again later.</p>';
-                    }
-                } catch (testError) {
-                    // Real error accessing Firestore
-                    console.error('Test query also failed:', testError);
-                    historyList.innerHTML = '<p class="text-muted-center" style="padding: 2rem; color: #6b7280;">Unable to load request history. Please check your connection and try again.</p>';
-                }
-            }
-        }
-        
-        // Toggle request details accordion
-        function toggleRequestDetails(collapseId) {
-            const detailsDiv = document.getElementById(collapseId);
-            const icon = document.getElementById(`icon-${collapseId}`);
-            
-            if (!detailsDiv) return;
-            
-            if (detailsDiv.style.display === 'none') {
-                detailsDiv.style.display = 'block';
-                if (icon) {
-                    icon.style.transform = 'rotate(180deg)';
-                }
-            } else {
-                detailsDiv.style.display = 'none';
-                if (icon) {
-                    icon.style.transform = 'rotate(0deg)';
-                }
-            }
-        }
-        
-        // Update requests notification badge
-        function updateRequestsBadge(count) {
-            // Update desktop nav badge
-            const desktopBadge = document.getElementById('requests-badge');
-            if (desktopBadge) {
-                if (count > 0) {
-                    desktopBadge.textContent = count;
-                    desktopBadge.style.display = 'inline-block';
-                } else {
-                    desktopBadge.style.display = 'none';
-                }
-            }
-            
-            // Update mobile bottom nav badge
-            const mobileNavItems = document.querySelectorAll('.bottom-nav-item');
-            mobileNavItems.forEach(item => {
-                const section = item.getAttribute('data-section');
-                if (section === 'requests' || (item.textContent && item.textContent.trim().toLowerCase().includes('request'))) {
-                    let badge = item.querySelector('.bottom-nav-badge');
-                    if (count > 0) {
-                        if (!badge) {
-                            badge = document.createElement('span');
-                            badge.className = 'bottom-nav-badge';
-                            item.appendChild(badge);
-                        }
-                        badge.textContent = count;
-                        badge.style.display = 'flex';
-                    } else {
-                        if (badge) {
-                            badge.style.display = 'none';
-                        }
-                    }
-                }
-            });
-            
-            // Update More menu "Connection Requests" badge
-            const moreMenuItems = document.querySelectorAll('.more-menu-item');
-            moreMenuItems.forEach(item => {
-                const itemText = item.textContent ? item.textContent.trim().toLowerCase() : '';
-                if (itemText.includes('connection request') || itemText.includes('requests')) {
-                    // Find the arrow element
-                    const arrow = item.querySelector('.more-menu-item-arrow');
-                    let badge = item.querySelector('.more-menu-badge');
-                    
-                    if (count > 0) {
-                        if (!badge) {
-                            badge = document.createElement('span');
-                            badge.className = 'more-menu-badge';
-                            // Insert before the arrow, or at the end if no arrow
-                            if (arrow) {
-                                item.insertBefore(badge, arrow);
-                            } else {
-                                item.appendChild(badge);
-                            }
-                        }
-                        badge.textContent = count;
-                        badge.style.display = 'inline-block';
-                    } else {
-                        if (badge) {
-                            badge.style.display = 'none';
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Update messages notification badge
-        function updateMessagesBadge(count) {
-            // Update desktop nav badge
-            const desktopBadge = document.getElementById('messages-badge');
-            if (desktopBadge) {
-                if (count > 0) {
-                    desktopBadge.textContent = count;
-                    desktopBadge.style.display = 'inline-block';
-                } else {
-                    desktopBadge.style.display = 'none';
-                }
-            }
-            
-            // Update mobile bottom nav badge
-            const mobileNavItems = document.querySelectorAll('.bottom-nav-item');
-            mobileNavItems.forEach(item => {
-                const section = item.getAttribute('data-section');
-                if (section === 'messages' || (item.textContent && item.textContent.trim().toLowerCase().includes('message'))) {
-                    let badge = item.querySelector('.bottom-nav-badge');
-                    if (count > 0) {
-                        if (!badge) {
-                            badge = document.createElement('span');
-                            badge.className = 'bottom-nav-badge';
-                            item.appendChild(badge);
-                        }
-                        badge.textContent = count;
-                        badge.style.display = 'flex';
-                    } else {
-                        if (badge) {
-                            badge.style.display = 'none';
-                        }
-                    }
-                }
-            });
         }
         
         // Set up real-time listener for client requests
@@ -14706,10 +14466,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 .where('assignedPractitionerId', '==', practitionerId)
                 .where('status', '==', 'pending')
                 .onSnapshot((snapshot) => {
-                    const count = snapshot.size || snapshot.docs.length;
-                    updateRequestsBadge(count);
                     loadClientRequests();
-                    loadRequestHistory(); // Also refresh history when status changes
                 }, (error) => {
                     console.error('Error setting up client requests listener:', error);
                 });
@@ -14724,9 +14481,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             
             try {
                 await window.CTClientLinking.respondToClientRequest(requestId, 'accept');
-                alert('Request accepted! Client has been linked to you and notified.');
+                alert('Request accepted! Client has been linked to you.');
                 loadClientRequests();
-                loadRequestHistory();
             } catch (error) {
                 alert('Error accepting request: ' + error.message);
             }
@@ -14739,15 +14495,14 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
-            if (!confirm('Are you sure you want to decline this request? It will be reassigned to another practitioner.')) {
+            if (!confirm('Are you sure you want to decline this request?')) {
                 return;
             }
             
             try {
                 await window.CTClientLinking.respondToClientRequest(requestId, 'decline');
                 alert('Request declined. It will be reassigned to another practitioner.');
-                loadClientRequests(); // This will update the badge
-                loadRequestHistory();
+                loadClientRequests();
             } catch (error) {
                 alert('Error declining request: ' + error.message);
             }
@@ -14811,7 +14566,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     <button onclick="choosePractitionerPhoto()" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: white; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; font-size: 15px; font-weight: 500; color: #374151; text-align: left;" onmouseover="this.style.borderColor='#0b7285'; this.style.background='#f0fdfa'; this.style.transform='translateX(4px)';" onmouseout="this.style.borderColor='#e5e7eb'; this.style.background='white'; this.style.transform='translateX(0)';">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; border-radius: 6px; flex-shrink: 0;">
-                                <img src="assets/icons/gallery.svg" class="icon" alt="Gallery" style="width: 16px; height: 16px;">
+                                <img src="assets/icons/photos-10608.svg" class="icon" alt="Gallery" style="width: 16px; height: 16px;">
                 </div>
                             <span>Choose from Gallery</span>
                 </div>
@@ -14909,6 +14664,16 @@ ${practitioner.firstName} ${practitioner.lastName}`;
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {
+        const toggle = document.getElementById("ctMenuToggle");
+        const nav = document.getElementById("ctMainNav");
+
+        if (toggle && nav) {
+            toggle.addEventListener("click", () => {
+                const open = nav.classList.toggle("active");
+                toggle.setAttribute("aria-expanded", open ? "true" : "false");
+            });
+        }
+
         const logoutBtn = document.getElementById("desktopLogoutBtn");
         if (logoutBtn && window.firebaseAuth) {
             logoutBtn.addEventListener("click", async () => {
@@ -14965,19 +14730,189 @@ ${practitioner.firstName} ${practitioner.lastName}`;
     </div>
     
     <!-- Firebase SDKs (compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-app-check-compat.js"></script>
+    <!-- App Check: Disable enforcement for AI Logic in Firebase Console -->
+    <!-- 
+        To fix "App Check token is invalid" error:
+        
+        Option 1 (Recommended): Disable App Check enforcement for AI Logic
+        1. Go to Firebase Console > Build > App Check
+        2. Find "AI Logic" in the services list
+        3. Click on it and disable enforcement
+        
+        Option 2: Initialize App Check properly with reCAPTCHA v3
+        (Requires reCAPTCHA site key setup)
+    -->
+    
+    <!-- Firebase AI Logic SDK - Load dynamically -->
+    <script>
+        // Load Firebase AI SDK dynamically as a module
+        (async function() {
+            try {
+                console.log('🔄 Loading Firebase AI SDK...');
+                // Import both the app SDK and AI SDK as modules
+                const appModule = await import('https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js');
+                const aiModule = await import('https://www.gstatic.com/firebasejs/11.8.0/firebase-ai.js');
+                console.log('📦 Modules loaded');
+                
+                const { initializeApp, getApps } = appModule;
+                const { getAI, GoogleAIBackend, getGenerativeModel } = aiModule;
+                
+                if (!getAI || !GoogleAIBackend || !initializeApp) {
+                    console.error('❌ Missing required exports');
+                    return;
+                }
+                
+                // Wait for Firebase config to be ready
+                const waitForFirebase = () => {
+                    if (window.firebaseConfig) {
+                        try {
+                            console.log('🔧 Initializing modular Firebase app for AI...');
+                            
+                            // Initialize a modular app instance using the same config
+                            // This is needed because AI SDK requires modular SDK app, not compat
+                            let modularApp;
+                            try {
+                                // Try to get existing modular app first
+                                const existingApps = getApps();
+                                if (existingApps.length > 0) {
+                                    modularApp = existingApps[0];
+                                    console.log('📦 Reusing existing modular app');
+                                } else {
+                                    modularApp = initializeApp(window.firebaseConfig);
+                                    console.log('📦 Created new modular app for AI');
+                                }
+                            } catch (e) {
+                                console.error('Error creating modular app:', e);
+                                return;
+                            }
+                            
+                            // Now initialize AI with the modular app
+                            const aiService = getAI(modularApp, { backend: new GoogleAIBackend() });
+                            console.log('✅ AI Service created:', aiService);
+                            
+                            // Create a wrapper that matches the compat API
+                            const compatAI = {
+                                generativeModel: (options) => {
+                                    console.log('📝 Creating generative model with options:', options);
+                                    return getGenerativeModel(aiService, options);
+                                }
+                            };
+                            
+                            // Expose globally for compat mode usage
+                            if (typeof firebase !== 'undefined') {
+                                firebase.ai = () => compatAI;
+                                console.log('✅ Firebase AI SDK loaded and exposed globally as firebase.ai()');
+                                
+                                // Trigger custom event
+                                window.dispatchEvent(new CustomEvent('firebaseAIReady'));
+                            }
+                        } catch (error) {
+                            console.error('❌ Error initializing Firebase AI:', error);
+                            console.error('Error details:', {
+                                message: error.message,
+                                stack: error.stack,
+                                firebaseApp: !!window.firebaseApp
+                            });
+                            
+                            // Check if it's the "Service AI is not available" error
+                            if (error.message && error.message.includes('Service AI is not available')) {
+                                console.error('');
+                                console.error('═══════════════════════════════════════════════════════');
+                                console.error('⚠️  FIREBASE AI LOGIC NOT ENABLED');
+                                console.error('═══════════════════════════════════════════════════════');
+                                console.error('');
+                                console.error('To enable Firebase AI Logic:');
+                                console.error('');
+                                console.error('1. Go to Firebase Console: https://console.firebase.google.com/');
+                                console.error('2. Select your project');
+                                console.error('3. Navigate to: Build > AI Logic (or Extensions > AI Logic)');
+                                console.error('4. Click "Enable AI Logic" or "Get Started"');
+                                console.error('5. Follow the setup wizard');
+                                console.error('6. Ensure you have a Blaze (pay-as-you-go) plan enabled');
+                                console.error('');
+                                console.error('Current project:', window.firebaseApp?.options?.projectId || 'Unknown');
+                                console.error('');
+                                console.error('═══════════════════════════════════════════════════════');
+                                console.error('');
+                                
+                                // Show user-friendly alert
+                                setTimeout(() => {
+                                    alert('Firebase AI Logic is not enabled in your Firebase project.\n\n' +
+                                          'Please enable it in the Firebase Console:\n' +
+                                          '1. Go to Build > AI Logic\n' +
+                                          '2. Click "Enable AI Logic"\n' +
+                                          '3. Ensure you have a Blaze plan enabled\n\n' +
+                                          'Check the browser console for detailed instructions.');
+                                }, 1000);
+                            }
+                        }
+                    } else {
+                        // Retry after a short delay
+                        console.log('⏳ Waiting for Firebase app...');
+                        setTimeout(waitForFirebase, 100);
+                    }
+                };
+                
+                // Start waiting for Firebase
+                if (window.firebaseApp) {
+                    waitForFirebase();
+                } else {
+                    window.addEventListener('firebaseReady', waitForFirebase);
+                    // Also try after DOM is ready
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', waitForFirebase);
+                    } else {
+                        setTimeout(waitForFirebase, 500);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Failed to load Firebase AI SDK:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+            }
+        })();
+    </script>
 
     <!-- My Firebase wiring -->
     <script src="firebase-config.js"></script>
     <script src="firebase-init.js"></script>
     <script src="firebase-api.js"></script>
     <script src="js/client-linking.js"></script>
-    <script src="loading-screen.js"></script>
+    <!-- loading-screen.js already loaded in head -->
   <script src="dashboard-auth.js"></script>
+    <!-- Initialize Firebase Functions -->
+    <script>
+        // Initialize Firebase Functions after Firebase is ready
+        function initializeFirebaseFunctions() {
+            if (window.firebaseApp && typeof firebase !== 'undefined' && firebase.functions) {
+                try {
+                    window.firebaseFunctions = firebase.functions(window.firebaseApp);
+                    console.log('✅ Firebase Functions initialized');
+                } catch (error) {
+                    console.error('❌ Error initializing Firebase Functions:', error);
+                }
+            } else {
+                console.warn('⚠️ Firebase not ready, retrying Functions initialization...');
+                setTimeout(initializeFirebaseFunctions, 500);
+            }
+        }
+        
+        // Try to initialize when Firebase is ready
+        if (window.firebaseApp) {
+            initializeFirebaseFunctions();
+        } else {
+            window.addEventListener('firebaseReady', initializeFirebaseFunctions);
+        }
+    </script>
     
     <!-- Cropper.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
@@ -14999,6 +14934,16 @@ ${practitioner.firstName} ${practitioner.lastName}`;
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {
+        const toggle = document.getElementById("ctMenuToggle");
+        const nav = document.getElementById("ctMainNav");
+
+        if (toggle && nav) {
+            toggle.addEventListener("click", () => {
+                const open = nav.classList.toggle("active");
+                toggle.setAttribute("aria-expanded", open ? "true" : "false");
+            });
+        }
+
         const logoutBtn = document.getElementById("desktopLogoutBtn");
         if (logoutBtn && window.firebaseAuth) {
             logoutBtn.addEventListener("click", async () => {
@@ -15047,6 +14992,21 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 <path d="M 53.125 29.484 H 20.287 c -0.829 0 -1.5 -0.671 -1.5 -1.5 s 0.671 -1.5 1.5 -1.5 h 32.838 c 0.828 0 1.5 0.671 1.5 1.5 S 53.954 29.484 53.125 29.484 z"/>
             </svg>
             Invoices
+        </button>
+        <button class="bottom-nav-item" data-section="ai-assistant" onclick="bottomNavClick('ai-assistant', this)">
+            <svg fill="currentColor" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" style="width: 24px; height: 24px;">
+                <g transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+                    <path d="M 35.665 87.065 c -0.12 0 -0.241 -0.021 -0.358 -0.066 c -0.387 -0.147 -0.642 -0.52 -0.642 -0.934 V 66.268 H 7.106 C 3.188 66.268 0 63.08 0 59.162 V 10.041 c 0 -3.918 3.188 -7.106 7.106 -7.106 h 75.788 c 3.919 0 7.106 3.188 7.106 7.106 v 49.122 c 0 3.918 -3.188 7.105 -7.106 7.105 H 54.781 L 36.409 86.733 C 36.215 86.949 35.943 87.065 35.665 87.065 z M 7.106 4.935 C 4.291 4.935 2 7.225 2 10.041 v 49.122 c 0 2.815 2.291 5.105 5.106 5.105 h 28.559 c 0.552 0 1 0.447 1 1 v 18.187 L 53.591 64.6 c 0.189 -0.211 0.46 -0.332 0.744 -0.332 h 28.559 c 2.815 0 5.106 -2.29 5.106 -5.105 V 10.041 c 0 -2.815 -2.291 -5.106 -5.106 -5.106 H 7.106 z" fill="currentColor"/>
+                    <path d="M 57.396 51.178 H 32.604 c -3.401 0 -6.167 -2.767 -6.167 -6.167 V 27.182 c 0 -3.401 2.767 -6.167 6.167 -6.167 h 24.791 c 3.401 0 6.168 2.767 6.168 6.167 v 17.829 C 63.563 48.411 60.797 51.178 57.396 51.178 z M 32.604 23.014 c -2.298 0 -4.167 1.87 -4.167 4.167 v 17.829 c 0 2.298 1.87 4.167 4.167 4.167 h 24.791 c 2.298 0 4.168 -1.869 4.168 -4.167 V 27.182 c 0 -2.298 -1.87 -4.167 -4.168 -4.167 H 32.604 z" fill="currentColor"/>
+                    <path d="M 22.093 41.409 c -0.552 0 -1 -0.448 -1 -1 v -9.81 c 0 -0.552 0.448 -1 1 -1 s 1 0.448 1 1 v 9.81 C 23.093 40.961 22.646 41.409 22.093 41.409 z" fill="currentColor"/>
+                    <path d="M 67.907 41.409 c -0.553 0 -1 -0.448 -1 -1 v -9.81 c 0 -0.552 0.447 -1 1 -1 s 1 0.448 1 1 v 9.81 C 68.907 40.961 68.46 41.409 67.907 41.409 z" fill="currentColor"/>
+                    <path d="M 39.021 34.813 c -0.552 0 -1 -0.448 -1 -1 v -3.59 c 0 -0.552 0.448 -1 1 -1 s 1 0.448 1 1 v 3.59 C 40.021 34.365 39.573 34.813 39.021 34.813 z" fill="currentColor"/>
+                    <path d="M 50.979 34.813 c -0.553 0 -1 -0.448 -1 -1 v -3.59 c 0 -0.552 0.447 -1 1 -1 s 1 0.448 1 1 v 3.59 C 51.979 34.365 51.532 34.813 50.979 34.813 z" fill="currentColor"/>
+                    <path d="M 45 43.67 c -2.199 0 -4.397 -0.82 -6.58 -2.461 c -0.442 -0.332 -0.531 -0.958 -0.199 -1.4 c 0.332 -0.441 0.959 -0.531 1.4 -0.199 c 3.62 2.719 7.138 2.72 10.758 0 c 0.442 -0.332 1.067 -0.243 1.4 0.199 c 0.331 0.441 0.242 1.068 -0.199 1.4 C 49.397 42.85 47.198 43.67 45 43.67 z" fill="currentColor"/>
+                    <path d="M 45 23.014 c -0.552 0 -1 -0.448 -1 -1 v -7.078 c 0 -0.552 0.448 -1 1 -1 s 1 0.448 1 1 v 7.078 C 46 22.566 45.552 23.014 45 23.014 z" fill="currentColor"/>
+                </g>
+            </svg>
+            AI
         </button>
         <button class="bottom-nav-item" onclick="openMoreMenu()">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15255,24 +15215,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             const fullName = lastName ? `${firstName} ${lastName}` : firstName;
             const initials = firstName.charAt(0).toUpperCase() + (lastName ? lastName.charAt(0).toUpperCase() : '');
             
-            const nameEl = document.getElementById('moreProfileName');
-            const emailEl = document.getElementById('moreProfileEmail');
-            const avatarEl = document.getElementById('moreProfileAvatar');
-            
-            if (nameEl) nameEl.textContent = fullName;
-            if (emailEl) emailEl.textContent = email;
-            if (avatarEl) {
-                if (prac.profileImage) {
-                    console.log('🔍 DEBUG: updateMoreMenuProfile - Setting profile image:', prac.profileImage.substring(0, 50) + '...');
-                    // Show profile photo in avatar circle
-                    avatarEl.innerHTML = `<img src="${prac.profileImage}" alt="${fullName}" style="width: 100%; height: 100%; border-radius: 9999px; object-fit: cover;" />`;
-                } else {
-                    console.log('🔍 DEBUG: updateMoreMenuProfile - No profile image, using initials:', initials);
-                    // Fallback to initials
-                    avatarEl.innerHTML = '';
-                    avatarEl.textContent = initials || 'P';
-                }
-            }
+            document.getElementById('moreProfileName').textContent = fullName;
+            document.getElementById('moreProfileEmail').textContent = email;
+            document.getElementById('moreProfileAvatar').textContent = initials || 'P';
         }
 
         // Swipe down to close
@@ -15313,6 +15258,720 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 };
             }
         });
+        
+        // Initialize Firebase AI Logic for Practitioner Dashboard
+        let practitionerAiModel = null;
+        let aiInitializationAttempts = 0;
+        const MAX_AI_INIT_ATTEMPTS = 5;
+        
+        function initializePractitionerAI() {
+            try {
+                // Check if Firebase and AI SDK are loaded
+                if (typeof firebase === 'undefined') {
+                    console.warn('Firebase SDK not loaded yet');
+                    return false;
+                }
+                
+                // Check if firebase.ai is available (it might be a function or an object)
+                if (!firebase.ai) {
+                    console.warn('Firebase AI SDK not loaded - firebase.ai is undefined');
+                    console.warn('Waiting for Firebase AI Logic to initialize...');
+                    return false;
+                }
+                
+                // Check if firebaseApp is available
+                if (!window.firebaseApp) {
+                    console.warn('Firebase app not initialized yet');
+                    return false;
+                }
+                
+                // Try to get AI service - firebase.ai() should return the AI service
+                let ai;
+                if (typeof firebase.ai === 'function') {
+                    // If it's a function, call it with the app instance
+                    try {
+                        ai = firebase.ai(window.firebaseApp);
+                    } catch (e) {
+                        // If that fails, try calling it without arguments (compat mode)
+                        ai = firebase.ai();
+                    }
+                } else {
+                    // If it's an object, use it directly
+                    ai = firebase.ai;
+                }
+                
+                if (!ai || typeof ai.generativeModel !== 'function') {
+                    console.warn('AI service not properly initialized - generativeModel not available');
+                    console.warn('AI object:', ai);
+                    return false;
+                }
+                
+                // Create the generative model - use gemini-2.5-flash (newest) or fallback to gemini-pro
+                // Note: gemini-1.5 models are retired as of September 24, 2025
+                try {
+                    practitionerAiModel = ai.generativeModel({ model: 'gemini-2.5-flash' });
+                    console.log('✅ Practitioner AI initialized with gemini-2.5-flash');
+                } catch (e) {
+                    console.warn('gemini-2.5-flash not available, trying gemini-2.5-pro...');
+                    try {
+                        practitionerAiModel = ai.generativeModel({ model: 'gemini-2.5-pro' });
+                        console.log('✅ Practitioner AI initialized with gemini-2.5-pro');
+                    } catch (e2) {
+                        console.warn('gemini-2.5-pro not available, trying gemini-pro...');
+                        practitionerAiModel = ai.generativeModel({ model: 'gemini-pro' });
+                        console.log('✅ Practitioner AI initialized with gemini-pro');
+                    }
+                }
+                
+                aiInitializationAttempts = 0; // Reset on success
+                return true;
+            } catch (error) {
+                console.error('Error initializing Practitioner AI:', error);
+                console.error('Error details:', {
+                    firebaseDefined: typeof firebase !== 'undefined',
+                    aiAvailable: typeof firebase !== 'undefined' && !!firebase.ai,
+                    appAvailable: !!window.firebaseApp,
+                    errorMessage: error.message,
+                    errorStack: error.stack
+                });
+                return false;
+            }
+        }
+        
+        // Retry initialization with exponential backoff
+        function tryInitializeAI(retryCount = 0) {
+            if (practitionerAiModel) {
+                return; // Already initialized
+            }
+            
+            if (retryCount >= MAX_AI_INIT_ATTEMPTS) {
+                console.warn('Max AI initialization attempts reached. AI may not be available.');
+                return;
+            }
+            
+            if (initializePractitionerAI()) {
+                return; // Success
+            }
+            
+            // Retry with exponential backoff
+            const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+            setTimeout(() => {
+                tryInitializeAI(retryCount + 1);
+            }, delay);
+        }
+        
+        // Version check - detect if user has outdated code
+        (function() {
+            const AI_CODE_VERSION = '20251221-1138'; // Update this when AI code changes
+            const storedVersion = localStorage.getItem('cleartrack-ai-version');
+            
+            // If version mismatch, force hard refresh to get latest code
+            if (storedVersion && storedVersion !== AI_CODE_VERSION) {
+                console.log('🔄 AI code version mismatch detected - forcing refresh...');
+                console.log('Stored version:', storedVersion, 'Current version:', AI_CODE_VERSION);
+                localStorage.setItem('cleartrack-ai-version', AI_CODE_VERSION);
+                // Force hard refresh to clear all caches
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                        registrations.forEach(registration => {
+                            registration.update(); // Force service worker update
+                        });
+                    });
+                }
+                // Reload with cache bypass
+                window.location.reload(true);
+                return;
+            }
+            
+            // Store current version
+            if (!storedVersion) {
+                localStorage.setItem('cleartrack-ai-version', AI_CODE_VERSION);
+            }
+        })();
+        
+        // Initialize AI when Firebase and AI SDK are ready
+        function startAIIitialization() {
+            const attemptInit = () => {
+                // Wait for both Firebase app and AI SDK to be ready
+                if (window.firebaseApp && typeof firebase !== 'undefined' && firebase.ai) {
+                    setTimeout(() => tryInitializeAI(0), 500);
+                } else {
+                    // Retry after a short delay
+                    setTimeout(attemptInit, 200);
+                }
+            };
+            
+            if (window.firebaseApp) {
+                attemptInit();
+            } else {
+                // Wait for Firebase to be ready
+                window.addEventListener('firebaseReady', attemptInit, { once: true });
+            }
+            
+            // Also listen for AI SDK ready event
+            window.addEventListener('firebaseAIReady', () => {
+                setTimeout(() => tryInitializeAI(0), 500);
+            }, { once: true });
+            
+            // If AI SDK doesn't load within 10 seconds, prompt user to refresh
+            setTimeout(() => {
+                if (!practitionerAiModel && typeof firebase !== 'undefined' && !firebase.ai) {
+                    console.warn('⚠️ AI SDK failed to load - user may have cached code');
+                    const shouldRefresh = confirm('Your app may be using an outdated version. Would you like to refresh to get the latest features?');
+                    if (shouldRefresh) {
+                        // Clear all caches and reload
+                        if ('caches' in window) {
+                            caches.keys().then(names => {
+                                names.forEach(name => caches.delete(name));
+                            });
+                        }
+                        window.location.reload(true);
+                    }
+                }
+            }, 10000);
+        }
+        
+        // Start initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startAIIitialization);
+        } else {
+            startAIIitialization();
+        }
+        
+        // Populate client select dropdown when AI section is shown
+        function populatePractitionerClientSelect() {
+            const select = document.getElementById('practitionerClientSelect');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">-- Select a client --</option>';
+            
+            if (clients && clients.length > 0) {
+                clients.forEach(client => {
+                    const option = document.createElement('option');
+                    option.value = client.id;
+                    option.textContent = `${client.firstName || ''} ${client.lastName || ''} (${client.email || 'No email'})`.trim();
+                    select.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No clients available';
+                option.disabled = true;
+                select.appendChild(option);
+            }
+        }
+        
+        // Populate document select based on selected client
+        async function populatePractitionerDocumentSelect() {
+            const clientSelect = document.getElementById('practitionerClientSelect');
+            const docSelect = document.getElementById('practitionerAiDocumentSelect');
+            const analyzeBtn = document.getElementById('practitionerAnalyzeDocumentBtn');
+            
+            if (!clientSelect || !docSelect) return;
+            
+            const clientId = clientSelect.value;
+            
+            if (!clientId) {
+                docSelect.innerHTML = '<option value="">-- Select a client first --</option>';
+                docSelect.disabled = true;
+                if (analyzeBtn) analyzeBtn.disabled = true;
+                return;
+            }
+            
+            try {
+                docSelect.disabled = true;
+                docSelect.innerHTML = '<option value="">Loading documents...</option>';
+                
+                // Load client documents from Firestore
+                const client = clients.find(c => c.id === clientId);
+                if (!client) {
+                    throw new Error('Client not found');
+                }
+                
+                // Get client documents from Firestore
+                let clientDocuments = [];
+                if (window.firebaseDb && client.userId) {
+                    const docsSnapshot = await window.firebaseDb.collection('users')
+                        .doc(client.userId)
+                        .collection('documents')
+                        .get();
+                    
+                    clientDocuments = docsSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                }
+                
+                // Also check local storage as fallback
+                if (clientDocuments.length === 0 && window.cleartrackData) {
+                    const localDocs = window.cleartrackData.getUserDocuments(client.userId || client.id);
+                    if (localDocs && localDocs.length > 0) {
+                        clientDocuments = localDocs;
+                    }
+                }
+                
+                docSelect.innerHTML = '<option value="">-- Select a document --</option>';
+                
+                if (clientDocuments.length > 0) {
+                    clientDocuments.forEach(doc => {
+                        const option = document.createElement('option');
+                        option.value = doc.id;
+                        option.textContent = `${doc.type || 'Document'} - ${doc.taxYear || 'N/A'} (${doc.fileName || 'No filename'})`;
+                        option.dataset.document = JSON.stringify(doc);
+                        docSelect.appendChild(option);
+                    });
+                    docSelect.disabled = false;
+                    if (analyzeBtn) analyzeBtn.disabled = false;
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No documents available for this client';
+                    option.disabled = true;
+                    docSelect.appendChild(option);
+                    if (analyzeBtn) analyzeBtn.disabled = true;
+                }
+                
+            } catch (error) {
+                console.error('Error loading client documents:', error);
+                docSelect.innerHTML = '<option value="">Error loading documents</option>';
+                docSelect.disabled = true;
+                if (analyzeBtn) analyzeBtn.disabled = true;
+            }
+        }
+        
+        // Analyze client document using AI via Cloud Function
+        async function practitionerAnalyzeDocument() {
+            const clientSelect = document.getElementById('practitionerClientSelect');
+            const docSelect = document.getElementById('practitionerAiDocumentSelect');
+            const resultDiv = document.getElementById('practitionerDocumentAnalysisResult');
+            const contentDiv = document.getElementById('practitionerDocumentAnalysisContent');
+            const btn = document.getElementById('practitionerAnalyzeDocumentBtn');
+            const btnText = document.getElementById('practitionerAnalyzeDocumentBtnText');
+            
+            if (!clientSelect || !clientSelect.value) {
+                alert('Please select a client');
+                return;
+            }
+            
+            if (!docSelect || !docSelect.value) {
+                alert('Please select a document to analyze');
+                return;
+            }
+            
+            const selectedOption = docSelect.options[docSelect.selectedIndex];
+            const document = JSON.parse(selectedOption.dataset.document || '{}');
+            
+            if (!document || !document.id) {
+                alert('Document data not available');
+                return;
+            }
+            
+            try {
+                btn.disabled = true;
+                btnText.textContent = 'Analyzing...';
+                resultDiv.style.display = 'none';
+                
+                // Get document text content
+                // For now, we'll use document metadata and any available text
+                // In the future, you could extract text from PDFs/images using OCR
+                let documentText = '';
+                
+                // Try to get text from document fields
+                if (document.description) {
+                    documentText += document.description + '\n\n';
+                }
+                if (document.notes) {
+                    documentText += 'Notes: ' + document.notes + '\n\n';
+                }
+                
+                // Build document context
+                const client = clients.find(c => c.id === clientSelect.value);
+                const clientName = client ? `${client.firstName || ''} ${client.lastName || ''}`.trim() : 'Client';
+                
+                documentText += `Document Information:
+- Client: ${clientName}
+- Document Type: ${document.type || 'Unknown'}
+- Tax Year: ${document.taxYear || 'N/A'}
+- File Name: ${document.fileName || 'N/A'}
+- Upload Date: ${document.uploadDate || 'N/A'}`;
+                
+                // If no text content, provide a message
+                if (!documentText.trim() || documentText.length < 50) {
+                    documentText = `This is a ${document.type || 'tax'} document for ${clientName} from tax year ${document.taxYear || 'N/A'}. The document file is ${document.fileName || 'available'} but text content extraction is not available. Please provide general guidance on what information is typically found in ${document.type || 'this type of'} documents for South African tax purposes.`;
+                }
+                
+                // Call Cloud Function
+                const analyzeDocument = window.firebaseFunctions?.httpsCallable('analyzeDocument');
+                if (!analyzeDocument) {
+                    throw new Error('Firebase Functions not initialized. Please refresh the page.');
+                }
+                
+                const result = await analyzeDocument({
+                    documentText: documentText,
+                    documentType: document.type || 'Unknown',
+                    clientId: clientSelect.value
+                });
+                
+                const analysis = result.data.analysis;
+                contentDiv.textContent = analysis;
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error analyzing document:', error);
+                const errorMessage = error.message || 'Unknown error';
+                if (contentDiv) {
+                    contentDiv.textContent = 'Error analyzing document: ' + errorMessage + '\n\nPlease try again or contact support if the issue persists.';
+                }
+                if (resultDiv) resultDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Analyze Document';
+            }
+        }
+        
+        // AI Chat conversation history
+        let aiConversationHistory = [];
+        
+        // Load conversation history from localStorage
+        function loadAIConversationHistory() {
+            try {
+                const stored = localStorage.getItem('cleartrack-ai-conversation');
+                if (stored) {
+                    aiConversationHistory = JSON.parse(stored);
+                    renderAIConversation();
+                }
+            } catch (e) {
+                console.error('Error loading AI conversation:', e);
+                aiConversationHistory = [];
+            }
+        }
+        
+        // Save conversation history to localStorage
+        function saveAIConversationHistory() {
+            try {
+                localStorage.setItem('cleartrack-ai-conversation', JSON.stringify(aiConversationHistory));
+            } catch (e) {
+                console.error('Error saving AI conversation:', e);
+            }
+        }
+        
+        // Clear conversation
+        function clearAIConversation() {
+            if (confirm('Clear all conversation history?')) {
+                aiConversationHistory = [];
+                saveAIConversationHistory();
+                renderAIConversation();
+            }
+        }
+        window.clearAIConversation = clearAIConversation;
+        
+        // Add message to chat UI
+        function addAIMessage(text, isUser = true, isLoading = false) {
+            const messagesContainer = document.getElementById('aiChatMessages');
+            const emptyState = document.getElementById('aiChatEmptyState');
+            
+            if (!messagesContainer) return;
+            
+            // Hide empty state
+            if (emptyState) emptyState.style.display = 'none';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `whatsapp-message ${isUser ? 'sent' : 'received'}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'whatsapp-message-bubble';
+            
+            const textDiv = document.createElement('div');
+            textDiv.className = 'whatsapp-message-text';
+            if (isLoading) {
+                textDiv.innerHTML = '<span style="opacity: 0.7;">Thinking...</span>';
+            } else {
+                textDiv.textContent = text;
+            }
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'whatsapp-message-time';
+            const now = new Date();
+            timeDiv.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            bubble.appendChild(textDiv);
+            bubble.appendChild(timeDiv);
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+        
+        // Render full conversation
+        function renderAIConversation() {
+            const messagesContainer = document.getElementById('aiChatMessages');
+            const emptyState = document.getElementById('aiChatEmptyState');
+            
+            if (!messagesContainer) return;
+            
+            // Clear existing messages
+            messagesContainer.innerHTML = '';
+            if (emptyState) {
+                messagesContainer.appendChild(emptyState);
+            }
+            
+            if (aiConversationHistory.length === 0) {
+                if (emptyState) emptyState.style.display = 'flex';
+                return;
+            }
+            
+            if (emptyState) emptyState.style.display = 'none';
+            
+            // Render all messages
+            aiConversationHistory.forEach(msg => {
+                addAIMessage(msg.text, msg.isUser, false);
+            });
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+        
+        // Auto-resize textarea
+        function autoResizeAIInput(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            
+            // Enable/disable send button
+            const btn = document.getElementById('practitionerAskQuestionBtn');
+            if (btn) {
+                btn.disabled = !textarea.value.trim();
+            }
+        }
+        window.autoResizeAIInput = autoResizeAIInput;
+        
+        // Handle Enter key
+        function handleAIQuestionKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                practitionerAskTaxQuestion();
+            }
+        }
+        window.handleAIQuestionKeydown = handleAIQuestionKeydown;
+        
+        // Ask tax question using Firebase AI Logic SDK (chat version)
+        async function practitionerAskTaxQuestion() {
+            const input = document.getElementById('practitionerTaxQuestionInput');
+            const btn = document.getElementById('practitionerAskQuestionBtn');
+            const messagesContainer = document.getElementById('aiChatMessages');
+            const emptyState = document.getElementById('aiChatEmptyState');
+
+            if (!input) {
+                alert('Input element not found. Please refresh the page.');
+                return;
+            }
+
+            const question = input.value.trim();
+            if (!question) {
+                return;
+            }
+
+            // Hide empty state
+            if (emptyState) emptyState.style.display = 'none';
+
+            // Add user message to chat
+            addAIMessage(question, true);
+            
+            // Save to history
+            aiConversationHistory.push({
+                text: question,
+                isUser: true,
+                timestamp: new Date().toISOString()
+            });
+            saveAIConversationHistory();
+
+            // Clear input
+            input.value = '';
+            autoResizeAIInput(input);
+            
+            // Disable button and show loading
+            if (btn) btn.disabled = true;
+            const loadingMessage = addAIMessage('Thinking...', false, true);
+
+            try {
+                // Initialize AI if not already done
+                if (!practitionerAiModel) {
+                    console.log('🔄 Initializing Firebase AI Logic...');
+                    if (!initializePractitionerAI()) {
+                        // Wait for AI to be ready
+                        await new Promise((resolve) => {
+                            const checkAI = setInterval(() => {
+                                if (practitionerAiModel) {
+                                    clearInterval(checkAI);
+                                    resolve();
+                                } else if (initializePractitionerAI()) {
+                                    clearInterval(checkAI);
+                                    resolve();
+                                }
+                            }, 300);
+                            
+                            // Timeout after 5 seconds
+                            setTimeout(() => {
+                                clearInterval(checkAI);
+                                resolve();
+                            }, 5000);
+                        });
+                    }
+                }
+
+                if (!practitionerAiModel) {
+                    throw new Error('Firebase AI Logic is not available. Please ensure:\n\n1. Firebase AI Logic is enabled in Firebase Console\n2. You have a Blaze plan enabled\n3. The page has fully loaded');
+                }
+
+                // Create prompt for tax question
+                const prompt = `You are a helpful AI assistant providing tax information for South African tax practitioners. Answer the following question clearly and concisely with professional detail.
+
+Question: ${question}
+
+Provide a helpful, accurate answer about South African tax matters. Include relevant tax codes, thresholds, and regulations where applicable. If the question requires specific client information or complex scenarios, recommend consulting SARS directly or referring to official tax guidelines.
+
+Format your response in clear, readable paragraphs.`;
+
+                console.log('📤 Sending request to Firebase AI Logic...');
+                
+                // Use Firebase AI Logic SDK
+                const result = await practitionerAiModel.generateContent(prompt);
+                const response = await result.response;
+                const answer = response.text();
+
+                console.log('✅ Received answer from AI');
+
+                // Remove loading message
+                if (loadingMessage) loadingMessage.remove();
+                
+                // Add AI response to chat
+                addAIMessage(answer, false);
+                
+                // Save to history
+                aiConversationHistory.push({
+                    text: answer,
+                    isUser: false,
+                    timestamp: new Date().toISOString()
+                });
+                saveAIConversationHistory();
+
+            } catch (error) {
+                console.error('Error asking question:', error);
+                const errorMessage = error.message || 'Unknown error';
+                
+                // Remove loading message
+                if (loadingMessage) loadingMessage.remove();
+                
+                // Provide helpful error messages
+                let userMessage = 'Error getting answer: ' + errorMessage;
+                if (errorMessage.includes('AI Logic') || errorMessage.includes('not available')) {
+                    userMessage = 'Firebase AI Logic is not configured. Please ensure:\n\n' +
+                        '1. Firebase AI Logic is enabled in Firebase Console (Build > AI Logic)\n' +
+                        '2. You have a Blaze plan enabled\n' +
+                        '3. App Check is configured (or enforcement is disabled for AI Logic)\n\n' +
+                        'Check the browser console for more details.';
+                }
+                
+                // Add error message to chat
+                addAIMessage(userMessage, false);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+        
+        // Make functions globally available
+        window.practitionerAnalyzeDocument = practitionerAnalyzeDocument;
+        window.practitionerAskTaxQuestion = practitionerAskTaxQuestion;
+        window.populatePractitionerClientSelect = populatePractitionerClientSelect;
+        window.populatePractitionerDocumentSelect = populatePractitionerDocumentSelect;
+        
+        // Load conversation when AI section is shown
+        const existingShowSectionFunc = window.showSection;
+        if (existingShowSectionFunc && typeof existingShowSectionFunc === 'function') {
+            window.showSection = function(sectionName, options) {
+                existingShowSectionFunc(sectionName, options);
+                if (sectionName === 'ai-assistant') {
+                    setTimeout(() => {
+                        populatePractitionerClientSelect();
+                        loadAIConversationHistory();
+                    }, 100);
+                }
+            };
+        }
+        
+        // Debug: Verify AI section exists - run immediately and on DOMContentLoaded
+        function checkAISection() {
+            const aiSection = document.getElementById('ai-assistant');
+            if (aiSection) {
+                console.log('✅ AI Assistant section found in DOM');
+                console.log('AI Section classes:', aiSection.className);
+                console.log('AI Section display:', window.getComputedStyle(aiSection).display);
+                console.log('AI Section parent:', aiSection.parentElement?.id || 'no parent');
+                return true;
+            } else {
+                console.error('❌ AI Assistant section NOT found in DOM');
+                console.error('Available sections:', Array.from(document.querySelectorAll('.section')).map(s => s.id));
+                return false;
+            }
+        }
+        
+        // Run immediately if DOM is ready, otherwise wait
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', checkAISection);
+        } else {
+            setTimeout(checkAISection, 100);
+        }
+        
+        // Test function to show AI section directly
+        window.testAISection = function() {
+            const aiSection = document.getElementById('ai-assistant');
+            if (!aiSection) {
+                console.error('❌ AI section not found');
+                console.error('Available sections:', Array.from(document.querySelectorAll('.section')).map(s => s.id));
+                return false;
+            }
+            console.log('Testing AI section visibility...');
+            console.log('Before - has hidden class:', aiSection.classList.contains('hidden'));
+            aiSection.classList.remove('hidden');
+            console.log('After - has hidden class:', aiSection.classList.contains('hidden'));
+            console.log('Computed display:', window.getComputedStyle(aiSection).display);
+            
+            // Hide other sections
+            document.querySelectorAll('.section').forEach(section => {
+                if (section.id !== 'ai-assistant') {
+                    section.classList.add('hidden');
+                }
+            });
+            
+            // Scroll to section
+            aiSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            return true;
+        };
+        
+        // Also make showSection log when called for ai-assistant
+        const originalShowSection = window.showSection;
+        if (originalShowSection) {
+            window.showSection = function(sectionName, options) {
+                if (sectionName === 'ai-assistant') {
+                    console.log('🎯 showSection called for ai-assistant');
+                    const result = originalShowSection(sectionName, options);
+                    setTimeout(() => {
+                        const aiSection = document.getElementById('ai-assistant');
+                        if (aiSection) {
+                            console.log('After showSection - has hidden:', aiSection.classList.contains('hidden'));
+                            console.log('After showSection - display:', window.getComputedStyle(aiSection).display);
+                        }
+                    }, 100);
+                    return result;
+                }
+                return originalShowSection(sectionName, options);
+            };
+        }
     </script>
 
 </body>

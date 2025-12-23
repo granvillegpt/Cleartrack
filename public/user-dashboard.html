@@ -100,7 +100,17 @@
     <link rel="stylesheet" href="responsive-fixes.css">
     <link rel="stylesheet" href="css/ct-theme.css" />
     <link rel="stylesheet" href="dashboard-styles.css" />
+    <!-- Load loading screen early so splash shows immediately -->
+    <script src="loading-screen.js"></script>
+    <script>
+        // Show splash screen immediately on page load (before DOMContentLoaded)
+        if (window.showLoadingScreen) {
+            window.showLoadingScreen('Loading ClearTrack...', 'Please wait');
+        }
+    </script>
     <script src="global-hamburger-menu.js"></script>
+    <script src="modal-system.js"></script>
+    <script src="unified-section-handler.js"></script>
     <!-- Testing Script (remove in production) -->
     <script src="test-automation.js"></script>
     <style>
@@ -115,43 +125,24 @@
             50% { opacity: 0.5; }
         }
         
-        html {
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #e5f3f7;
             color: #333;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
             overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            position: relative;
         }
         
-        /* Ensure app wrapper doesn't block scrolling */
-        .app {
-            min-height: 100vh;
-            overflow: visible;
-        }
-        
-        /* Desktop: Ensure mouse wheel scrolling works */
-        @media (min-width: 769px) {
-            html, body {
-                overflow-y: auto !important;
-                overflow-x: hidden !important;
-            }
-        }
-        
-        /* Mobile: Ensure touch scrolling works */
-        @media (max-width: 768px) {
-            body, html {
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                touch-action: pan-y !important;
-            }
+        html {
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            height: 100%;
         }
         
         /* ============================================
@@ -306,7 +297,8 @@
            DESKTOP STYLES (min-width: 769px)
            ============================================ */
         @media (min-width: 769px) {
-            /* Desktop styles */
+            /* Hide mobile menu toggle on desktop */
+            
         }
         
         /* ============================================
@@ -849,7 +841,22 @@
                 font-size: 1.25rem;
             }
             
-            /* Dashboard grid, stat-card, stat-value, stat-label mobile styles moved to dashboard-styles.css */
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 0.625rem;
+            }
+            
+            .stat-card {
+                padding: 0.625rem;
+            }
+            
+            .stat-value {
+                font-size: 1.25rem;
+            }
+            
+            .stat-label {
+                font-size: 0.75rem;
+            }
             
             .table {
                 font-size: 0.75rem;
@@ -1614,8 +1621,13 @@
            MOBILE BOTTOM NAVIGATION
            ======================================== */
         
-        /* Hide desktop nav on mobile when bottom nav is active */
+        /* Hide hamburger on mobile when bottom nav is active */
         @media (max-width: 768px) {
+            .menu-toggle-style6,
+            #menuToggle {
+                display: none !important;
+            }
+            
             .nav-style6,
             #nav-style6 {
                 display: none !important;
@@ -1662,9 +1674,6 @@
             background: none;
             border: none;
             cursor: pointer;
-            pointer-events: auto;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: rgba(11, 114, 133, 0.1);
             color: #6b7280;
             font-size: 11px;
             font-weight: 500;
@@ -1855,6 +1864,7 @@
                 <div class="logo">
                     <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
                 </div>
+                <button class="menu-toggle-style6" id="menuToggle" onclick="toggleMenu('style6')" aria-label="Toggle navigation menu">☰</button>
                 <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
             </div>
             <nav class="nav-style6" id="nav-style6">
@@ -1898,25 +1908,6 @@
                     </div>
                 </div>
                 
-                <!-- Practitioner Connection Card (shown when connected) -->
-                <div class="card" id="dashboardPractitionerCard" style="display: none; margin-bottom: 1.5rem;">
-                    <div class="card-header">
-                        <h3 class="card-title" style="color: #0b7285;">
-                            Your Practitioner
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div id="dashboardPractitionerInfo" style="padding: 1rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; margin-bottom: 1rem;">
-                            <!-- Practitioner info will be displayed here -->
-                        </div>
-                        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-                            <button class="btn btn-primary" onclick="showSection('connect')" style="width: 100%;">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Quick Actions</h3>
@@ -1925,6 +1916,7 @@
                         <button class="btn btn-primary" onclick="showSection('documents')">Upload Document</button>
                         <button class="btn btn-secondary" onclick="showSection('vehicles')">Add Vehicle</button>
                         <button class="btn btn-success" onclick="showSection('expenses')">Record Expense</button>
+                        <button class="btn btn-outline" onclick="showSection('ai-assistant')">AI Assistant</button>
                         <button class="btn btn-outline" onclick="showSection('profile')">Update Profile</button>
                     </div>
                     <style>
@@ -2177,12 +2169,7 @@
                         
                 <!-- No practitioner message -->
                 <div id="noPractitionerMessage" style="display: none; text-align: center; padding: 2rem; color: #6b7280; background: #ffffff; border-radius: 8px; margin: 0.75rem;">
-                    <div style="margin-bottom: 1rem; display: flex; justify-content: center;">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #9ca3af;">
-                            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
-                            <path d="M7 9H17V11H7V9ZM7 12H14V14H7V12Z" fill="currentColor"/>
-                        </svg>
-                    </div>
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
                     <h3 style="margin-bottom: 0.5rem; color: #374151;">No Practitioner Connected</h3>
                     <p style="line-height: 1.5; max-width: 90%; margin: 0 auto;">You need to connect with a practitioner to start messaging. Go to the Connect section to find and connect with a practitioner.</p>
                 </div>
@@ -2217,9 +2204,10 @@
                 </div>
                 
                 <!-- Current Connection Status -->
-                <div class="card" id="connectionStatusCard" style="display: none; margin-bottom: 1.5rem;">
-                    <div class="card-header">
-                        <h3 class="card-title" style="color: #166534;">
+                <div class="card" id="connectionStatusCard" style="display: none; margin-bottom: 1.5rem; border-left: 4px solid #10b981;">
+                    <div class="card-header" style="background: #f0fdf4; border-bottom: 1px solid #bbf7d0;">
+                        <h3 class="card-title" style="color: #166534; display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
                             Connected to Practitioner
                         </h3>
                     </div>
@@ -2322,6 +2310,79 @@
                             
                             <button type="submit" class="btn btn-primary">Update Profile</button>
                         </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Assistant Section -->
+            <div id="ai-assistant" class="section hidden">
+                <h1 class="mb-6">AI Assistant</h1>
+                
+                <div style="display: grid; gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- Document Analysis Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <img src="assets/icons/document.svg" class="icon icon-sm" alt="Document" style="width: 20px; height: 20px;"> Document Analysis
+                            </h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin: 0.5rem 0 0 0;">Extract key information from your uploaded tax documents</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="documentAnalysisArea">
+                                <div class="form-group">
+                                    <label for="aiDocumentSelect">Select Document to Analyze</label>
+                                    <select id="aiDocumentSelect" class="form-control" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem;">
+                                        <option value="">-- Select a document --</option>
+                                    </select>
+                                </div>
+                                
+                                <button id="analyzeDocumentBtn" class="btn btn-primary" onclick="analyzeDocument()" style="width: 100%; margin-top: 1rem;" disabled>
+                                    <span id="analyzeDocumentBtnText">Analyze Document</span>
+                                </button>
+                                
+                                <div id="documentAnalysisResult" style="margin-top: 1.5rem; display: none;">
+                                    <div style="background: #f0f9fb; padding: 1.25rem; border-radius: 12px; border-left: 4px solid #0b7285;">
+                                        <h4 style="margin: 0 0 1rem 0; color: #0b7285; font-size: 1rem;">Analysis Results</h4>
+                                        <div id="documentAnalysisContent" style="color: #374151; line-height: 1.6; white-space: pre-wrap;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tax Questions Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <img src="assets/icons/message.svg" class="icon icon-sm" alt="Message" style="width: 20px; height: 20px;"> Tax Questions
+                            </h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin: 0.5rem 0 0 0;">Ask questions about South African tax and get instant answers</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="taxQuestionsArea">
+                                <div class="form-group">
+                                    <label for="taxQuestionInput">Ask your tax question</label>
+                                    <textarea id="taxQuestionInput" rows="4" placeholder="e.g., What is the tax-free threshold for 2024? How do I claim medical expenses?" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; font-family: inherit; resize: vertical;"></textarea>
+                                </div>
+                                
+                                <button id="askQuestionBtn" class="btn btn-primary" onclick="askTaxQuestion()" style="width: 100%; margin-top: 1rem;">
+                                    <span id="askQuestionBtnText">Ask Question</span>
+                                </button>
+                                
+                                <div id="taxQuestionResult" style="margin-top: 1.5rem; display: none;">
+                                    <div style="background: #f0f9fb; padding: 1.25rem; border-radius: 12px; border-left: 4px solid #0b7285;">
+                                        <h4 style="margin: 0 0 1rem 0; color: #0b7285; font-size: 1rem;">Answer</h4>
+                                        <div id="taxQuestionContent" style="color: #374151; line-height: 1.6; white-space: pre-wrap;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
+                                    <p style="margin: 0; font-size: 0.85rem; color: #78350f; line-height: 1.5;">
+                                        <strong>Note:</strong> This AI assistant provides general tax information for South Africa. For specific tax advice, please consult with your practitioner or SARS directly.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2636,35 +2697,9 @@
         let vehicles = [];
         let expenses = [];
         
-        // Force enable scrolling - ensure body and html can scroll
-        function enableScrolling() {
-                document.body.style.overflow = '';
-                document.body.style.overflowX = '';
-                document.body.style.overflowY = '';
-                document.body.style.height = '';
-                document.body.style.maxHeight = '';
-                
-                if (document.documentElement) {
-                    document.documentElement.style.overflow = '';
-                    document.documentElement.style.overflowX = '';
-                    document.documentElement.style.overflowY = '';
-                    document.documentElement.style.height = '';
-                    document.documentElement.style.maxHeight = '';
-                }
-                
-                // Ensure app wrapper doesn't block
-                const app = document.querySelector('.app');
-                if (app) {
-                    app.style.overflow = '';
-                    app.style.height = '';
-                    app.style.maxHeight = '';
-                }
-            }
-        
         // Initialize application
         document.addEventListener('DOMContentLoaded', function() {
-            enableScrolling();
-            
+            // Splash screen already shown in head - no need to show again
             // Messaging service is already initialized globally in messaging-service.js
             // Just ensure it's available
             if (!window.messagingService) {
@@ -2724,9 +2759,21 @@
                         console.error('User initialization failed!');
                         showUserNotification('Unable to load user profile. Some features may be unavailable.', 'warning');
                     }
+                    
+                    // Hide splash screen after initialization completes
+                    // Use a small delay to ensure all data is loaded and UI is ready
+                    setTimeout(() => {
+                        if (window.hideLoadingScreen) {
+                            window.hideLoadingScreen();
+                        }
+                    }, 800); // Delay to ensure smooth transition and data loading
                 } catch (error) {
                     console.error('Error initializing application:', error);
                     showUserNotification('Error initializing application. Please refresh the page.', 'error');
+                    // Hide splash screen even on error
+                    if (window.hideLoadingScreen) {
+                        window.hideLoadingScreen();
+                    }
                 }
             })();
             
@@ -3103,11 +3150,9 @@
                         idNumber: currentUser.idNumber || firestoreProfile.idNumber || '',
                         taxNumber: currentUser.taxNumber || firestoreProfile.taxNumber || '',
                         address: currentUser.address || firestoreProfile.address || '',
-                        // Prioritize Firestore as the source of truth for profileImage
-                        profileImage: firestoreProfile.profileImage || currentUser.profileImage || null,
-                        // Prioritize Firestore as source of truth for practitioner connection
-                        practitionerId: firestoreProfile.practitionerId || firestoreProfile.connectedPractitioner || currentUser.practitionerId || currentUser.connectedPractitioner || null,
-                        connectedPractitioner: firestoreProfile.practitionerId || firestoreProfile.connectedPractitioner || currentUser.practitionerId || currentUser.connectedPractitioner || null
+                        profileImage: currentUser.profileImage || firestoreProfile.profileImage || '',
+                        // Preserve connection if it exists
+                        connectedPractitioner: currentUser.connectedPractitioner || firestoreProfile.connectedPractitioner || null
                     };
                     
                     // Update local storage
@@ -3120,9 +3165,7 @@
                     }
                 } else {
                     // Create new user in local storage with Firebase UID as ID
-                    const data = cleartrackData.getData();
-                    currentUser = {
-                        id: uid,
+                    currentUser = cleartrackData.createUserWithId(uid, {
                         firstName: firestoreProfile.firstName || '',
                         lastName: firestoreProfile.lastName || '',
                         email: firestoreProfile.email || '',
@@ -3131,16 +3174,9 @@
                         idNumber: firestoreProfile.idNumber || '',
                         taxNumber: firestoreProfile.taxNumber || '',
                         address: firestoreProfile.address || '',
-                        profileImage: firestoreProfile.profileImage || null,
-                        connectedPractitioner: firestoreProfile.connectedPractitioner || firestoreProfile.practitionerId || null,
-                        practitionerId: firestoreProfile.practitionerId || firestoreProfile.connectedPractitioner || null,
-                        createdAt: new Date().toISOString(),
-                        documents: [],
-                        vehicles: [],
-                        expenses: []
-                    };
-                    data.users[uid] = currentUser;
-                    cleartrackData.setData(data);
+                        profileImage: firestoreProfile.profileImage || '',
+                        connectedPractitioner: firestoreProfile.connectedPractitioner || null
+                    });
                     
                     // Update desktop header user name
                     const desktopUserNameElement = document.getElementById('desktopUserName');
@@ -3152,24 +3188,9 @@
                 // Load connection from Firestore if it exists
                 await loadConnectionFromFirestore(uid);
                 
-                // Update currentUser with practitionerId after loadConnectionFromFirestore
-                currentUser = cleartrackData.getData().users[uid] || currentUser;
-                
                 window.currentUser = currentUser;
                 console.log('🔍 DEBUG: Current user set from Firestore:', currentUser);
-                console.log('🔍 DEBUG: Practitioner ID in currentUser:', currentUser.practitionerId || currentUser.connectedPractitioner);
                 updateUserInterface();
-                
-                // Update dashboard practitioner card after user is loaded
-                // Use setTimeout to ensure DOM is ready and data is fully synced
-                setTimeout(() => {
-                    if (typeof updateDashboardPractitionerCard === 'function') {
-                        console.log('🔍 Calling updateDashboardPractitionerCard after user load...');
-                        updateDashboardPractitionerCard();
-                    } else {
-                        console.error('🔍 updateDashboardPractitionerCard function not found!');
-                    }
-                }, 500);
                 
                 // Ensure desktop user name is updated
                 const desktopUserNameElement = document.getElementById('desktopUserName');
@@ -3197,16 +3218,8 @@
         }
         
         // Set up real-time listener for practitionerId changes
-        let lastPractitionerId = null;
         function setupPractitionerIdListener(uid) {
             if (!window.firebaseDb) return;
-            
-            // Get initial practitioner ID to track changes
-            const data = cleartrackData.getData();
-            const currentUser = data.users && data.users[uid];
-            if (currentUser) {
-                lastPractitionerId = currentUser.practitionerId || currentUser.connectedPractitioner || null;
-            }
             
             const userRef = window.firebaseDb.collection('users').doc(uid);
             userRef.onSnapshot((doc) => {
@@ -3214,32 +3227,10 @@
                     const userData = doc.data();
                     const practitionerId = userData.practitionerId || userData.connectedPractitioner || null;
                     
-                    // Only reload if practitioner was JUST linked (changed from null to a value)
-                    // Don't reload if practitioner ID already exists or hasn't changed
-                    if (practitionerId && userData.role === 'client' && lastPractitionerId !== practitionerId) {
-                        // Practitioner was just linked - update local storage and refresh UI without reload
-                        console.log('🔍 DEBUG: Practitioner ID changed, updating local storage...');
-                        const data = cleartrackData.getData();
-                        if (data.users[uid]) {
-                            data.users[uid].practitionerId = practitionerId;
-                            data.users[uid].connectedPractitioner = practitionerId;
-                            if (window.currentUser) {
-                                window.currentUser.practitionerId = practitionerId;
-                                window.currentUser.connectedPractitioner = practitionerId;
-                            }
-                            cleartrackData.setData(data);
-                            
-                            // Update dashboard practitioner card without reloading
-                            if (typeof updateDashboardPractitionerCard === 'function') {
-                                setTimeout(() => {
-                                    updateDashboardPractitionerCard();
-                                }, 500);
-                            }
-                        }
-                        lastPractitionerId = practitionerId;
-                    } else if (practitionerId) {
-                        // Practitioner ID exists but hasn't changed - just update the tracking variable
-                        lastPractitionerId = practitionerId;
+                    // If practitioner was just linked, reload to show dashboard
+                    if (practitionerId && userData.role === 'client') {
+                        // Practitioner was linked - reload to show dashboard
+                        window.location.reload();
                     }
                 }
             }, (error) => {
@@ -3288,76 +3279,13 @@
                 // Get user document from Firestore
                 const userDoc = await window.firebaseApi.getData('users', uid);
                 
-                // Check both practitionerId and connectedPractitioner fields
-                const practitionerId = userDoc?.practitionerId || userDoc?.connectedPractitioner;
-                
-                if (userDoc && practitionerId) {
+                if (userDoc && userDoc.connectedPractitioner) {
+                    const practitionerId = userDoc.connectedPractitioner;
                     console.log('🔍 DEBUG: Found connection in Firestore:', practitionerId);
                     
                     // Restore connection in local storage
                     const data = cleartrackData.getData();
-                    
-                    // Update user's practitioner connection
-                    if (data.users[uid]) {
-                        data.users[uid].practitionerId = practitionerId;
-                        data.users[uid].connectedPractitioner = practitionerId;
-                        if (currentUser) {
-                            currentUser.practitionerId = practitionerId;
-                            currentUser.connectedPractitioner = practitionerId;
-                        }
-                    }
-                    
-                    // Fetch practitioner from Firestore if not in local storage
-                    if (!data.practitioners || !data.practitioners[practitionerId]) {
-                        console.log('🔍 DEBUG: Practitioner not in local storage, fetching from Firestore...');
-                        try {
-                            const practitionerDoc = await window.firebaseApi.getData('users', practitionerId);
-                            if (practitionerDoc) {
-                                if (!data.practitioners) data.practitioners = {};
-                                data.practitioners[practitionerId] = {
-                                    id: practitionerId,
-                                    ...practitionerDoc
-                                };
-                                cleartrackData.setData(data);
-                                console.log('🔍 DEBUG: Practitioner loaded from Firestore:', practitionerDoc);
-                                
-                                // Update currentUser with practitioner connection
-                                if (data.users[uid]) {
-                                    data.users[uid].practitionerId = practitionerId;
-                                    data.users[uid].connectedPractitioner = practitionerId;
-                                    if (currentUser) {
-                                        currentUser.practitionerId = practitionerId;
-                                        currentUser.connectedPractitioner = practitionerId;
-                                    }
-                                    cleartrackData.setData(data);
-                                }
-                                
-                                // Update dashboard practitioner card after practitioner is loaded
-                                setTimeout(() => {
-                                    if (typeof updateDashboardPractitionerCard === 'function') {
-                                        console.log('🔍 DEBUG: Calling updateDashboardPractitionerCard after practitioner fetch...');
-                                        updateDashboardPractitionerCard();
-                                    } else {
-                                        console.error('🔍 DEBUG: updateDashboardPractitionerCard function not found!');
-                                    }
-                                }, 500);
-                            }
-                        } catch (err) {
-                            console.error('🔍 DEBUG: Error fetching practitioner from Firestore:', err);
-                        }
-                    } else {
-                        // Practitioner already in local storage, update dashboard card
-                        setTimeout(() => {
-                            if (typeof updateDashboardPractitionerCard === 'function') {
-                                console.log('🔍 DEBUG: Calling updateDashboardPractitionerCard (practitioner already in storage)...');
-                                updateDashboardPractitionerCard();
-                            } else {
-                                console.error('🔍 DEBUG: updateDashboardPractitionerCard function not found!');
-                            }
-                        }, 500);
-                    }
-                    
-                    if (data.users[uid] && data.practitioners && data.practitioners[practitionerId]) {
+                    if (data.users[uid] && data.practitioners[practitionerId]) {
                         // Update user's connected practitioner
                         data.users[uid].connectedPractitioner = practitionerId;
                         currentUser.connectedPractitioner = practitionerId;
@@ -3502,29 +3430,13 @@
                     }
                 }
                 
-                // Keep the More menu profile section in sync with the current user data
-                if (typeof updateMoreMenuProfile === 'function') {
-                    updateMoreMenuProfile();
-                }
-                
                 // Check for existing practitioner connection
                 const connectedPractitioner = cleartrackData.getConnectedPractitioner(currentUser.id);
                 if (connectedPractitioner) {
                     showExistingConnection(connectedPractitioner);
                 }
-                
-                // Update dashboard practitioner card
-                setTimeout(() => {
-                    if (typeof updateDashboardPractitionerCard === 'function') {
-                        console.log('🔍 Calling updateDashboardPractitionerCard from updateUserInterface...');
-                        updateDashboardPractitionerCard();
-                    }
-                }, 300);
             }
         }
-        
-        // Make showSection globally available
-        window.showSection = showSection;
         
         // Set current date for expense form
         function setCurrentDate() {
@@ -3532,62 +3444,29 @@
             document.getElementById('expenseDate').value = today;
         }
         
-        // Show section - make globally available
-        function showSection(sectionName, event) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.add('hidden');
-            });
-            
-            // Show selected section with null check
-            const targetSection = document.getElementById(sectionName);
-            if (targetSection) {
-                targetSection.classList.remove('hidden');
+        // Show section
+        // Use unified section handler - override local if needed for dashboard-specific logic
+        const existingShowSectionFunc = window.showSection;
+        function showSection(sectionName) {
+            // Call unified handler first
+            if (existingShowSectionFunc && typeof existingShowSectionFunc === 'function') {
+                existingShowSectionFunc(sectionName, {
+                    updateNav: true,
+                    loadData: true
+                });
             } else {
-                console.warn(`Section '${sectionName}' not found`);
-            }
-            
-            // Update desktop nav links
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('onclick') && link.getAttribute('onclick').includes(`'${sectionName}'`)) {
-                    link.classList.add('active');
-                }
-            });
-            
-            // Update bottom nav items
-            document.querySelectorAll('.bottom-nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('data-section') === sectionName) {
-                    item.classList.add('active');
-                }
-            });
-            
-            // Update data if needed
-            if (sectionName === 'dashboard') {
-                if (typeof updateDashboard === 'function') {
-                    updateDashboard();
-                }
-                // Also update practitioner card when dashboard section is shown
-                setTimeout(() => {
-                    if (typeof updateDashboardPractitionerCard === 'function') {
-                        console.log('🔍 Calling updateDashboardPractitionerCard when dashboard section shown...');
-                        updateDashboardPractitionerCard();
-                    } else if (typeof window.updateDashboardPractitionerCard === 'function') {
-                        console.log('🔍 Calling window.updateDashboardPractitionerCard when dashboard section shown...');
-                        window.updateDashboardPractitionerCard();
-                    }
-                }, 300);
-            } else if (sectionName === 'messages') {
-                if (typeof loadMessages === 'function') {
-                loadMessages();
-                }
-            } else if (sectionName === 'connect') {
-                if (typeof loadPractitionersDirectory === 'function') {
-                loadPractitionersDirectory();
+                // Fallback to basic implementation
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                const targetSection = document.getElementById(sectionName);
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
                 }
             }
         }
+        // Make it global
+        window.showSection = showSection;
         
         // Navigation handler removed - using global-hamburger-menu.js
         
@@ -3608,15 +3487,6 @@
         
         // Update dashboard statistics
         function updateDashboard() {
-            // Only update practitioner card if dashboard section is visible
-            // This prevents unnecessary updates when other sections are active
-            const dashboardSection = document.getElementById('dashboard');
-            if (dashboardSection && !dashboardSection.classList.contains('hidden')) {
-                if (typeof updateDashboardPractitionerCard === 'function') {
-                    updateDashboardPractitionerCard();
-                }
-            }
-            
             const documentCountEl = document.getElementById('documentCount');
             const vehicleCountEl = document.getElementById('vehicleCount');
             const expenseCountEl = document.getElementById('expenseCount');
@@ -4889,8 +4759,11 @@
             
             // Close mobile nav if it's open
             const mainNav = document.getElementById('nav-style6');
-            if (mainNav && mainNav.classList.contains('active')) {
+            const menuToggle = document.getElementById('menuToggle');
+            if (mainNav && menuToggle) {
                 mainNav.classList.remove('active');
+                menuToggle.classList.remove('active');
+                menuToggle.setAttribute('aria-expanded', 'false');
             }
             
             try {
@@ -5094,133 +4967,6 @@
                 practitionerConnectionCard.style.display = 'block';
             }
         }
-        
-        // Update practitioner card on dashboard
-        function updateDashboardPractitionerCard() {
-            if (!currentUser) {
-                console.log('🔍 updateDashboardPractitionerCard: No currentUser');
-                return;
-            }
-            
-            console.log('🔍 updateDashboardPractitionerCard: Checking for practitioner connection...');
-            console.log('🔍 Current user ID:', currentUser.id);
-            console.log('🔍 Current user data:', currentUser);
-            
-            // Check both practitionerId and connectedPractitioner fields
-            const practitionerId = currentUser.practitionerId || currentUser.connectedPractitioner;
-            console.log('🔍 Practitioner ID from user:', practitionerId);
-            
-            let connectedPractitioner = cleartrackData.getConnectedPractitioner(currentUser.id);
-            console.log('🔍 Connected practitioner from getConnectedPractitioner:', connectedPractitioner);
-            
-            // If not found via getConnectedPractitioner, try direct lookup
-            if (!connectedPractitioner && practitionerId) {
-                const data = cleartrackData.getData();
-                connectedPractitioner = data.practitioners && data.practitioners[practitionerId] ? data.practitioners[practitionerId] : null;
-                console.log('🔍 Direct practitioner lookup result:', connectedPractitioner);
-                
-                // If still not found, try fetching from Firestore
-                if (!connectedPractitioner && window.firebaseDb) {
-                    console.log('🔍 Attempting to fetch practitioner from Firestore...');
-                    window.firebaseDb.collection('users').doc(practitionerId).get().then(doc => {
-                        if (doc.exists) {
-                            const practitionerData = { id: doc.id, ...doc.data() };
-                            console.log('🔍 Fetched practitioner from Firestore:', practitionerData);
-                            
-                            const dashboardPractitionerCard = document.getElementById('dashboardPractitionerCard');
-                            const dashboardPractitionerInfo = document.getElementById('dashboardPractitionerInfo');
-                            
-                            if (dashboardPractitionerCard && dashboardPractitionerInfo) {
-                                dashboardPractitionerInfo.innerHTML = `
-                                    <div style="display: flex; align-items: center; gap: 1rem;">
-                                        <div style="width: 56px; height: 56px; border-radius: 50%; background: #f3f4f6; color: #6b7280; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; overflow: hidden; border: 2px solid #0b7285; flex-shrink: 0;">
-                                            ${practitionerData.profileImage ? 
-                                                `<img src="${practitionerData.profileImage}" alt="${practitionerData.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />` : 
-                                                (practitionerData.name ? practitionerData.name.charAt(0).toUpperCase() : 'P')
-                                            }
-                                        </div>
-                                        <div style="flex: 1; min-width: 0;">
-                                            <h4 style="margin: 0 0 0.25rem 0; color: #374151; font-size: 1.125rem; font-weight: 600;">${practitionerData.name || 'Practitioner'}</h4>
-                                            <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">${practitionerData.practiceName || 'Practice'}</p>
-                                            ${practitionerData.specializations && practitionerData.specializations.length > 0 ? 
-                                                `<p style="margin: 0.25rem 0 0 0; color: #0b7285; font-size: 0.75rem; font-weight: 500;">${practitionerData.specializations.slice(0, 2).join(', ')}${practitionerData.specializations.length > 2 ? '...' : ''}</p>` : 
-                                                ''
-                                            }
-                                        </div>
-                                    </div>
-                                `;
-                                dashboardPractitionerCard.style.display = 'block';
-                                practitionerCardDisplayed = true; // Mark as displayed
-                                practitionerCardDataLoaded = true; // Mark that data is loaded
-                                console.log('🔍 Dashboard practitioner card displayed from Firestore - STABLE');
-                            }
-                        }
-                    }).catch(err => {
-                        console.error('🔍 Error fetching practitioner from Firestore:', err);
-                    });
-                    return; // Exit early, will update via Firestore callback
-                }
-            }
-            
-            const dashboardPractitionerCard = document.getElementById('dashboardPractitionerCard');
-            const dashboardPractitionerInfo = document.getElementById('dashboardPractitionerInfo');
-            
-            if (connectedPractitioner && dashboardPractitionerCard && dashboardPractitionerInfo) {
-                dashboardPractitionerInfo.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 56px; height: 56px; border-radius: 50%; background: #f3f4f6; color: #6b7280; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; overflow: hidden; border: 2px solid #0b7285; flex-shrink: 0;">
-                            ${connectedPractitioner.profileImage ? 
-                                `<img src="${connectedPractitioner.profileImage}" alt="${connectedPractitioner.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />` : 
-                                (connectedPractitioner.name ? connectedPractitioner.name.charAt(0).toUpperCase() : 'P')
-                            }
-                        </div>
-                        <div style="flex: 1; min-width: 0;">
-                            <h4 style="margin: 0 0 0.25rem 0; color: #374151; font-size: 1.125rem; font-weight: 600;">${connectedPractitioner.name || 'Practitioner'}</h4>
-                            <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">${connectedPractitioner.practiceName || 'Practice'}</p>
-                            ${connectedPractitioner.specializations && connectedPractitioner.specializations.length > 0 ? 
-                                `<p style="margin: 0.25rem 0 0 0; color: #0b7285; font-size: 0.75rem; font-weight: 500;">${connectedPractitioner.specializations.slice(0, 2).join(', ')}${connectedPractitioner.specializations.length > 2 ? '...' : ''}</p>` : 
-                                ''
-                            }
-                        </div>
-                    </div>
-                `;
-                dashboardPractitionerCard.style.display = 'block';
-                practitionerCardDisplayed = true; // Mark as displayed
-                practitionerCardDataLoaded = true; // Mark that data is loaded
-                console.log('🔍 Dashboard practitioner card displayed from local storage - STABLE');
-            } else if (dashboardPractitionerCard) {
-                // NEVER hide the card if it's already been displayed with data
-                if (practitionerCardDisplayed && practitionerCardDataLoaded) {
-                    dashboardPractitionerCard.style.display = 'block';
-                    console.log('🔍 Card already displayed with data - keeping visible to prevent flickering');
-                    return;
-                }
-                
-                // Only hide if we're absolutely sure there's no practitioner ID
-                const user = window.currentUser || currentUser;
-                const hasPractitionerId = user?.practitionerId || user?.connectedPractitioner || practitionerId;
-                
-                // If card is already visible, don't hide it unless we're absolutely sure there's no practitioner
-                const isCurrentlyVisible = dashboardPractitionerCard.style.display !== 'none';
-                
-                if (!hasPractitionerId && !isCurrentlyVisible) {
-                    // Only hide if it's already hidden and there's no practitioner ID
-                    dashboardPractitionerCard.style.display = 'none';
-                    console.log('🔍 Dashboard practitioner card hidden - no practitioner ID found');
-                } else if (hasPractitionerId) {
-                    // Always show/keep visible if we have a practitioner ID
-                    dashboardPractitionerCard.style.display = 'block';
-                    practitionerCardDisplayed = true; // Mark as displayed
-                    // Don't set practitionerCardDataLoaded here - wait for actual data
-                    console.log('🔍 Dashboard practitioner card kept visible - practitioner ID exists:', hasPractitionerId);
-                }
-            } else {
-                console.log('🔍 Dashboard practitioner card element not found in DOM');
-            }
-        }
-        
-        // Make function globally available
-        window.updateDashboardPractitionerCard = updateDashboardPractitionerCard;
 
         // Disconnect from current practitioner
         async function disconnectFromPractitioner() {
@@ -5235,31 +4981,17 @@
                     alert('Successfully disconnected from practitioner.');
                     showCurrentConnection(); // Update the display - this will show the connection form again
                     loadPractitionersDirectory(); // Refresh available practitioners
-                    updateDashboardPractitionerCard(); // Update dashboard card
                     } else {
                         alert('Error disconnecting from practitioner. Please try again.');
                 }
             }
         }
         
-        // Make disconnect function globally available
-        window.disconnectFromPractitioner = disconnectFromPractitioner;
-        
         // Check for existing connection on page load
             // Check if there's a stored connection (in a real app, this would come from the backend)
             if (connectedPractitioner) {
                 connectToPractitioner(connectedPractitioner);
             }
-        
-        // Periodic check to ensure scrolling stays enabled when no modals are open
-        setInterval(function() {
-            const hasOpenModal = document.querySelector('.modal-overlay:not(.hidden)') || 
-                                 document.querySelector('.more-menu.active') ||
-                                 document.querySelector('#moreOverlay.active');
-            if (!hasOpenModal) {
-                enableScrolling();
-            }
-        }, 200);
         
         // Set up periodic connection status check
         setInterval(function() {
@@ -5303,8 +5035,7 @@
         // Messaging functionality - Updated to use backend API
         async function loadMessages() {
             console.log('🔍 loadMessages called');
-            const user = window.currentUser || currentUser;
-            if (!user) {
+            if (!currentUser) {
                 console.log('❌ No currentUser in loadMessages');
                 return;
             }
@@ -5312,42 +5043,8 @@
             // Make function global for polling
             window.loadMessages = loadMessages;
             
-            // Check both practitionerId and connectedPractitioner fields
-            const practitionerId = user.practitionerId || user.connectedPractitioner;
-            console.log('🔍 Practitioner ID from user:', practitionerId);
-            console.log('🔍 User data:', user);
-            
-            let connectedPractitioner = cleartrackData.getConnectedPractitioner(user.id);
-            console.log('🔍 Connected practitioner from getConnectedPractitioner:', connectedPractitioner);
-            
-            // If not found via getConnectedPractitioner, try direct lookup
-            if (!connectedPractitioner && practitionerId) {
-                const data = cleartrackData.getData();
-                connectedPractitioner = data.practitioners && data.practitioners[practitionerId] ? data.practitioners[practitionerId] : null;
-                console.log('🔍 Direct practitioner lookup result:', connectedPractitioner);
-                
-                // If still not found, try fetching from Firestore
-                if (!connectedPractitioner && window.firebaseDb) {
-                    console.log('🔍 Attempting to fetch practitioner from Firestore for messages...');
-                    try {
-                        const practitionerDoc = await window.firebaseDb.collection('users').doc(practitionerId).get();
-                        if (practitionerDoc.exists) {
-                            const practitionerData = { id: practitionerDoc.id, ...practitionerDoc.data() };
-                            console.log('🔍 Fetched practitioner from Firestore for messages:', practitionerData);
-                            
-                            // Save to local storage for future use
-                            const data = cleartrackData.getData();
-                            if (!data.practitioners) data.practitioners = {};
-                            data.practitioners[practitionerId] = practitionerData;
-                            cleartrackData.setData(data);
-                            
-                            connectedPractitioner = practitionerData;
-                        }
-                    } catch (err) {
-                        console.error('🔍 Error fetching practitioner from Firestore for messages:', err);
-                    }
-                }
-            }
+            const connectedPractitioner = cleartrackData.getConnectedPractitioner(currentUser.id);
+            console.log('🔍 Connected practitioner:', connectedPractitioner);
             
             if (!connectedPractitioner) {
                 console.log('❌ No connected practitioner found');
@@ -5387,13 +5084,17 @@
             }
             
             try {
-                // Force use of local storage for now to ensure document data is preserved
-                console.log('💾 Using local storage for message loading');
-                const messages = cleartrackData.getMessages(user.id, connectedPractitioner.id);
-                console.log('💾 Messages retrieved:', messages.length);
-                if (messages.length > 0) {
-                    console.log('💾 Sample message:', messages[0]);
+                // Use Firestore if available, fallback to localStorage
+                console.log('💾 Loading messages...');
+                let messages;
+                if (window.firestoreData && typeof window.firestoreData.getMessages === 'function') {
+                    messages = await window.firestoreData.getMessages(currentUser.id, connectedPractitioner.id);
+                    console.log('💾 Messages retrieved from Firestore:', messages.length);
+                } else {
+                    messages = cleartrackData.getMessages(currentUser.id, connectedPractitioner.id);
+                    console.log('💾 Messages retrieved from localStorage:', messages.length);
                 }
+                console.log('💾 Sample message:', messages[0]);
                 displayMessages(messages);
                 
                 // Check if messaging service is available for read receipts
@@ -5403,7 +5104,7 @@
             } catch (error) {
                 console.error('Failed to load messages:', error);
                 // Fallback to local storage if backend fails
-                const messages = cleartrackData.getMessages(user.id, connectedPractitioner.id);
+                const messages = cleartrackData.getMessages(currentUser.id, connectedPractitioner.id);
                 displayMessages(messages);
             }
         }
@@ -5607,15 +5308,37 @@
         }
 
         // View invoice from chat (user view) - opens in modal with identical format as practitioner
-        function viewInvoiceFromChatUser(invoiceId) {
+        async function viewInvoiceFromChatUser(invoiceId) {
             try {
                 const connectedPractitioner = cleartrackData.getConnectedPractitioner(currentUser.id);
                 if (!connectedPractitioner || !invoiceId) {
                     alert('Invoice not found.');
                     return;
                 }
-                const allInvoices = cleartrackData.getInvoicesForPractitioner(connectedPractitioner.id);
-                const invoice = allInvoices.find(inv => String(inv.id) === String(invoiceId));
+                
+                // Try to get invoice from Firestore first, then localStorage
+                let allInvoices = [];
+                if (window.firestoreData && typeof window.firestoreData.getInvoicesForPractitioner === 'function') {
+                    allInvoices = await window.firestoreData.getInvoicesForPractitioner(connectedPractitioner.id);
+                } else {
+                    allInvoices = cleartrackData.getInvoicesForPractitioner(connectedPractitioner.id);
+                }
+                
+                let invoice = allInvoices.find(inv => String(inv.id) === String(invoiceId));
+                
+                // If invoice not found in storage, try to get it from message invoiceData
+                if (!invoice) {
+                    const messages = await loadMessages();
+                    const invoiceMessage = messages.find(msg => 
+                        msg.type === 'invoice' && 
+                        msg.invoiceData && 
+                        String(msg.invoiceData.id) === String(invoiceId)
+                    );
+                    if (invoiceMessage && invoiceMessage.invoiceData) {
+                        invoice = invoiceMessage.invoiceData;
+                    }
+                }
+                
                 if (!invoice) {
                     alert('Invoice not found.');
                     return;
@@ -5629,19 +5352,42 @@
         }
         
         // Download invoice from chat (user view)
-        function downloadInvoiceFromChatUser(invoiceId) {
+        async function downloadInvoiceFromChatUser(invoiceId) {
             try {
                 const connectedPractitioner = cleartrackData.getConnectedPractitioner(currentUser.id);
                 if (!connectedPractitioner || !invoiceId) {
                     alert('Invoice not found.');
                     return;
                 }
-                const allInvoices = cleartrackData.getInvoicesForPractitioner(connectedPractitioner.id);
-                const invoice = allInvoices.find(inv => String(inv.id) === String(invoiceId));
+                
+                // Try to get invoice from Firestore first, then localStorage
+                let allInvoices = [];
+                if (window.firestoreData && typeof window.firestoreData.getInvoicesForPractitioner === 'function') {
+                    allInvoices = await window.firestoreData.getInvoicesForPractitioner(connectedPractitioner.id);
+                } else {
+                    allInvoices = cleartrackData.getInvoicesForPractitioner(connectedPractitioner.id);
+                }
+                
+                let invoice = allInvoices.find(inv => String(inv.id) === String(invoiceId));
+                
+                // If invoice not found in storage, try to get it from message invoiceData
+                if (!invoice) {
+                    const messages = await loadMessages();
+                    const invoiceMessage = messages.find(msg => 
+                        msg.type === 'invoice' && 
+                        msg.invoiceData && 
+                        String(msg.invoiceData.id) === String(invoiceId)
+                    );
+                    if (invoiceMessage && invoiceMessage.invoiceData) {
+                        invoice = invoiceMessage.invoiceData;
+                    }
+                }
+                
                 if (!invoice) {
                     alert('Invoice not found.');
                     return;
                 }
+                
                 if (typeof downloadInvoiceAsPDF === 'function') {
                     downloadInvoiceAsPDF(invoice);
                 } else if (typeof createInvoicePDFFile === 'function') {
@@ -6217,15 +5963,25 @@
                         await messagingService.sendMessage(connectedPractitioner.id, messageText);
                         console.log('✅ Message sent via backend API');
                     } catch (apiError) {
-                        console.log('⚠️ Backend API failed, using local storage fallback:', apiError.message);
-                        // Fallback to local storage
-                        cleartrackData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+                        console.log('⚠️ Backend API failed, using Firestore/localStorage fallback:', apiError.message);
+                        // Fallback to Firestore or localStorage
+                        if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                            await window.firestoreData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+                        } else {
+                            cleartrackData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+                        }
                     }
                 } else {
-                    // Use local storage directly
-                    console.log('💾 Using local storage for message');
-                    const storedMessage = cleartrackData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
-                    console.log('💾 Message stored with ID:', storedMessage.id);
+                    // Use Firestore if available, fallback to localStorage
+                    console.log('💾 Saving message...');
+                    let storedMessage;
+                    if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                        storedMessage = await window.firestoreData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+                        console.log('💾 Message stored in Firestore with ID:', storedMessage.id);
+                    } else {
+                        storedMessage = cleartrackData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+                        console.log('💾 Message stored in localStorage with ID:', storedMessage.id);
+                    }
                 }
                 
                 // Refresh from storage to ensure consistency
@@ -6849,16 +6605,24 @@
             }
         }
         
-        function sendVoiceMessage(audioBlob) {
+        async function sendVoiceMessage(audioBlob) {
             const currentUser = cleartrackData.getCurrentUser();
             const connectedPractitioner = cleartrackData.getConnectedPractitioner(currentUser.id);
             
-            const message = cleartrackData.addMessage(currentUser.id, connectedPractitioner.id, {
+            const messageData = {
                 text: '[Voice Message]',
                 sender: 'user',
                 type: 'voice',
                 audioData: URL.createObjectURL(audioBlob)
-            });
+            };
+            
+            // Use Firestore if available, fallback to localStorage
+            let message;
+            if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                message = await window.firestoreData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+            } else {
+                message = cleartrackData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+            }
             
             if (message) {
                 loadMessages();
@@ -6894,14 +6658,14 @@
             console.log('🔄 Converting file to base64...');
             // Convert file to base64
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 console.log('✅ File converted to base64');
                 const fileData = e.target.result;
                 const messageType = file.type.startsWith('image/') ? 'image' : 'document';
                 
                 console.log('💾 Creating message with attachment...');
-                // Create message with attachment
-                const message = cleartrackData.addMessage(currentUser.id, connectedPractitioner.id, {
+                // Create message with attachment - Use Firestore if available, fallback to localStorage
+                const messageData = {
                     text: `[${file.type.startsWith('image/') ? 'Image' : 'Document'}: ${file.name}]`,
                     sender: 'user',
                     type: messageType,
@@ -6909,11 +6673,18 @@
                     fileData: fileData,
                     fileType: file.type,
                     fileSize: file.size
-                });
+                };
+                
+                let message;
+                if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                    message = await window.firestoreData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+                } else {
+                    message = cleartrackData.addMessage(currentUser.id, connectedPractitioner.id, messageData);
+                }
                 
                 if (message) {
                     console.log('📎 Document sent successfully:', message);
-                    loadMessages();
+                    await loadMessages();
                 } else {
                     console.error('❌ Failed to create message');
                 }
@@ -6969,26 +6740,6 @@
                 if (currentUser) {
                     currentUser.profileImage = processedDataUrl;
                     cleartrackData.updateUser(currentUser.id, { profileImage: processedDataUrl });
-                    
-                    // Also persist to Firestore user profile so it survives full refresh / new devices
-                    if (window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseApi && window.firebaseApi.saveData) {
-                        try {
-                            const uid = window.firebaseAuth.currentUser.uid;
-                            await window.firebaseApi.saveData('users', uid, {
-                                profileImage: processedDataUrl,
-                                updatedAt: (window.firebase && window.firebase.firestore)
-                                    ? window.firebase.firestore.FieldValue.serverTimestamp()
-                                    : new Date().toISOString()
-                            });
-                        } catch (e) {
-                            console.warn('Failed to persist uploaded user profile image to Firestore:', e);
-                        }
-                    }
-                    
-                    // Update More menu avatar if open
-                    if (typeof updateMoreMenuProfile === 'function') {
-                        updateMoreMenuProfile();
-                    }
                 }
             } catch (err) {
                 console.error('Profile image processing failed:', err);
@@ -7077,25 +6828,6 @@
                 cleartrackData.updateUser(currentUser.id, {
                     profileImage: null
                 });
-                
-                // Also clear in Firestore so the removal persists across sessions/devices
-                if (window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseApi && window.firebaseApi.saveData) {
-                    try {
-                        const uid = window.firebaseAuth.currentUser.uid;
-                        window.firebaseApi.saveData('users', uid, {
-                            profileImage: null,
-                            updatedAt: (window.firebase && window.firebase.firestore)
-                                ? window.firebase.firestore.FieldValue.serverTimestamp()
-                                : new Date().toISOString()
-                        });
-                    } catch (e) {
-                        console.warn('Failed to clear user profile image in Firestore:', e);
-                    }
-                }
-                
-                if (typeof updateMoreMenuProfile === 'function') {
-                    updateMoreMenuProfile();
-                }
             }
         }
         
@@ -7292,25 +7024,6 @@
                 cleartrackData.updateUser(currentUser.id, {
                     profileImage: editedDataUrl
                 });
-                
-                // Also persist edited image to Firestore
-                if (window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseApi && window.firebaseApi.saveData) {
-                    try {
-                        const uid = window.firebaseAuth.currentUser.uid;
-                        window.firebaseApi.saveData('users', uid, {
-                            profileImage: editedDataUrl,
-                            updatedAt: (window.firebase && window.firebase.firestore)
-                                ? window.firebase.firestore.FieldValue.serverTimestamp()
-                                : new Date().toISOString()
-                        });
-                    } catch (e) {
-                        console.warn('Failed to persist edited user profile image to Firestore:', e);
-                    }
-                }
-                
-                if (typeof updateMoreMenuProfile === 'function') {
-                    updateMoreMenuProfile();
-                }
             }
             
             closeImageEditor();
@@ -7597,13 +7310,13 @@
                     <button onclick="chooseUserPhoto()" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: none; background: white; border-bottom: 1px solid #e5e7eb; cursor: pointer; font-size: 1rem; color: #374151; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='white'">
                         <span>Choose photo</span>
                         <span class="attachment-icon">
-                            <img src="assets/icons/gallery.svg" class="icon" alt="Gallery">
+                            <img src="assets/icons/photos-10608.svg" class="icon" alt="Gallery">
                         </span>
                     </button>
                     <button onclick="createUserAIImage()" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: none; background: white; border-bottom: 1px solid #e5e7eb; cursor: pointer; font-size: 1rem; color: #374151; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='white'">
                         <span>Create AI image</span>
                         <span class="attachment-icon">
-                            <img src="assets/icons/star.svg" class="icon" alt="Star">
+                            <img src="assets/icons/information.svg" class="icon" alt="Star">
                         </span>
                     </button>
                     <button onclick="editUserProfileImage()" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border: none; background: white; border-bottom: 1px solid #e5e7eb; cursor: pointer; font-size: 1rem; color: #374151; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='white'">
@@ -7842,18 +7555,92 @@
     </script>
 
     <!-- Firebase SDKs (compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.8.0/firebase-functions-compat.js"></script>
+    <!-- Firebase AI Logic SDK - Load dynamically -->
+    <script>
+        // Load Firebase AI SDK dynamically as a module
+        (async function() {
+            try {
+                console.log('🔄 Loading Firebase AI SDK...');
+                const appModule = await import('https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js');
+                const aiModule = await import('https://www.gstatic.com/firebasejs/11.8.0/firebase-ai.js');
+                console.log('📦 Modules loaded');
+                
+                const { initializeApp, getApps } = appModule;
+                const { getAI, GoogleAIBackend, getGenerativeModel } = aiModule;
+                
+                if (!getAI || !GoogleAIBackend || !initializeApp) {
+                    console.error('❌ Missing required exports');
+                    return;
+                }
+                
+                const waitForFirebase = () => {
+                    if (window.firebaseConfig) {
+                        try {
+                            console.log('🔧 Initializing modular Firebase app for AI...');
+                            let modularApp;
+                            try {
+                                const existingApps = getApps();
+                                if (existingApps.length > 0) {
+                                    modularApp = existingApps[0];
+                                } else {
+                                    modularApp = initializeApp(window.firebaseConfig);
+                                }
+                            } catch (e) {
+                                console.error('Error creating modular app:', e);
+                                return;
+                            }
+                            const aiService = getAI(modularApp, { backend: new GoogleAIBackend() });
+                            const compatAI = {
+                                generativeModel: (options) => getGenerativeModel(aiService, options)
+                            };
+                            
+                            if (typeof firebase !== 'undefined') {
+                                firebase.ai = () => compatAI;
+                                console.log('✅ Firebase AI SDK loaded and exposed globally');
+                                window.dispatchEvent(new CustomEvent('firebaseAIReady'));
+                            }
+                        } catch (error) {
+                            console.error('❌ Error initializing Firebase AI:', error);
+                            if (error.message && error.message.includes('Service AI is not available')) {
+                                console.error('⚠️  Firebase AI Logic is not enabled in Firebase Console');
+                                console.error('Enable it at: Build > AI Logic in Firebase Console');
+                                setTimeout(() => {
+                                    alert('Firebase AI Logic is not enabled.\n\nEnable it in Firebase Console:\nBuild > AI Logic\n\nEnsure you have a Blaze plan enabled.');
+                                }, 1000);
+                            }
+                        }
+                    } else {
+                        setTimeout(waitForFirebase, 100);
+                    }
+                };
+                
+                if (window.firebaseApp) {
+                    waitForFirebase();
+                } else {
+                    window.addEventListener('firebaseReady', waitForFirebase);
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', waitForFirebase);
+                    } else {
+                        setTimeout(waitForFirebase, 500);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Failed to load Firebase AI SDK:', error);
+            }
+        })();
+    </script>
 
     <!-- My Firebase wiring -->
     <script src="firebase-config.js"></script>
     <script src="firebase-init.js"></script>
     <script src="firebase-api.js"></script>
     <script src="js/client-linking.js"></script>
-    <script src="loading-screen.js"></script>
+    <!-- loading-screen.js already loaded in head -->
   <script src="dashboard-auth.js"></script>
     <script>
         // Auto-migrate to Firestore on page load
@@ -8044,122 +7831,17 @@
     <script>
         // Bottom Navigation Functions
         function bottomNavClick(section, element) {
-            console.log('bottomNavClick called with section:', section, 'element:', element);
-            
-            // Update active state for bottom nav
+            // Update active state
             document.querySelectorAll('.bottom-nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            if (element) {
             element.classList.add('active');
-            }
             
             // Navigate to section using existing showSection function
-            let showSectionFunc = null;
-            try {
             if (typeof showSection === 'function') {
-                    showSectionFunc = showSection;
-                } else if (typeof window.showSection === 'function') {
-                    showSectionFunc = window.showSection;
-                }
-            } catch (e) {
-                // showSection not in scope, try window
-                if (typeof window.showSection === 'function') {
-                    showSectionFunc = window.showSection;
-                }
-            }
-            
-            if (typeof showSectionFunc === 'function') {
-                console.log('Calling showSection with:', section);
-                showSectionFunc(section);
-                
-                // Ensure bottom nav active state is set
-                document.querySelectorAll('.bottom-nav-item').forEach(item => {
-                    item.classList.remove('active');
-                    if (item.getAttribute('data-section') === section) {
-                        item.classList.add('active');
-                    }
-                });
-            } else {
-                console.error('showSection function not found. Available functions:', {
-                    showSection: typeof showSection,
-                    windowShowSection: typeof window.showSection
-                });
-                // Fallback: manually show/hide sections
-                document.querySelectorAll('.section').forEach(sec => {
-                    sec.classList.add('hidden');
-                });
-                const targetSection = document.getElementById(section);
-                if (targetSection) {
-                    targetSection.classList.remove('hidden');
-                } else {
-                    console.error('Section not found:', section);
-                }
+                showSection(section);
             }
         }
-        
-        // Make function globally available
-        window.bottomNavClick = bottomNavClick;
-        
-        // Also add event listeners as backup when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Setting up bottom nav event listeners');
-            const bottomNavItems = document.querySelectorAll('.bottom-nav-item[data-section]');
-            bottomNavItems.forEach(item => {
-                const section = item.getAttribute('data-section');
-                if (section) {
-                    // Remove existing onclick and add event listener
-                    item.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Bottom nav item clicked:', section);
-                        bottomNavClick(section, this);
-                    });
-                }
-            });
-            console.log('Bottom nav event listeners set up for', bottomNavItems.length, 'items');
-            
-            // Also set up More Menu event listeners as backup
-            const moreMenuItems = document.querySelectorAll('.more-menu-item[onclick*="moreMenuNavigate"]');
-            moreMenuItems.forEach(item => {
-                const onclickAttr = item.getAttribute('onclick');
-                if (onclickAttr) {
-                    const match = onclickAttr.match(/moreMenuNavigate\('([^']+)'\)/);
-                    if (match) {
-                        const section = match[1];
-                        item.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('More menu item clicked:', section);
-                            if (typeof moreMenuNavigate === 'function') {
-                                moreMenuNavigate(section);
-                            } else if (typeof window.moreMenuNavigate === 'function') {
-                                window.moreMenuNavigate(section);
-                            } else {
-                                console.error('moreMenuNavigate function not found');
-                            }
-                        });
-                    }
-                }
-            });
-            
-            // Set up logout button
-            const logoutBtn = document.querySelector('.more-menu-item.logout[onclick*="moreMenuLogout"]');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Logout button clicked');
-                    if (typeof moreMenuLogout === 'function') {
-                        moreMenuLogout();
-                    } else if (typeof window.moreMenuLogout === 'function') {
-                        window.moreMenuLogout();
-                    } else {
-                        console.error('moreMenuLogout function not found');
-                    }
-                });
-            }
-        });
 
         function openMoreMenu() {
             document.getElementById('moreOverlay').classList.add('active');
@@ -8177,7 +7859,6 @@
         }
 
         function moreMenuNavigate(section) {
-            console.log('moreMenuNavigate called with section:', section);
             closeMoreMenu();
             
             // Update bottom nav active state for main sections
@@ -8190,46 +7871,12 @@
             }
             
             // Navigate
-            let showSectionFunc = null;
-            try {
             if (typeof showSection === 'function') {
-                    showSectionFunc = showSection;
-                } else if (typeof window.showSection === 'function') {
-                    showSectionFunc = window.showSection;
-                }
-            } catch (e) {
-                // showSection not in scope, try window
-                if (typeof window.showSection === 'function') {
-                    showSectionFunc = window.showSection;
-                }
-            }
-            
-            if (typeof showSectionFunc === 'function') {
-                console.log('Calling showSection from moreMenuNavigate');
-                showSectionFunc(section);
-            } else {
-                console.error('showSection function not found in moreMenuNavigate. Available:', {
-                    showSection: typeof showSection,
-                    windowShowSection: typeof window.showSection
-                });
-                // Fallback: manually show/hide sections
-                document.querySelectorAll('.section').forEach(sec => {
-                    sec.classList.add('hidden');
-                });
-                const targetSection = document.getElementById(section);
-                if (targetSection) {
-                    targetSection.classList.remove('hidden');
-                } else {
-                    console.error('Section not found:', section);
-                }
+                showSection(section);
             }
         }
-        
-        // Make functions globally available
-        window.moreMenuNavigate = moreMenuNavigate;
 
         function moreMenuLogout() {
-            console.log('moreMenuLogout called');
             closeMoreMenu();
             if (window.firebaseAuth) {
                 window.firebaseAuth.signOut().then(() => {
@@ -8242,9 +7889,6 @@
                 window.location.href = '/login.html';
             }
         }
-        
-        // Make function globally available
-        window.moreMenuLogout = moreMenuLogout;
 
         // Support form handler
         document.addEventListener('DOMContentLoaded', function() {
@@ -8295,22 +7939,10 @@
             const fullName = lastName ? `${firstName} ${lastName}` : firstName;
             const initials = firstName.charAt(0).toUpperCase() + (lastName ? lastName.charAt(0).toUpperCase() : '');
             
-            const nameEl = document.getElementById('moreProfileName');
-            const emailEl = document.getElementById('moreProfileEmail');
-            const avatarEl = document.getElementById('moreProfileAvatar');
-            
-            if (nameEl) nameEl.textContent = fullName;
-            if (emailEl) emailEl.textContent = email;
-            if (avatarEl) {
-                if (user.profileImage) {
-                    // Show profile photo in avatar circle
-                    avatarEl.innerHTML = `<img src="${user.profileImage}" alt="${fullName}" style="width: 100%; height: 100%; border-radius: 9999px; object-fit: cover;" />`;
-                } else {
-                    // Fallback to initials
-                    avatarEl.innerHTML = '';
-                    avatarEl.textContent = initials || 'U';
-                }
-            }
+            // Update UI
+            document.getElementById('moreProfileName').textContent = fullName;
+            document.getElementById('moreProfileEmail').textContent = email;
+            document.getElementById('moreProfileAvatar').textContent = initials || 'U';
         }
 
         // Swipe down to close more menu
@@ -8356,6 +7988,342 @@
                 };
             }
         });
+        
+        // Initialize Firebase AI Logic
+        let aiModel = null;
+        let aiInitializationAttempts = 0;
+        const MAX_AI_INIT_ATTEMPTS = 5;
+        
+        function initializeAI() {
+            try {
+                // Check if Firebase and AI SDK are loaded
+                if (typeof firebase === 'undefined') {
+                    console.warn('Firebase SDK not loaded yet');
+                    return false;
+                }
+                
+                // Check if firebase.ai is available (it might be a function or an object)
+                if (!firebase.ai) {
+                    console.warn('Firebase AI SDK not loaded - firebase.ai is undefined');
+                    return false;
+                }
+                
+                // Check if firebaseApp is available
+                if (!window.firebaseApp) {
+                    console.warn('Firebase app not initialized yet');
+                    return false;
+                }
+                
+                // Try to get AI service - firebase.ai() should return the AI service
+                let ai;
+                if (typeof firebase.ai === 'function') {
+                    // If it's a function, call it with the app instance
+                    try {
+                        ai = firebase.ai(window.firebaseApp);
+                    } catch (e) {
+                        // If that fails, try calling it without arguments (compat mode)
+                        ai = firebase.ai();
+                    }
+                } else {
+                    // If it's an object, use it directly
+                    ai = firebase.ai;
+                }
+                
+                if (!ai || typeof ai.generativeModel !== 'function') {
+                    console.warn('AI service not properly initialized - generativeModel not available');
+                    return false;
+                }
+                
+                // Create the generative model
+                aiModel = ai.generativeModel({ model: 'gemini-2.5-flash' });
+                console.log('✅ AI initialized successfully');
+                aiInitializationAttempts = 0; // Reset on success
+                return true;
+            } catch (error) {
+                console.error('Error initializing AI:', error);
+                console.error('Error details:', {
+                    firebaseDefined: typeof firebase !== 'undefined',
+                    aiAvailable: typeof firebase !== 'undefined' && !!firebase.ai,
+                    appAvailable: !!window.firebaseApp,
+                    errorMessage: error.message,
+                    errorStack: error.stack
+                });
+                return false;
+            }
+        }
+        
+        // Retry initialization with exponential backoff
+        function tryInitializeAI(retryCount = 0) {
+            if (aiModel) {
+                return; // Already initialized
+            }
+            
+            if (retryCount >= MAX_AI_INIT_ATTEMPTS) {
+                console.warn('Max AI initialization attempts reached. AI may not be available.');
+                return;
+            }
+            
+            if (initializeAI()) {
+                return; // Success
+            }
+            
+            // Retry with exponential backoff
+            const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+            setTimeout(() => {
+                tryInitializeAI(retryCount + 1);
+            }, delay);
+        }
+        
+        // Initialize AI when Firebase is ready
+        function startAIIitialization() {
+            const attemptInit = () => {
+                if (window.firebaseApp && typeof firebase !== 'undefined' && firebase.ai) {
+                    setTimeout(() => tryInitializeAI(0), 500);
+                } else {
+                    setTimeout(attemptInit, 200);
+                }
+            };
+            
+            if (window.firebaseApp) {
+                attemptInit();
+            } else {
+                window.addEventListener('firebaseReady', attemptInit, { once: true });
+            }
+            
+            window.addEventListener('firebaseAIReady', () => {
+                setTimeout(() => tryInitializeAI(0), 500);
+            }, { once: true });
+        }
+        
+        // Start initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startAIIitialization);
+        } else {
+            startAIIitialization();
+        }
+        
+        // Populate document select dropdown when AI section is shown
+        function populateDocumentSelect() {
+            const select = document.getElementById('aiDocumentSelect');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">-- Select a document --</option>';
+            
+            if (documents && documents.length > 0) {
+                documents.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = `${doc.type || 'Document'} - ${doc.taxYear || 'N/A'} (${doc.fileName || 'No filename'})`;
+                    select.appendChild(option);
+                });
+                
+                const analyzeBtn = document.getElementById('analyzeDocumentBtn');
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = false;
+                }
+            } else {
+                const analyzeBtn = document.getElementById('analyzeDocumentBtn');
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = true;
+                }
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No documents available';
+                option.disabled = true;
+                select.appendChild(option);
+            }
+        }
+        
+        // Analyze document using AI
+        async function analyzeDocument() {
+            const select = document.getElementById('aiDocumentSelect');
+            const resultDiv = document.getElementById('documentAnalysisResult');
+            const contentDiv = document.getElementById('documentAnalysisContent');
+            const btn = document.getElementById('analyzeDocumentBtn');
+            const btnText = document.getElementById('analyzeDocumentBtnText');
+            
+            if (!select || !select.value) {
+                alert('Please select a document to analyze');
+                return;
+            }
+            
+            const docId = select.value;
+            const document = documents.find(d => d.id == docId);
+            
+            if (!document) {
+                alert('Document not found');
+                return;
+            }
+            
+            // Initialize AI if not already done
+            // Try to initialize AI if not already initialized
+            if (!aiModel) {
+                // Try multiple times with short delays
+                let initialized = false;
+                for (let i = 0; i < 3; i++) {
+                    if (initializeAI()) {
+                        initialized = true;
+                        break;
+                    }
+                    // Wait a bit before retrying
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+                
+                if (!initialized) {
+                    alert('AI service is not available. Please ensure:\n\n1. Firebase AI Logic is enabled in your Firebase Console\n2. You have the necessary permissions\n3. The page has fully loaded\n\nIf the issue persists, please refresh the page.');
+                    return;
+                }
+            }
+            
+            try {
+                btn.disabled = true;
+                btnText.textContent = 'Analyzing...';
+                resultDiv.style.display = 'none';
+                
+                // Get document content (base64)
+                const fileContent = document.fileContent;
+                if (!fileContent) {
+                    throw new Error('Document content not available. Please ensure the document was uploaded correctly.');
+                }
+                
+                // Extract base64 data (remove data URL prefix if present)
+                const base64Data = fileContent.includes(',') ? fileContent.split(',')[1] : fileContent;
+                
+                // Determine file type
+                const fileName = document.fileName || 'document';
+                const fileExtension = fileName.split('.').pop().toLowerCase();
+                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
+                const isPDF = fileExtension === 'pdf';
+                
+                let mimeType = 'application/pdf';
+                if (isImage) {
+                    mimeType = fileExtension === 'png' ? 'image/png' : 'image/jpeg';
+                }
+                
+                // Create prompt for document analysis
+                const prompt = `Analyze this tax document (${document.type || 'document'}) for tax year ${document.taxYear || 'N/A'}. 
+Extract and summarize:
+1. Document type and key information
+2. Important dates and amounts
+3. Tax-relevant details (income, deductions, credits)
+4. Any deductions or credits mentioned
+5. Summary of what this document is used for in South African tax filing
+6. Any potential issues or items that need attention
+
+Provide a clear, structured summary in plain language.`;
+                
+                // Use vision API for images and PDFs - Gemini can read both
+                let response;
+                if ((isImage || isPDF) && aiModel) {
+                    // Pass the file directly to Gemini - it can read both images and PDFs natively
+                    response = await aiModel.generateContent([
+                        prompt,
+                        {
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Data
+                            }
+                        }
+                    ]);
+                } else {
+                    // Fallback to text-only analysis for other file types
+                    const textPrompt = `${prompt}\n\nNote: This document type may not be fully analyzable. Please provide general guidance on what information is typically found in ${document.type || 'this type of'} documents for South African tax purposes.`;
+                    response = await aiModel.generateContent(textPrompt);
+                }
+                
+                const analysisText = response.response.text();
+                contentDiv.textContent = analysisText;
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error analyzing document:', error);
+                contentDiv.textContent = 'Error analyzing document: ' + (error.message || 'Unknown error. Please ensure Firebase AI Logic is enabled and you have the necessary permissions.');
+                resultDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Analyze Document';
+            }
+        }
+        
+        // Ask tax question using AI
+        async function askTaxQuestion() {
+            const input = document.getElementById('taxQuestionInput');
+            const resultDiv = document.getElementById('taxQuestionResult');
+            const contentDiv = document.getElementById('taxQuestionContent');
+            const btn = document.getElementById('askQuestionBtn');
+            const btnText = document.getElementById('askQuestionBtnText');
+            
+            if (!input || !input.value.trim()) {
+                alert('Please enter a tax question');
+                return;
+            }
+            
+            const question = input.value.trim();
+            
+            // Initialize AI if not already done
+            // Try to initialize AI if not already initialized
+            if (!aiModel) {
+                // Try multiple times with short delays
+                let initialized = false;
+                for (let i = 0; i < 3; i++) {
+                    if (initializeAI()) {
+                        initialized = true;
+                        break;
+                    }
+                    // Wait a bit before retrying
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+                
+                if (!initialized) {
+                    alert('AI service is not available. Please ensure:\n\n1. Firebase AI Logic is enabled in your Firebase Console\n2. You have the necessary permissions\n3. The page has fully loaded\n\nIf the issue persists, please refresh the page.');
+                    return;
+                }
+            }
+            
+            try {
+                btn.disabled = true;
+                btnText.textContent = 'Thinking...';
+                resultDiv.style.display = 'none';
+                
+                // Create prompt for tax question
+                const prompt = `You are a helpful assistant providing general tax information for South Africa. Answer the following question clearly and concisely. 
+If the question is about specific tax advice, remind the user to consult with a tax practitioner or SARS for official guidance.
+
+Question: ${question}
+
+Provide a helpful, accurate answer about South African tax matters.`;
+                
+                const response = await aiModel.generateContent(prompt);
+                const answer = response.response.text();
+                
+                contentDiv.textContent = answer;
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error asking question:', error);
+                contentDiv.textContent = 'Error getting answer: ' + (error.message || 'Unknown error. Please ensure Firebase AI Logic is enabled and you have the necessary permissions.');
+                resultDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Ask Question';
+            }
+        }
+        
+        // Make functions globally available
+        window.analyzeDocument = analyzeDocument;
+        window.askTaxQuestion = askTaxQuestion;
+        window.populateDocumentSelect = populateDocumentSelect;
+        
+        // Populate document select when AI section is shown
+        const existingShowSection = window.showSection;
+        if (existingShowSection && typeof existingShowSection === 'function') {
+            window.showSection = function(sectionName) {
+                existingShowSection(sectionName);
+                if (sectionName === 'ai-assistant') {
+                    setTimeout(populateDocumentSelect, 100);
+                }
+            };
+        }
     </script>
 
 </body>

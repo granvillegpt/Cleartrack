@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Layout Samples - Cleartrack</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --ct-primary: #0b7285;
+            --ct-primary-dark: #095a69;
+            --ct-bg-soft: #e5f3f7;
+            --ct-header-text: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #1a202c;
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 1.125rem;
+            margin-bottom: 3rem;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ct-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .section-description {
+            color: #64748b;
+            margin-bottom: 2rem;
+            font-size: 0.9375rem;
+        }
+
+        .demo-wrapper {
+            border: 2px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            background: #f9fafb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-label {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--ct-primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           BASE HEADER STYLES
+           ============================================ */
+
+        header,
+        .header {
+            background: var(--ct-primary);
+            color: #fff;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 1rem;
+            min-height: 60px;
+        }
+
+        .logo,
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            max-width: 200px;
+            width: auto;
+        }
+
+        .logo img,
+        .brand img {
+            height: 40px;
+            max-width: 120px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            flex-shrink: 0;
+        }
+
+        .header-center {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: flex-end;
+            flex-shrink: 0;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-menu span {
+            font-weight: 600;
+            color: #e0fbff;
+            font-size: 0.9375rem;
+        }
+
+        .practitioner-badge {
+            background: #059669;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .nav {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #e0fbff;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            padding: 0.5rem 0;
+            white-space: nowrap;
+        }
+
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #fff;
+            transition: width 0.3s ease;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            color: #fff;
+        }
+
+        .nav a:hover::after,
+        .nav a.active::after {
+            width: 100%;
+        }
+
+        .mobile-menu-toggle {
+            background: transparent;
+            border: none;
+            color: #e0fbff;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            padding: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           LAYOUT VARIANT 1: Standard Layout
+           ============================================ */
+        .header-variant-1 .header-top {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .header-variant-1 .logo {
+            position: static;
+            transform: none;
+        }
+
+        /* ============================================
+           LAYOUT VARIANT 2: Centered Logo
+           ============================================ */
+        .header-variant-2 .header-top {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .header-variant-2 .logo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* ============================================
+           LAYOUT VARIANT 3: Grid Layout (Admin Style)
+           ============================================ */
+        .header-variant-3 .header-top {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+        }
+
+        .header-variant-3 .header-left {
+            grid-column: 1;
+        }
+
+        .header-variant-3 .header-center {
+            grid-column: 2;
+            justify-self: center;
+        }
+
+        .header-variant-3 .header-right {
+            grid-column: 3;
+            justify-self: end;
+        }
+
+        /* ============================================
+           LAYOUT VARIANT 4: Practitioner Style (White)
+           ============================================ */
+        .header-variant-4,
+        .header-variant-4 .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .header-variant-4 .header-top {
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .header-variant-4 .logo img {
+            filter: none !important;
+        }
+
+        .header-variant-4 .nav {
+            background: rgba(248, 250, 252, 0.8);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .header-variant-4 .nav a {
+            color: #64748b;
+        }
+
+        .header-variant-4 .nav a:hover,
+        .header-variant-4 .nav a.active {
+            color: var(--ct-primary);
+        }
+
+        .header-variant-4 .nav a::after {
+            background: linear-gradient(90deg, var(--ct-primary), var(--ct-primary-dark));
+        }
+
+        .header-variant-4 .user-menu span {
+            color: #374151;
+        }
+
+        .header-variant-4 .mobile-menu-toggle {
+            color: #374151;
+        }
+
+        /* ============================================
+           LAYOUT VARIANT 5: Compact Header (No Nav)
+           ============================================ */
+        .header-variant-5 .nav {
+            display: none;
+        }
+
+        /* ============================================
+           LAYOUT VARIANT 6: Icon Navigation
+           ============================================ */
+        .header-variant-6 .nav {
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border-top: none;
+            border-bottom: none;
+        }
+
+        .header-variant-6 .nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid transparent;
+            border-radius: 4px;
+        }
+
+        .header-variant-6 .nav a::after {
+            display: none;
+        }
+
+        .header-variant-6 .nav a:hover,
+        .header-variant-6 .nav a.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-color: #fff;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           MOBILE HEADER LAYOUT
+           ============================================ */
+        .mobile-header-demo {
+            max-width: 375px;
+            margin: 0 auto;
+        }
+
+        .mobile-header .header-top {
+            padding: 0.875rem 1rem;
+            min-height: 56px;
+        }
+
+        .mobile-header .mobile-menu-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+
+        .mobile-header .logo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .mobile-header .logo img {
+            height: 32px;
+            max-width: 100px;
+        }
+
+        .mobile-header .nav {
+            display: none;
+        }
+
+        .mobile-header .user-menu {
+            display: none;
+        }
+
+        /* Mobile menu overlay */
+        .mobile-nav {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            visibility: hidden;
+        }
+
+        .mobile-nav.active {
+            opacity: 1;
+            pointer-events: all;
+            visibility: visible;
+        }
+
+        .mobile-nav-content {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 280px;
+            max-width: min(85vw, calc(100vw - 2rem));
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            z-index: 10001;
+        }
+
+        .mobile-nav.active .mobile-nav-content {
+            left: 0;
+        }
+
+        .mobile-nav-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-nav-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0.5rem;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .mobile-nav-links {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .mobile-nav-links a {
+            display: flex;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s;
+            min-height: 44px;
+            align-items: center;
+        }
+
+        .mobile-nav-links a:hover,
+        .mobile-nav-links a.active {
+            background: #f0f9ff;
+            color: var(--ct-primary);
+        }
+
+        /* Placeholder logo */
+        .logo-placeholder {
+            width: 120px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: 0.05em;
+        }
+
+        .header-variant-4 .logo-placeholder {
+            background: var(--ct-primary);
+            color: white;
+        }
+
+        /* Code block styling */
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-top: 1rem;
+        }
+
+        .code-block pre {
+            margin: 0;
+        }
+
+        .code-comment {
+            color: #94a3b8;
+        }
+
+        .code-tag {
+            color: #7dd3fc;
+        }
+
+        .code-attr {
+            color: #fbbf24;
+        }
+
+        .code-value {
+            color: #86efac;
+        }
+
+        /* Responsive adjustments for demo page */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 1.5rem;
+            }
+
+            .demo-wrapper {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Header Layout Samples</h1>
+        <p class="subtitle">Desktop and mobile header configurations for Cleartrack application</p>
+
+        <!-- Desktop Layout 1: Standard Layout -->
+        <div class="section">
+            <h2 class="section-title">Desktop Layout 1: Standard Layout</h2>
+            <p class="section-description">Logo on the left, user menu on the right. Navigation bar below.</p>
+            <div class="demo-wrapper">
+                <span class="demo-label">Desktop</span>
+                <header class="header header-variant-1">
+                    <div class="header-top">
+                        <div class="header-left">
+                            <div class="logo">
+                                <div class="logo-placeholder">CLEARTRACK</div>
+                            </div>
+                        </div>
+                        <div class="header-right">
+                            <div class="user-menu">
+                                <span>Dr. Jane Smith</span>
+                                <span class="practitioner-badge">Practitioner</span>
+                                <button class="btn">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                    <nav class="nav">
+                        <a href="#" class="active">Dashboard</a>
+                        <a href="#">Clients</a>
+                        <a href="#">Appointments</a>
+                        <a href="#">Documents</a>
+                        <a href="#">Settings</a>
+                    </nav>
+                </header>
+            </div>
+            <div class="code-block">
+                <pre><span class="code-comment">&lt;!-- Standard Layout --&gt;</span>
+<span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-value">"header header-variant-1"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-top"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-left"</span><span class="code-tag">&gt;</span>
+            <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"logo"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-right"</span><span class="code-tag">&gt;</span>
+            <span class="code-comment">&lt;!-- User menu --&gt;</span>
+        <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;nav</span> <span class="code-attr">class</span>=<span class="code-value">"nav"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/nav&gt;</span>
+<span class="code-tag">&lt;/header&gt;</span></pre>
+            </div>
+        </div>
+
+        <!-- Desktop Layout 2: Centered Logo -->
+        <div class="section">
+            <h2 class="section-title">Desktop Layout 2: Centered Logo</h2>
+            <p class="section-description">Logo centered, user menu on the right. Navigation bar below.</p>
+            <div class="demo-wrapper">
+                <span class="demo-label">Desktop</span>
+                <header class="header header-variant-2">
+                    <div class="header-top">
+                        <div class="header-left"></div>
+                        <div class="logo">
+                            <div class="logo-placeholder">CLEARTRACK</div>
+                        </div>
+                        <div class="header-right">
+                            <div class="user-menu">
+                                <span>Dr. Jane Smith</span>
+                                <span class="practitioner-badge">Practitioner</span>
+                                <button class="btn">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                    <nav class="nav">
+                        <a href="#" class="active">Dashboard</a>
+                        <a href="#">Clients</a>
+                        <a href="#">Appointments</a>
+                        <a href="#">Documents</a>
+                        <a href="#">Settings</a>
+                    </nav>
+                </header>
+            </div>
+            <div class="code-block">
+                <pre><span class="code-comment">&lt;!-- Centered Logo Layout --&gt;</span>
+<span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-value">"header header-variant-2"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-top"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-left"</span><span class="code-tag">&gt;&lt;/div&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"logo"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-right"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;nav</span> <span class="code-attr">class</span>=<span class="code-value">"nav"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/nav&gt;</span>
+<span class="code-tag">&lt;/header&gt;</span></pre>
+            </div>
+        </div>
+
+        <!-- Desktop Layout 3: Grid Layout (Admin Style) -->
+        <div class="section">
+            <h2 class="section-title">Desktop Layout 3: Grid Layout (Admin Style)</h2>
+            <p class="section-description">Three-column grid: logo left, title center, user menu right. Navigation bar below.</p>
+            <div class="demo-wrapper">
+                <span class="demo-label">Desktop</span>
+                <header class="header header-variant-3">
+                    <div class="header-top">
+                        <div class="header-left">
+                            <div class="logo">
+                                <div class="logo-placeholder">CLEARTRACK</div>
+                            </div>
+                        </div>
+                        <div class="header-center">
+                            Admin Dashboard
+                        </div>
+                        <div class="header-right">
+                            <div class="user-menu">
+                                <span>Admin User</span>
+                                <button class="btn">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                    <nav class="nav">
+                        <a href="#" class="active">Dashboard</a>
+                        <a href="#">Users</a>
+                        <a href="#">Practitioners</a>
+                        <a href="#">Settings</a>
+                    </nav>
+                </header>
+            </div>
+            <div class="code-block">
+                <pre><span class="code-comment">&lt;!-- Grid Layout (Admin Style) --&gt;</span>
+<span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-value">"header header-variant-3"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-top"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-left"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-center"</span><span class="code-tag">&gt;</span>Title<span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-right"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;nav</span> <span class="code-attr">class</span>=<span class="code-value">"nav"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/nav&gt;</span>
+<span class="code-tag">&lt;/header&gt;</span></pre>
+            </div>
+        </div>
+
+        <!-- Desktop Layout 4: Practitioner Style (White Background) -->
+        <div class="section">
+            <h2 class="section-title">Desktop Layout 4: Practitioner Style (White Background)</h2>
+            <p class="section-description">White background header with teal accents. Logo centered, navigation with teal hover states.</p>
+            <div class="demo-wrapper">
+                <span class="demo-label">Desktop</span>
+                <header class="header header-variant-4">
+                    <div class="header-top">
+                        <div class="header-left"></div>
+                        <div class="logo">
+                            <div class="logo-placeholder">CLEARTRACK</div>
+                        </div>
+                        <div class="header-right">
+                            <div class="user-menu">
+                                <span>Dr. Jane Smith</span>
+                                <span class="practitioner-badge">Practitioner</span>
+                                <button class="btn" style="background: var(--ct-primary); color: white;">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                    <nav class="nav">
+                        <a href="#" class="active">Dashboard</a>
+                        <a href="#">Clients</a>
+                        <a href="#">Appointments</a>
+                        <a href="#">Documents</a>
+                        <a href="#">Settings</a>
+                    </nav>
+                </header>
+            </div>
+            <div class="code-block">
+                <pre><span class="code-comment">&lt;!-- Practitioner Style (White Background) --&gt;</span>
+<span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-value">"header header-variant-4"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-top"</span><span class="code-tag">&gt;</span>
+        <span class="code-comment">&lt;!-- Same structure as variant 2 --&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;nav</span> <span class="code-attr">class</span>=<span class="code-value">"nav"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/nav&gt;</span>
+<span class="code-tag">&lt;/header&gt;</span></pre>
+            </div>
+        </div>
+
+        <!-- Desktop Layout 5: Compact Header (No Navigation) -->
+        <div class="section">
+            <h2 class="section-title">Desktop Layout 5: Compact Header (No Navigation)</h2>
+            <p class="section-description">Minimal header without navigation bar. Useful for simple pages or modals.</p>
+            <div class="demo-wrapper">
+                <span class="demo-label">Desktop</span>
+                <header class="header header-variant-5">
+                    <div class="header-top">
+                        <div class="header-left">
+                            <div class="logo">
+                                <div class="logo-placeholder">CLEARTRACK</div>
+                            </div>
+                        </div>
+                        <div class="header-right">
+                            <div class="user-menu">
+                                <span>User Name</span>
+                                <button class="btn">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            </div>
+            <div class="code-block">
+                <pre><span class="code-comment">&lt;!-- Compact Header (No Navigation) --&gt;</span>
+<span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-value">"header header-variant-5"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-top"</span><span class="code-tag">&gt;</span>
+        <span class="code-comment">&lt;!-- No nav element --&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+<span class="code-tag">&lt;/header&gt;</span></pre>
+            </div>
+        </div>
+
+        <!-- Desktop Layout 6: Icon Navigation -->
+        <div class="section">
+            <h2 class="section-title">Desktop Layout 6: Icon Navigation</h2>
+            <p class="section-description">Navigation with icons and larger clickable areas. Good for touch interfaces.</p>
+            <div class="demo-wrapper">
+                <span class="demo-label">Desktop</span>
+                <header class="header header-variant-6">
+                    <div class="header-top">
+                        <div class="header-left">
+                            <div class="logo">
+                                <div class="logo-placeholder">CLEARTRACK</div>
+                            </div>
+                        </div>
+                        <div class="header-right">
+                            <div class="user-menu">
+                                <span>User Name</span>
+                                <button class="btn">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                    <nav class="nav">
+                        <a href="#" class="active">
+                            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                            </svg>
+                            Dashboard
+                        </a>
+                        <a href="#">
+                            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                            </svg>
+                            Clients
+                        </a>
+                        <a href="#">
+                            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            Appointments
+                        </a>
+                        <a href="#">
+                            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                            </svg>
+                            Documents
+                        </a>
+                    </nav>
+                </header>
+            </div>
+            <div class="code-block">
+                <pre><span class="code-comment">&lt;!-- Icon Navigation --&gt;</span>
+<span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-value">"header header-variant-6"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;nav</span> <span class="code-attr">class</span>=<span class="code-value">"nav"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;a</span> <span class="code-attr">href</span>=<span class="code-value">"#"</span><span class="code-tag">&gt;</span>
+            <span class="code-tag">&lt;svg</span> <span class="code-attr">class</span>=<span class="code-value">"nav-icon"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/svg&gt;</span>
+            Dashboard
+        <span class="code-tag">&lt;/a&gt;</span>
+    <span class="code-tag">&lt;/nav&gt;</span>
+<span class="code-tag">&lt;/header&gt;</span></pre>
+            </div>
+        </div>
+
+        <!-- Mobile Header Layout -->
+        <div class="section">
+            <h2 class="section-title">Mobile Header Layout</h2>
+            <p class="section-description">Hamburger menu on the left, centered logo, navigation hidden in slide-out menu.</p>
+            <div class="demo-wrapper mobile-header-demo">
+                <span class="demo-label">Mobile</span>
+                <header class="header mobile-header">
+                    <div class="header-top">
+                        <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                            <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        <div class="logo">
+                            <div class="logo-placeholder" style="width: 100px; height: 32px; font-size: 1rem;">CLEARTRACK</div>
+                        </div>
+                    </div>
+                </header>
+                
+                <!-- Mobile Navigation Menu -->
+                <div class="mobile-nav" id="mobileNav">
+                    <div class="mobile-nav-content">
+                        <div class="mobile-nav-header">
+                            <div class="logo">
+                                <div class="logo-placeholder" style="background: var(--ct-primary); width: 100px; height: 32px; font-size: 1rem;">CLEARTRACK</div>
+                            </div>
+                            <button class="mobile-nav-close" aria-label="Close menu">×</button>
+                        </div>
+                        <div class="mobile-nav-links">
+                            <a href="#" class="active">Dashboard</a>
+                            <a href="#">Clients</a>
+                            <a href="#">Appointments</a>
+                            <a href="#">Documents</a>
+                            <a href="#">Settings</a>
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                                <div style="padding: 0.75rem 1rem; color: #64748b; font-size: 0.875rem;">
+                                    <div style="font-weight: 600; margin-bottom: 0.25rem;">Dr. Jane Smith</div>
+                                    <div style="font-size: 0.75rem;">Practitioner</div>
+                                </div>
+                                <button class="btn" style="width: 100%; margin-top: 0.5rem; background: #dc2626; color: white;">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="code-block">
+                <pre><span class="code-comment">&lt;!-- Mobile Header --&gt;</span>
+<span class="code-tag">&lt;header</span> <span class="code-attr">class</span>=<span class="code-value">"header mobile-header"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"header-top"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;button</span> <span class="code-attr">class</span>=<span class="code-value">"mobile-menu-toggle"</span><span class="code-tag">&gt;</span>☰<span class="code-tag">&lt;/button&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"logo"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+<span class="code-tag">&lt;/header&gt;</span>
+
+<span class="code-comment">&lt;!-- Mobile Navigation Menu --&gt;</span>
+<span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"mobile-nav"</span> <span class="code-attr">id</span>=<span class="code-value">"mobileNav"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"mobile-nav-content"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"mobile-nav-header"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/div&gt;</span>
+        <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-value">"mobile-nav-links"</span><span class="code-tag">&gt;</span>...<span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+<span class="code-tag">&lt;/div&gt;</span></pre>
+            </div>
+        </div>
+
+        <!-- Implementation Notes -->
+        <div class="section">
+            <h2 class="section-title">Implementation Notes</h2>
+            <div style="color: #64748b; line-height: 1.8;">
+                <h3 style="color: #1a202c; margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem;">CSS Classes</h3>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                    <li><strong>header-variant-1</strong>: Standard layout with logo on left</li>
+                    <li><strong>header-variant-2</strong>: Centered logo layout</li>
+                    <li><strong>header-variant-3</strong>: Grid layout for admin dashboards</li>
+                    <li><strong>header-variant-4</strong>: Practitioner style with white background</li>
+                    <li><strong>header-variant-5</strong>: Compact header without navigation</li>
+                    <li><strong>header-variant-6</strong>: Icon-based navigation</li>
+                    <li><strong>mobile-header</strong>: Mobile responsive header</li>
+                </ul>
+
+                <h3 style="color: #1a202c; margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem;">Color Scheme</h3>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                    <li><strong>Primary:</strong> #0b7285 (Teal)</li>
+                    <li><strong>Primary Dark:</strong> #095a69</li>
+                    <li><strong>Background Soft:</strong> #e5f3f7</li>
+                    <li><strong>Header Text:</strong> #ffffff</li>
+                </ul>
+
+                <h3 style="color: #1a202c; margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem;">Responsive Breakpoints</h3>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+                    <li><strong>Mobile:</strong> max-width: 768px</li>
+                    <li><strong>Tablet:</strong> 769px - 1023px</li>
+                    <li><strong>Desktop:</strong> min-width: 1024px</li>
+                </ul>
+
+                <h3 style="color: #1a202c; margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem;">JavaScript Requirements</h3>
+                <p style="margin-bottom: 1rem;">For mobile menu functionality, you'll need JavaScript to toggle the <code style="background: #f1f5f9; padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.875rem;">mobile-nav.active</code> class and handle menu open/close states.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple mobile menu toggle for demonstration
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileNav = document.getElementById('mobileNav');
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            const menuClose = document.querySelector('.mobile-nav-close');
+
+            if (menuToggle && mobileNav) {
+                menuToggle.addEventListener('click', function() {
+                    mobileNav.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (menuClose && mobileNav) {
+                menuClose.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            // Close menu when clicking outside
+            if (mobileNav) {
+                mobileNav.addEventListener('click', function(e) {
+                    if (e.target === mobileNav) {
+                        mobileNav.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
