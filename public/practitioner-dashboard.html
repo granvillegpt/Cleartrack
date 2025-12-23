@@ -2263,33 +2263,29 @@
                 position: relative !important;
             }
             
-            .whatsapp-search.search-input-wrapper {
-                padding: 12px !important;
-            }
-            
-            .whatsapp-search .search-input {
-                padding-left: 2.5rem !important;
-                padding-right: 0.75rem !important;
-                font-size: 0.875rem !important;
+            .whatsapp-search input {
+                padding-left: 36px !important;
+                padding-right: 12px !important;
+                font-size: 14px !important;
                 height: 40px !important;
-                border-radius: 8px !important;
+                position: relative !important;
+                border-radius: 20px !important;
             }
             
             .whatsapp-search .search-icon {
                 position: absolute !important;
-                left: 0.75rem !important;
+                left: 24px !important;
                 top: 50% !important;
                 transform: translateY(-50%) !important;
+                width: 16px !important;
+                height: 16px !important;
                 pointer-events: none !important;
                 z-index: 2 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
             }
             
             .whatsapp-search .search-icon img {
-                width: 18px !important;
-                height: 18px !important;
+                width: 16px !important;
+                height: 16px !important;
                 display: block !important;
             }
             
@@ -3420,10 +3416,10 @@
                         </div>
                             </div>
                         
-                        <div class="whatsapp-search search-input-wrapper">
-                            <input type="text" placeholder="Search clients" id="clientSearch" class="search-input">
-                            <div class="search-icon">
-                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search">
+                        <div class="whatsapp-search" style="position: relative;">
+                            <input type="text" placeholder="Search clients" id="clientSearch" style="padding-left: 40px; position: relative;">
+                            <div class="search-icon" style="position: absolute; left: 28px; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 1;">
+                                <img src="assets/icons/search.svg" class="icon icon-gray-500" alt="Search" style="width: 18px; height: 18px;">
                             </div>
                         </div>
                         
