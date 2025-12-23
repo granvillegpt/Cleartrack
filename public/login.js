@@ -385,40 +385,45 @@ async function routeUserAfterLogin(user, role, userData) {
   console.log('[login.js] User email:', user.email);
   console.log('[login.js] Role parameter:', role);
   
-  setLoginLoading(true, 'Welcome to ClearTrack!', 'Redirecting to your dashboard');
+  // Set overall timeout for routing (max 10 seconds)
+  const routingTimeout = setTimeout(() => {
+    console.error('[login.js] ⚠️ Routing timeout - forcing redirect to onboarding');
+    setLoginLoading(false);
+    safeRedirect('/client-onboarding.html');
+  }, 10000);
   
-  const email = user.email?.toLowerCase().trim();
-  let finalRole = String(role || userData?.role || 'user').toLowerCase().trim();
-  
-  // OPTIMIZATION: For new users (just registered), skip complex queries and route directly
-  // Check if this is a newly registered user by checking if userData is minimal (just created)
-  const isNewUser = userData && userData.createdAt && 
-                    (Date.now() - new Date(userData.createdAt).getTime()) < 60000; // Created within last minute
-  
-  if (isNewUser && finalRole === 'user' && !userData.practitionerId && !userData.connectedPractitioner) {
-    console.log('[login.js] ✅ New user detected - routing directly to onboarding (skipping complex queries)');
-    setLoginLoading(true, 'Welcome to ClearTrack!', 'Setting up your account');
-    // Small delay to show welcome message, then redirect
-    setTimeout(() => {
-      safeRedirect('/client-onboarding.html');
-    }, 500);
-    return;
-  }
-  
-  // CRITICAL: ALWAYS check by email FIRST - this is the most reliable method
-  if (email) {
-    console.log('[login.js] 🔍🔍🔍 CHECKING BY EMAIL FIRST (MOST RELIABLE) 🔍🔍🔍');
-    console.log('[login.js] 🔍 Email to check:', email);
+  try {
+    setLoginLoading(true, 'Welcome to ClearTrack!', 'Redirecting to your dashboard');
     
-    try {
-      const emailQuery = window.firebaseDb.collection('users')
-        .where('email', '==', email);
+    const email = user.email?.toLowerCase().trim();
+    let finalRole = String(role || userData?.role || 'user').toLowerCase().trim();
+    
+    // OPTIMIZATION: For regular users without practitioner, skip complex queries
+    // If role is 'user' and no practitioner connection, route directly to onboarding
+    if (finalRole === 'user' && !userData?.practitionerId && !userData?.connectedPractitioner) {
+      console.log('[login.js] ✅ Regular user detected - routing directly to onboarding (skipping complex queries)');
+      clearTimeout(routingTimeout);
+      setLoginLoading(false);
+      setTimeout(() => {
+        safeRedirect('/client-onboarding.html');
+      }, 300);
+      return;
+    }
+    
+    // CRITICAL: ALWAYS check by email FIRST - this is the most reliable method
+    if (email) {
+      console.log('[login.js] 🔍🔍🔍 CHECKING BY EMAIL FIRST (MOST RELIABLE) 🔍🔍🔍');
+      console.log('[login.js] 🔍 Email to check:', email);
       
-      console.log('[login.js] 🔍 Executing email query...');
-      const emailDocs = await Promise.race([
-        emailQuery.get(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-      ]);
+      try {
+        const emailQuery = window.firebaseDb.collection('users')
+          .where('email', '==', email);
+        
+        console.log('[login.js] 🔍 Executing email query...');
+        const emailDocs = await Promise.race([
+          emailQuery.get(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+        ]);
       
       console.log('[login.js] 🔍 Query completed. Found', emailDocs.size, 'document(s) by email');
       
@@ -460,73 +465,87 @@ async function routeUserAfterLogin(user, role, userData) {
     } catch (err) {
       console.error('[login.js] ❌ Email check error:', err);
       console.error('[login.js] Error details:', err.message, err.stack);
+      // Continue with role from userData if email check fails
     }
   } else {
     console.log('[login.js] ⚠️ No email available to check');
   }
   
-  // Also check UID document as backup
-  try {
-    const uidDoc = await Promise.race([
-      window.firebaseDb.collection('users').doc(user.uid).get(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
-    ]);
-    
-    if (uidDoc.exists) {
-      const uidRole = String(uidDoc.data().role || 'user').toLowerCase().trim();
-      console.log('[login.js] 🔍 UID doc role:', uidRole);
+  // Also check UID document as backup (only if we haven't found practitioner/admin yet)
+  if (finalRole !== 'practitioner' && finalRole !== 'admin') {
+    try {
+      const uidDoc = await Promise.race([
+        window.firebaseDb.collection('users').doc(user.uid).get(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+      ]);
       
-      if (uidRole === 'practitioner' || uidRole === 'admin') {
-        finalRole = uidRole;
-        console.log('[login.js] ✅ Using UID doc role:', finalRole);
+      if (uidDoc.exists) {
+        const uidRole = String(uidDoc.data().role || 'user').toLowerCase().trim();
+        console.log('[login.js] 🔍 UID doc role:', uidRole);
+        
+        if (uidRole === 'practitioner' || uidRole === 'admin') {
+          finalRole = uidRole;
+          console.log('[login.js] ✅ Using UID doc role:', finalRole);
+        }
       }
+    } catch (uidError) {
+      console.warn('[login.js] UID check error:', uidError.message);
+      // Continue with existing role
     }
-  } catch (uidError) {
-    console.warn('[login.js] UID check error:', uidError.message);
   }
   
-  // Route based on final role
-  console.log('[login.js] ========================================');
-  console.log('[login.js] FINAL ROLE FOR ROUTING:', finalRole);
-  console.log('[login.js] ========================================');
-  
-  // Hide loading screen before redirect to prevent it from persisting
-  setLoginLoading(false);
-  
-  if (finalRole === 'practitioner') {
-    console.log('[login.js] ✅✅✅✅✅ ROUTING TO PRACTITIONER DASHBOARD');
+    // Route based on final role
+    console.log('[login.js] ========================================');
+    console.log('[login.js] FINAL ROLE FOR ROUTING:', finalRole);
+    console.log('[login.js] ========================================');
+    
+    // Clear timeout since we're routing successfully
+    clearTimeout(routingTimeout);
+    
+    // Hide loading screen before redirect to prevent it from persisting
+    setLoginLoading(false);
+    
+    if (finalRole === 'practitioner') {
+      console.log('[login.js] ✅✅✅✅✅ ROUTING TO PRACTITIONER DASHBOARD');
+      setTimeout(() => {
+        safeRedirect('/practitioner-dashboard.html');
+      }, 200);
+      return;
+    }
+    
+    if (finalRole === 'admin') {
+      console.log('[login.js] ✅✅✅✅✅ ROUTING TO ADMIN DASHBOARD');
+      setTimeout(() => {
+        safeRedirect('/admin-dashboard.html');
+      }, 200);
+      return;
+    }
+    
+    // Regular users
+    const practitionerId = userData?.practitionerId || userData?.connectedPractitioner || null;
+    if (practitionerId) {
+      console.log('[login.js] ✅ User has practitioner - routing to user dashboard');
+      setTimeout(() => {
+        safeRedirect('/user-dashboard.html');
+      }, 200);
+      return;
+    }
+    
+    // Default: onboarding (only for regular users)
+    console.log('[login.js] ✅ Routing to client onboarding (regular user)');
     setTimeout(() => {
-      safeRedirect('/practitioner-dashboard.html');
-    }, 100);
-    return;
-  }
-  
-  if (finalRole === 'admin') {
-    console.log('[login.js] ✅✅✅✅✅ ROUTING TO ADMIN DASHBOARD');
+      safeRedirect('/client-onboarding.html');
+    }, 200);
+    
+  } catch (routingError) {
+    console.error('[login.js] ❌ Error in routeUserAfterLogin:', routingError);
+    clearTimeout(routingTimeout);
+    setLoginLoading(false);
+    // Fallback: redirect to onboarding
     setTimeout(() => {
-      safeRedirect('/admin-dashboard.html');
-    }, 100);
-    return;
+      safeRedirect('/client-onboarding.html');
+    }, 200);
   }
-  
-  // Regular users
-  const practitionerId = userData?.practitionerId || userData?.connectedPractitioner || null;
-  if (practitionerId) {
-    console.log('[login.js] ✅ User has practitioner - routing to user dashboard');
-    setTimeout(() => {
-      safeRedirect('/user-dashboard.html');
-    }, 100);
-    return;
-  }
-  
-  // Default: onboarding (only for regular users)
-  console.log('[login.js] ✅ Routing to client onboarding (regular user)');
-  // Hide loading screen before redirect to prevent it from persisting
-  setLoginLoading(false);
-  // Small delay to ensure loading screen is hidden
-  setTimeout(() => {
-    safeRedirect('/client-onboarding.html');
-  }, 100);
 }
 
 function safeRedirect(url) {
