@@ -20,24 +20,17 @@
 
   <link rel="icon" type="image/png" href="assets/images/icon%20logo.png" />
   
-  <!-- PWA Features - Only on app.cleartrack.co.za -->
+  <!-- PWA Features -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b7285">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ClearTrack">
+  <link rel="apple-touch-icon" href="/icons/cleartrack-192.png">
   <script>
     (function() {
-      if (window.location.hostname === 'app.cleartrack.co.za') {
         // Use DOM manipulation instead of document.write to prevent blocking
         const head = document.head || document.getElementsByTagName('head')[0];
-        
-        // Manifest
-        const manifest = document.createElement('link');
-        manifest.rel = 'manifest';
-        manifest.href = '/manifest.json';
-        head.appendChild(manifest);
-        
-        // Theme color
-        const themeColor = document.createElement('meta');
-        themeColor.name = 'theme-color';
-        themeColor.content = '#0b7285';
-        head.appendChild(themeColor);
         
         // Apple Touch Icons
         const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
@@ -88,7 +81,6 @@
           link.href = screen.href;
           head.appendChild(link);
         });
-      }
     })();
   </script>
 

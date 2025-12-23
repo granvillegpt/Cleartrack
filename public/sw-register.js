@@ -1,6 +1,6 @@
 // Service Worker Registration with Cache Clearing
-// Only register on app.cleartrack.co.za domain
-if ('serviceWorker' in navigator && window.location.hostname === 'app.cleartrack.co.za') {
+// Register on all domains (Firebase hosting and custom domain)
+if ('serviceWorker' in navigator) {
   // Unregister any existing service workers first
   navigator.serviceWorker.getRegistrations().then(function(registrations) {
     for(let registration of registrations) {
