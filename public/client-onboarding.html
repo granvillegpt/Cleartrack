@@ -527,12 +527,14 @@
             display: block !important;
             padding: 0 !important;
             margin: 0 !important;
+            margin-bottom: 0 !important; /* Ensure no margin pushes main down */
         }
         
         /* Ensure header is always on top except loading overlay */
         .header-top {
             z-index: 10001 !important;
             position: relative !important;
+            background: transparent !important; /* Ensure no background covers content */
         }
         
         /* Desktop: Header stays full width, content inside is centered */
@@ -989,7 +991,7 @@
             width: 100%;
             box-sizing: border-box;
             position: relative;
-            z-index: 1;
+            z-index: 1 !important; /* Lower than header z-index */
         }
         
         .onboarding-card {
