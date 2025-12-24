@@ -1589,38 +1589,57 @@ document.addEventListener('DOMContentLoaded', function() {
               role = finalRole;
               userData = { ...userData, ...finalUserData };
             }
+          } else {
+            console.log('[login.js] Final verification: User document does not exist');
           }
           
-          // If still not found, check by email
+          // If still not found, check by email (with timeout protection)
           if (role !== 'practitioner' && role !== 'admin') {
+            console.log('[login.js] Final verification: Role is still user, checking by email...');
             const finalEmail = user.email?.toLowerCase().trim();
             if (finalEmail) {
-              const finalEmailCheck = await Promise.race([
-                window.firebaseDb.collection('users')
-                  .where('email', '==', finalEmail)
-                  .where('role', 'in', ['practitioner', 'admin'])
-                  .limit(1)
-                  .get(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
-              ]);
-              
-              if (!finalEmailCheck.empty) {
-                const finalEmailDoc = finalEmailCheck.docs[0];
-                const finalEmailData = finalEmailDoc.data();
-                const finalEmailRole = (finalEmailData.role || 'user').toLowerCase().trim();
-                console.log('[login.js] ✅✅✅ FINAL EMAIL CHECK FOUND ROLE:', finalEmailRole);
+              try {
+                console.log('[login.js] Starting final email check with timeout...');
+                const finalEmailCheck = await Promise.race([
+                  window.firebaseDb.collection('users')
+                    .where('email', '==', finalEmail)
+                    .where('role', 'in', ['practitioner', 'admin'])
+                    .limit(1)
+                    .get(),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+                ]);
                 
-                // Migrate to UID
-                await window.firebaseDb.collection('users').doc(user.uid).set(finalEmailData, { merge: true });
-                if (finalEmailDoc.id !== user.uid) {
-                  await finalEmailDoc.ref.delete();
+                console.log('[login.js] Final email check completed, results:', finalEmailCheck.empty ? 'empty' : 'found');
+                
+                if (!finalEmailCheck.empty) {
+                  const finalEmailDoc = finalEmailCheck.docs[0];
+                  const finalEmailData = finalEmailDoc.data();
+                  const finalEmailRole = (finalEmailData.role || 'user').toLowerCase().trim();
+                  console.log('[login.js] ✅✅✅ FINAL EMAIL CHECK FOUND ROLE:', finalEmailRole);
+                  
+                  // Migrate to UID
+                  await window.firebaseDb.collection('users').doc(user.uid).set(finalEmailData, { merge: true });
+                  if (finalEmailDoc.id !== user.uid) {
+                    await finalEmailDoc.ref.delete();
+                  }
+                  
+                  role = finalEmailRole;
+                  userData = { ...userData, ...finalEmailData };
+                } else {
+                  console.log('[login.js] Final email check: No practitioner/admin found');
                 }
-                
-                role = finalEmailRole;
-                userData = { ...userData, ...finalEmailData };
+              } catch (finalEmailError) {
+                console.warn('[login.js] Final email check failed or timed out:', finalEmailError.message);
+                // Continue with current role (user)
               }
+            } else {
+              console.log('[login.js] Final verification: No email available for check');
             }
+          } else {
+            console.log('[login.js] Final verification: Role is already practitioner/admin, skipping email check');
           }
+          
+          console.log('[login.js] ✅ Final verification complete, final role:', role);
         } catch (finalVerificationError) {
           console.warn('[login.js] Final verification failed:', finalVerificationError);
         }
