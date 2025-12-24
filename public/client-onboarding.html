@@ -565,10 +565,16 @@
         
         /* ============================================
            LOGOUT BUTTON - DESKTOP POSITIONING
+           Prevent stretching from global button styles
            ============================================ */
         #desktopLogoutBtn {
-            display: block;
-            margin-left: auto;
+            display: block !important;
+            margin-left: auto !important;
+            width: auto !important;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+            min-width: auto !important;
+            max-width: none !important;
         }
         
         /* ============================================
