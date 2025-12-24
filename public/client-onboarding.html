@@ -41,19 +41,30 @@
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
+            z-index: 1 !important;
+            position: relative !important;
         }
         /* Ensure scripts are always hidden */
         script {
             display: none !important;
             visibility: hidden !important;
         }
-        /* Ensure loading overlay is always visible and on top */
+        /* Ensure loading overlay is always visible and on top - but will be hidden by JavaScript */
         #loadingOverlay {
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
             position: fixed !important;
             z-index: 999999 !important;
+        }
+        
+        /* When content is shown, loading overlay should be hidden */
+        #loadingOverlay.hidden,
+        body:not(.loading) #loadingOverlay {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            z-index: -1 !important;
         }
     </style>
     
@@ -290,19 +301,25 @@
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
                 console.log('[onboarding] ✅ Hiding loading overlay');
-                // Remove all inline styles
+                // Remove all inline styles first
                 overlay.removeAttribute('style');
-                // Set new styles to hide it
-                overlay.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -1 !important; position: fixed !important;';
+                // Add hidden class
                 overlay.classList.remove('show');
                 overlay.classList.add('hidden');
+                // Set new styles to hide it with !important
+                overlay.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -1 !important; position: fixed !important; pointer-events: none !important;';
+                // Also mark body as not loading
+                document.body.classList.remove('loading');
+                document.body.classList.add('content-shown');
                 // Also remove from DOM after a moment
                 setTimeout(() => {
                     if (overlay && overlay.parentNode) {
                         overlay.style.display = 'none';
                         overlay.style.visibility = 'hidden';
+                        overlay.style.opacity = '0';
+                        overlay.style.zIndex = '-1';
                     }
-                }, 50);
+                }, 100);
             }
             
             // Also use loading-screen.js hide function if available
