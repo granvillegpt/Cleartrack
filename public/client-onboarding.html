@@ -1857,11 +1857,31 @@
             // Single check - run once, then show content if user is regular
             const runCheckOnce = async () => {
                 if (window._redirectCheckDone) return;
+                
+                // CRITICAL: Wait for auth state to be known before showing content
+                if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                    console.log('[onboarding] ⏳ Waiting for auth state before showing content');
+                    // Set up auth listener if not already done
+                    if (window.firebaseAuth && !window._bodyAuthListenerSet) {
+                        window._bodyAuthListenerSet = true;
+                        window.firebaseAuth.onAuthStateChanged((user) => {
+                            if (user && !window._redirectCheckDone) {
+                                console.log('[onboarding] 🔐 Auth state known - user detected, running check');
+                                setTimeout(() => runCheckOnce(), 100);
+                            }
+                        });
+                    }
+                    return;
+                }
+                
                 console.log('[onboarding] 🔄 Running single redirect check');
                 await redirectPractitioners();
                 // After check, if still on page and content not shown, show it
+                // BUT ONLY if redirect check is done (meaning we confirmed user is NOT practitioner)
                 setTimeout(() => {
-                    if (window.location.pathname.includes('client-onboarding.html') && !window._onboardingContentShown) {
+                    if (window.location.pathname.includes('client-onboarding.html') && 
+                        !window._onboardingContentShown && 
+                        window._redirectCheckDone) {
                         console.log('[onboarding] ✅ Check complete - showing onboarding content');
                         if (window.showOnboardingContent) {
                             window.showOnboardingContent();
