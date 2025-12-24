@@ -389,7 +389,10 @@ async function routeUserAfterLogin(user, role, userData) {
   let routingTimeout = null;
   
   try {
-    setLoginLoading(true, 'Welcome to ClearTrack!', 'Redirecting to your dashboard');
+    // Safe call to setLoginLoading (might not be defined yet if DOM not ready)
+    if (window.setLoginLoading) {
+      window.setLoginLoading(true, 'Welcome to ClearTrack!', 'Redirecting to your dashboard');
+    }
     
     const email = user.email?.toLowerCase().trim();
     let finalRole = String(role || userData?.role || 'user').toLowerCase().trim();
@@ -398,7 +401,7 @@ async function routeUserAfterLogin(user, role, userData) {
     // This prevents practitioners from being sent to onboarding due to timeout
     if (finalRole === 'practitioner') {
       console.log('[login.js] ✅✅✅ PRACTITIONER DETECTED IMMEDIATELY - ROUTING DIRECTLY');
-      setLoginLoading(false);
+      if (window.setLoginLoading) window.setLoginLoading(false);
       setTimeout(() => {
         safeRedirect('/practitioner-dashboard.html');
       }, 200);
@@ -407,7 +410,7 @@ async function routeUserAfterLogin(user, role, userData) {
     
     if (finalRole === 'admin') {
       console.log('[login.js] ✅✅✅ ADMIN DETECTED IMMEDIATELY - ROUTING DIRECTLY');
-      setLoginLoading(false);
+      if (window.setLoginLoading) window.setLoginLoading(false);
       setTimeout(() => {
         safeRedirect('/admin-dashboard.html');
       }, 200);
