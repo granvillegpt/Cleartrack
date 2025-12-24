@@ -171,7 +171,7 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
 
 .main {
     padding: 2.5rem 2rem;
-    max-width: 1400px;
+    max-width: 960px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
