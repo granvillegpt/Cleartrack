@@ -28,6 +28,8 @@
             /* Don't hide body completely - we need loading screen visible */
             /* Instead, hide all children except loading overlay */
             overflow: hidden !important;
+            /* CRITICAL: Make body white/blank until content is allowed */
+            background: #ffffff !important;
         }
         /* CRITICAL: Hide ALL body content EXCEPT the loading overlay */
         /* This prevents ANY content from showing until explicitly allowed */
@@ -36,6 +38,18 @@
             visibility: hidden !important;
             opacity: 0 !important;
             pointer-events: none !important;
+            position: absolute !important;
+            left: -9999px !important;
+            top: -9999px !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+        /* CRITICAL: Body must have content-allowed class to show ANY content */
+        body:not(.content-allowed) > *:not(#loadingOverlay) {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
         }
         /* CRITICAL: Even if content tries to show, keep it hidden until explicitly enabled */
         body > *:not(#loadingOverlay).show-content {
@@ -619,6 +633,9 @@
             // Show all body content by adding show-content class
             // This ensures CSS rules allow content to be visible
             if (document.body) {
+                // CRITICAL: Add body class FIRST to allow CSS to show content
+                document.body.classList.add('content-allowed');
+                
                 var children = document.body.children;
                 for (var i = 0; i < children.length; i++) {
                     if (children[i].id !== 'loadingOverlay') {
@@ -629,6 +646,12 @@
                         children[i].style.visibility = 'visible';
                         children[i].style.opacity = '1';
                         children[i].style.pointerEvents = 'auto';
+                        children[i].style.position = 'static';
+                        children[i].style.left = 'auto';
+                        children[i].style.top = 'auto';
+                        children[i].style.width = 'auto';
+                        children[i].style.height = 'auto';
+                        children[i].style.overflow = 'visible';
                     }
                 }
             }
