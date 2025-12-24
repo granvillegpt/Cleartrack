@@ -385,12 +385,8 @@ async function routeUserAfterLogin(user, role, userData) {
   console.log('[login.js] User email:', user.email);
   console.log('[login.js] Role parameter:', role);
   
-  // Set overall timeout for routing (max 10 seconds)
-  const routingTimeout = setTimeout(() => {
-    console.error('[login.js] ⚠️ Routing timeout - forcing redirect to onboarding');
-    setLoginLoading(false);
-    safeRedirect('/client-onboarding.html');
-  }, 10000);
+  // Set overall timeout for routing (max 10 seconds) - but ONLY for regular users
+  let routingTimeout = null;
   
   try {
     setLoginLoading(true, 'Welcome to ClearTrack!', 'Redirecting to your dashboard');
@@ -398,17 +394,43 @@ async function routeUserAfterLogin(user, role, userData) {
     const email = user.email?.toLowerCase().trim();
     let finalRole = String(role || userData?.role || 'user').toLowerCase().trim();
     
+    // CRITICAL: Check for practitioner/admin FIRST before any timeout
+    // This prevents practitioners from being sent to onboarding due to timeout
+    if (finalRole === 'practitioner') {
+      console.log('[login.js] ✅✅✅ PRACTITIONER DETECTED IMMEDIATELY - ROUTING DIRECTLY');
+      setLoginLoading(false);
+      setTimeout(() => {
+        safeRedirect('/practitioner-dashboard.html');
+      }, 200);
+      return;
+    }
+    
+    if (finalRole === 'admin') {
+      console.log('[login.js] ✅✅✅ ADMIN DETECTED IMMEDIATELY - ROUTING DIRECTLY');
+      setLoginLoading(false);
+      setTimeout(() => {
+        safeRedirect('/admin-dashboard.html');
+      }, 200);
+      return;
+    }
+    
     // OPTIMIZATION: For regular users without practitioner, skip complex queries
     // If role is 'user' and no practitioner connection, route directly to onboarding
     if (finalRole === 'user' && !userData?.practitionerId && !userData?.connectedPractitioner) {
       console.log('[login.js] ✅ Regular user detected - routing directly to onboarding (skipping complex queries)');
-      clearTimeout(routingTimeout);
       setLoginLoading(false);
       setTimeout(() => {
         safeRedirect('/client-onboarding.html');
       }, 300);
       return;
     }
+    
+    // Only set timeout for users that need role verification
+    routingTimeout = setTimeout(() => {
+      console.error('[login.js] ⚠️ Routing timeout - forcing redirect to onboarding (regular users only)');
+      setLoginLoading(false);
+      safeRedirect('/client-onboarding.html');
+    }, 10000);
     
     // CRITICAL: ALWAYS check by email FIRST - this is the most reliable method
     if (email) {
