@@ -547,14 +547,19 @@
                 window.hideLoadingScreen();
             }
             
-            // Show all body content (remove hiding from children)
+            // Show all body content by adding show-content class
+            // This ensures CSS rules allow content to be visible
             if (document.body) {
                 var children = document.body.children;
                 for (var i = 0; i < children.length; i++) {
                     if (children[i].id !== 'loadingOverlay') {
+                        // Add show-content class to allow CSS to show it
+                        children[i].classList.add('show-content');
+                        // Also set inline styles as backup
                         children[i].style.display = '';
                         children[i].style.visibility = 'visible';
                         children[i].style.opacity = '1';
+                        children[i].style.pointerEvents = 'auto';
                     }
                 }
             }
