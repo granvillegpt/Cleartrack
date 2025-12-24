@@ -1977,14 +1977,8 @@
             
             // Function to ensure bottom nav is visible on mobile
             function ensureBottomNavVisible() {
-                // Prevent multiple redundant calls
-                if (window._bottomNavChecked) {
-                    return;
-                }
-                
                 const nav = document.getElementById("bottomNav");
                 if (nav) {
-                    window._bottomNavChecked = true; // Mark as checked
                     const isMobile = window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches;
                     console.log('[onboarding] Ensuring bottom nav visibility. Width:', window.innerWidth, 'isMobile:', isMobile);
                     
@@ -2002,6 +1996,8 @@
                         console.log('[onboarding] Bottom nav forced to display on mobile');
                     } else {
                         nav.style.setProperty('display', 'none', 'important');
+                        nav.style.setProperty('visibility', 'hidden', 'important');
+                        nav.style.setProperty('opacity', '0', 'important');
                         console.log('[onboarding] Bottom nav hidden on desktop');
                     }
                 } else {
