@@ -177,21 +177,22 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
 }
 
 /* CRITICAL: Practitioner dashboard main container - must override all other CSS */
-body.practitioner-dashboard .main,
-.practitioner-dashboard .main,
-.main,
-body.practitioner-dashboard main.main,
-.practitioner-dashboard main.main,
-main.main,
+/* Use extremely high specificity to override any conflicting rules */
+html body.practitioner-dashboard .app .main,
+html body.practitioner-dashboard .main,
+html .practitioner-dashboard .app .main,
+html .practitioner-dashboard .main,
 body.practitioner-dashboard .app .main,
+body.practitioner-dashboard .main,
 .practitioner-dashboard .app .main,
-.app .main {
+.practitioner-dashboard .main {
     padding: 2.5rem 2rem !important;
     max-width: 960px !important;
     margin: 0 auto !important;
     width: 100% !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
+    display: block !important;
 }
 
 /* CRITICAL: Ensure app container doesn't stretch */
@@ -211,6 +212,18 @@ body.practitioner-dashboard .main .section,
     width: 100% !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
+}
+
+/* Ensure flex containers inside sections don't stretch */
+body.practitioner-dashboard .main .section > .flex,
+body.practitioner-dashboard .main .section .flex.justify-between,
+.practitioner-dashboard .main .section > .flex,
+.practitioner-dashboard .main .section .flex.justify-between,
+.main .section > .flex,
+.main .section .flex.justify-between {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Ensure cards don't stretch beyond container */

@@ -19,12 +19,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ClearTrack">
     <link rel="apple-touch-icon" href="/icons/cleartrack-192.png">
-    <link rel="stylesheet" href="global-styles.css">
-    <link rel="stylesheet" href="whatsapp-messaging.css">
-    <link rel="stylesheet" href="responsive-fixes.css">
-    <link rel="stylesheet" href="css/ct-theme.css" />
-    <link rel="stylesheet" href="dashboard-styles.css" />
-    <link rel="stylesheet" href="practitioner-dashboard-styles.css" />
+    <link rel="stylesheet" href="global-styles.css?v=20241224">
+    <link rel="stylesheet" href="whatsapp-messaging.css?v=20241224">
+    <link rel="stylesheet" href="responsive-fixes.css?v=20241224">
+    <link rel="stylesheet" href="css/ct-theme.css?v=20241224" />
+    <link rel="stylesheet" href="dashboard-styles.css?v=20241224" />
+    <link rel="stylesheet" href="practitioner-dashboard-styles.css?v=20241224" />
     <!-- Service Worker Registration for PWA -->
     <script src="sw-register.js"></script>
     <!-- Load loading screen early so splash shows immediately -->
@@ -365,10 +365,11 @@
            ============================================ */
         .main {
             padding: 1.5rem;
-            max-width: 960px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
+            max-width: 960px !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            display: block !important;
         }
         
         /* Desktop: Centered block design like Google */
@@ -379,6 +380,7 @@
                 width: 100% !important;
                 margin: 0 auto !important;
                 background: transparent !important;
+                display: block !important;
             }
             
             .section {
@@ -8790,6 +8792,25 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         // Make it global - override unified handler
         window.showSection = showSection;
         
+        // Force main container to be centered - apply inline styles to override any CSS conflicts
+        function enforceMainContainerWidth() {
+            const mainEl = document.querySelector('main.main');
+            if (mainEl) {
+                mainEl.style.setProperty('max-width', '960px', 'important');
+                mainEl.style.setProperty('margin', '0 auto', 'important');
+                mainEl.style.setProperty('width', '100%', 'important');
+                mainEl.style.setProperty('box-sizing', 'border-box', 'important');
+                mainEl.style.setProperty('display', 'block', 'important');
+            }
+        }
+        // Run on page load and when DOM is ready
+        document.addEventListener('DOMContentLoaded', enforceMainContainerWidth);
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            enforceMainContainerWidth();
+        }
+        // Also run periodically to ensure styles aren't overwritten
+        setInterval(enforceMainContainerWidth, 1000);
+        
         // Navigation handler for desktop nav links (hamburger menu disabled on mobile)
         function handleNavClick(sectionName, event) {
             if (event) {
@@ -8798,6 +8819,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (typeof showSection === 'function') {
                 showSection(sectionName);
             }
+            // Ensure main container width after section switch
+            setTimeout(enforceMainContainerWidth, 50);
             // Update nav link active state
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('active');
