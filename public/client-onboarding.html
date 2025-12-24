@@ -36,12 +36,34 @@
             opacity: 0 !important;
         }
         
-        /* Keep app container hidden until we confirm user is NOT a practitioner */
+        /* CRITICAL: Overlay the entire page until we confirm user is NOT a practitioner */
         /* This prevents practitioners from seeing the onboarding page */
+        body {
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        /* Overlay that covers everything */
+        body::before {
+            content: '' !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: #ffffff !important;
+            z-index: 999998 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Keep app container hidden until we confirm user is NOT a practitioner */
         body > .app {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
+            z-index: -1 !important;
         }
         
         /* Only show app container when explicitly enabled (for regular users only) */
@@ -51,6 +73,13 @@
             opacity: 1 !important;
             z-index: 1 !important;
             position: relative !important;
+        }
+        
+        /* Remove overlay when content is shown */
+        body.show-onboarding-content::before {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
         }
         /* Ensure scripts are always hidden */
         script {
