@@ -30,10 +30,15 @@
             overflow: hidden !important;
         }
         /* Hide all body content EXCEPT the loading overlay */
-        body > *:not(#loadingOverlay) {
+        body > *:not(#loadingOverlay):not(script) {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
+        }
+        /* Ensure scripts are always hidden */
+        script {
+            display: none !important;
+            visibility: hidden !important;
         }
         /* Ensure loading overlay is always visible and on top */
         #loadingOverlay {
@@ -52,13 +57,19 @@
             // Hide all body content except loading overlay
             function hideBodyContent() {
                 if (document.body) {
-                    // Hide all children except loading overlay
+                    // Hide all children except loading overlay and scripts
                     var children = document.body.children;
                     for (var i = 0; i < children.length; i++) {
-                        if (children[i].id !== 'loadingOverlay') {
-                            children[i].style.display = 'none';
-                            children[i].style.visibility = 'hidden';
-                            children[i].style.opacity = '0';
+                        const child = children[i];
+                        // Skip loading overlay and script tags (scripts should never be visible)
+                        if (child.id !== 'loadingOverlay' && child.tagName !== 'SCRIPT') {
+                            child.style.display = 'none';
+                            child.style.visibility = 'hidden';
+                            child.style.opacity = '0';
+                        } else if (child.tagName === 'SCRIPT') {
+                            // Ensure scripts are always hidden
+                            child.style.display = 'none';
+                            child.style.visibility = 'hidden';
                         }
                     }
                     // Ensure loading overlay is visible
@@ -233,14 +244,30 @@
                 window._onboardingMutationObserver = null;
             }
             
-            // Remove the CSS rule that forces loading overlay visible
+            // Remove ALL CSS rules that hide body content
             const styleTags = document.querySelectorAll('style');
             styleTags.forEach(style => {
-                if (style.textContent.includes('#loadingOverlay')) {
-                    // Remove the #loadingOverlay rule
-                    style.textContent = style.textContent.replace(/#loadingOverlay\s*\{[^}]*\}/g, '');
-                    // Remove the body > *:not(#loadingOverlay) rule
-                    style.textContent = style.textContent.replace(/body > \*:not\(#loadingOverlay\)[^}]*}/g, '');
+                let modified = false;
+                let text = style.textContent;
+                
+                // Remove the #loadingOverlay rule
+                const beforeOverlay = text;
+                text = text.replace(/#loadingOverlay\s*\{[^}]*\}/g, '');
+                if (text !== beforeOverlay) modified = true;
+                
+                // Remove the body > *:not(#loadingOverlay) rule (all variations)
+                const beforeBody = text;
+                text = text.replace(/body > \*:not\(#loadingOverlay\)[^}]*}/g, '');
+                text = text.replace(/body > \*:not\(#loadingOverlay\):not\(script\)[^}]*}/g, '');
+                if (text !== beforeBody) modified = true;
+                
+                // Remove script hiding rule (but keep scripts hidden via inline style)
+                const beforeScript = text;
+                text = text.replace(/script\s*\{[^}]*display:\s*none[^}]*\}/g, '');
+                if (text !== beforeScript) modified = true;
+                
+                if (modified) {
+                    style.textContent = text;
                 }
             });
             
@@ -272,8 +299,16 @@
             if (document.body) {
                 var children = document.body.children;
                 for (var i = 0; i < children.length; i++) {
-                    if (children[i].id !== 'loadingOverlay') {
-                        children[i].style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                    const child = children[i];
+                    // Skip loading overlay and script tags
+                    if (child.id !== 'loadingOverlay' && child.tagName !== 'SCRIPT') {
+                        // Remove all inline styles first
+                        child.removeAttribute('style');
+                        // Then set visible styles
+                        child.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                    } else if (child.tagName === 'SCRIPT') {
+                        // Ensure scripts are hidden
+                        child.style.cssText = 'display: none !important; visibility: hidden !important;';
                     }
                 }
             }
@@ -288,7 +323,8 @@
                             const rule = rules[j];
                             if (rule.selectorText) {
                                 if (rule.selectorText.includes('body > *:not(#loadingOverlay)') || 
-                                    rule.selectorText === '#loadingOverlay') {
+                                    rule.selectorText === '#loadingOverlay' ||
+                                    (rule.selectorText === 'script' && rule.style && rule.style.display === 'none')) {
                                     styleSheets[i].deleteRule(j);
                                 }
                             }
