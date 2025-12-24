@@ -1961,7 +1961,7 @@
                     
                     if (isMobile) {
                         // Mobile: show bottom nav
-                        bottomNav.style.cssText = 'display: flex !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 10000 !important; visibility: visible !important; opacity: 1 !important;';
+                        bottomNav.style.cssText = 'display: flex !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 10000 !important; visibility: visible !important; opacity: 1 !important; justify-content: center !important; align-items: center !important;';
                         console.log('[onboarding] Bottom nav shown on mobile');
                     } else {
                         // Desktop: hide bottom nav
@@ -1995,6 +1995,8 @@
                         nav.style.setProperty('z-index', '10000', 'important');
                         nav.style.setProperty('visibility', 'visible', 'important');
                         nav.style.setProperty('opacity', '1', 'important');
+                        nav.style.setProperty('justify-content', 'center', 'important');
+                        nav.style.setProperty('align-items', 'center', 'important');
                         console.log('[onboarding] Bottom nav forced to display on mobile');
                     } else {
                         nav.style.setProperty('display', 'none', 'important');
