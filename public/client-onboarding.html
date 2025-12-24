@@ -235,6 +235,13 @@
             }
             contentShown = true;
             window._onboardingContentShown = true; // Set global flag
+            
+            // Clear safety net timeout since content is now shown
+            if (window._onboardingSafetyNetTimeout) {
+                clearTimeout(window._onboardingSafetyNetTimeout);
+                window._onboardingSafetyNetTimeout = null;
+            }
+            
             console.log('[onboarding] ✅✅✅ SHOWING ONBOARDING CONTENT NOW');
             
             // CRITICAL: Stop the MutationObserver that's re-hiding content
@@ -1338,8 +1345,9 @@
             }
             
             // Safety net: Show content after 3 seconds if no redirect happened
-            setTimeout(function() {
-                if (window.location.pathname.includes('client-onboarding.html') && !window._redirectCheckDone) {
+            // Store timeout ID so it can be cleared
+            window._onboardingSafetyNetTimeout = setTimeout(function() {
+                if (window.location.pathname.includes('client-onboarding.html') && !window._redirectCheckDone && !window._onboardingContentShown) {
                     console.log('[BODY] Safety net: Showing content after timeout');
                     if (window.showOnboardingContent) {
                         window.showOnboardingContent();
@@ -1967,8 +1975,14 @@
             
             // Function to ensure bottom nav is visible on mobile
             function ensureBottomNavVisible() {
+                // Prevent multiple redundant calls
+                if (window._bottomNavChecked) {
+                    return;
+                }
+                
                 const nav = document.getElementById("bottomNav");
                 if (nav) {
+                    window._bottomNavChecked = true; // Mark as checked
                     const isMobile = window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches;
                     console.log('[onboarding] Ensuring bottom nav visibility. Width:', window.innerWidth, 'isMobile:', isMobile);
                     
