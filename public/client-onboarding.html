@@ -78,10 +78,14 @@
             
             // Intercept body creation and new content
             var observer = new MutationObserver(function(mutations) {
-                if (document.body) {
+                // Only hide content if it hasn't been shown yet
+                if (document.body && !window._onboardingContentShown) {
                     hideBodyContent();
                 }
             });
+            
+            // Store observer reference so it can be disconnected
+            window._onboardingMutationObserver = observer;
             
             if (document.documentElement) {
                 observer.observe(document.documentElement, { childList: true, subtree: true });
@@ -223,35 +227,55 @@
         
         // Global function to show page content (called when redirect check confirms user is a client)
         let contentShown = false; // Flag to prevent multiple calls
+        let mutationObserver = null; // Store observer to disconnect it
+        
+        // Store the mutation observer reference from the blocking script
+        window._onboardingMutationObserver = null;
+        
         window.showOnboardingContent = function() {
             if (contentShown) {
                 console.log('[onboarding] ⚠️ Content already shown, skipping');
                 return;
             }
             contentShown = true;
+            window._onboardingContentShown = true; // Set global flag
             console.log('[onboarding] ✅✅✅ SHOWING ONBOARDING CONTENT NOW');
             
-            // Remove the CSS that's hiding body content
-            const style = document.querySelector('style');
-            if (style && style.textContent.includes('body > *:not(#loadingOverlay)')) {
-                style.textContent = style.textContent.replace(/body > \*:not\(#loadingOverlay\)[^}]*}/g, '');
+            // CRITICAL: Stop the MutationObserver that's re-hiding content
+            if (window._onboardingMutationObserver) {
+                console.log('[onboarding] ✅ Disconnecting MutationObserver');
+                window._onboardingMutationObserver.disconnect();
+                window._onboardingMutationObserver = null;
             }
             
-            // Hide loading screen - use multiple methods to ensure it's hidden
+            // Remove the CSS rule that forces loading overlay visible
+            const styleTags = document.querySelectorAll('style');
+            styleTags.forEach(style => {
+                if (style.textContent.includes('#loadingOverlay')) {
+                    // Remove the #loadingOverlay rule
+                    style.textContent = style.textContent.replace(/#loadingOverlay\s*\{[^}]*\}/g, '');
+                    // Remove the body > *:not(#loadingOverlay) rule
+                    style.textContent = style.textContent.replace(/body > \*:not\(#loadingOverlay\)[^}]*}/g, '');
+                }
+            });
+            
+            // Hide loading screen - REMOVE inline styles completely
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
-                overlay.style.display = 'none !important';
-                overlay.style.visibility = 'hidden !important';
-                overlay.style.opacity = '0 !important';
-                overlay.style.zIndex = '-1 !important';
+                console.log('[onboarding] ✅ Hiding loading overlay');
+                // Remove all inline styles
+                overlay.removeAttribute('style');
+                // Set new styles to hide it
+                overlay.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -1 !important; position: fixed !important;';
                 overlay.classList.remove('show');
                 overlay.classList.add('hidden');
-                // Also try removing it
+                // Also remove from DOM after a moment
                 setTimeout(() => {
-                    if (overlay.parentNode) {
+                    if (overlay && overlay.parentNode) {
                         overlay.style.display = 'none';
+                        overlay.style.visibility = 'hidden';
                     }
-                }, 100);
+                }, 50);
             }
             
             // Also use loading-screen.js hide function if available
@@ -264,26 +288,32 @@
                 var children = document.body.children;
                 for (var i = 0; i < children.length; i++) {
                     if (children[i].id !== 'loadingOverlay') {
-                        children[i].style.display = '';
-                        children[i].style.visibility = 'visible';
-                        children[i].style.opacity = '1';
+                        children[i].style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
                     }
                 }
             }
             
-            // Remove the CSS rule that hides body content
-            const styleSheet = document.styleSheets;
-            for (let i = 0; i < styleSheet.length; i++) {
-                try {
-                    const rules = styleSheet[i].cssRules || styleSheet[i].rules;
-                    for (let j = 0; j < rules.length; j++) {
-                        if (rules[j].selectorText && rules[j].selectorText.includes('body > *:not(#loadingOverlay)')) {
-                            styleSheet[i].deleteRule(j);
+            // Remove CSS rules from stylesheets
+            try {
+                const styleSheets = document.styleSheets;
+                for (let i = 0; i < styleSheets.length; i++) {
+                    try {
+                        const rules = styleSheets[i].cssRules || styleSheets[i].rules;
+                        for (let j = rules.length - 1; j >= 0; j--) {
+                            const rule = rules[j];
+                            if (rule.selectorText) {
+                                if (rule.selectorText.includes('body > *:not(#loadingOverlay)') || 
+                                    rule.selectorText === '#loadingOverlay') {
+                                    styleSheets[i].deleteRule(j);
+                                }
+                            }
                         }
+                    } catch (e) {
+                        // Cross-origin stylesheet, skip
                     }
-                } catch (e) {
-                    // Cross-origin stylesheet, skip
                 }
+            } catch (e) {
+                console.warn('[onboarding] Error removing CSS rules:', e);
             }
         };
         
