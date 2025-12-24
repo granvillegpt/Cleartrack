@@ -452,70 +452,12 @@
             
             console.log('[onboarding] ✅✅✅ SHOWING ONBOARDING CONTENT NOW');
             
-            // CRITICAL: Remove body overlay (body::before) immediately
-            document.body.classList.add('show-onboarding-content');
-            
-            // CRITICAL: Stop the MutationObserver that's re-hiding content
-            if (window._onboardingMutationObserver) {
-                console.log('[onboarding] ✅ Disconnecting MutationObserver');
-                window._onboardingMutationObserver.disconnect();
-                window._onboardingMutationObserver = null;
-            }
-            
-            // Remove ALL CSS rules that hide body content
-            const styleTags = document.querySelectorAll('style');
-            styleTags.forEach(style => {
-                let modified = false;
-                let text = style.textContent;
-                
-                // Remove the #loadingOverlay rule
-                const beforeOverlay = text;
-                text = text.replace(/#loadingOverlay\s*\{[^}]*\}/g, '');
-                if (text !== beforeOverlay) modified = true;
-                
-                // Remove the body > *:not(#loadingOverlay) rule (all variations)
-                const beforeBody = text;
-                text = text.replace(/body > \*:not\(#loadingOverlay\)[^}]*}/g, '');
-                text = text.replace(/body > \*:not\(#loadingOverlay\):not\(script\)[^}]*}/g, '');
-                if (text !== beforeBody) modified = true;
-                
-                // Remove script hiding rule (but keep scripts hidden via inline style)
-                const beforeScript = text;
-                text = text.replace(/script\s*\{[^}]*display:\s*none[^}]*\}/g, '');
-                if (text !== beforeScript) modified = true;
-                
-                if (modified) {
-                    style.textContent = text;
-                }
-            });
-            
-            // Hide loading screen - REMOVE inline styles completely
+            // Hide loading screen
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
-                console.log('[onboarding] ✅ Hiding loading overlay');
-                // Add hidden class first
-                overlay.classList.remove('show');
-                overlay.classList.add('hidden');
-                // Mark body as not loading
-                document.body.classList.remove('loading');
-                document.body.classList.add('content-shown');
-                // Force hide with multiple methods
-                overlay.setAttribute('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -1 !important; position: fixed !important; pointer-events: none !important;');
-                // Also set individual properties
-                overlay.style.setProperty('display', 'none', 'important');
-                overlay.style.setProperty('visibility', 'hidden', 'important');
-                overlay.style.setProperty('opacity', '0', 'important');
-                overlay.style.setProperty('z-index', '-1', 'important');
-                overlay.style.setProperty('pointer-events', 'none', 'important');
-                // Remove from DOM after a moment
-                setTimeout(() => {
-                    if (overlay && overlay.parentNode) {
-                        overlay.style.setProperty('display', 'none', 'important');
-                        overlay.style.setProperty('visibility', 'hidden', 'important');
-                        overlay.style.setProperty('opacity', '0', 'important');
-                        overlay.style.setProperty('z-index', '-1', 'important');
-                    }
-                }, 100);
+                overlay.style.display = 'none';
+                overlay.style.visibility = 'hidden';
+                overlay.style.opacity = '0';
             }
             
             // Also use loading-screen.js hide function if available
@@ -527,29 +469,13 @@
             if (document.body) {
                 var children = document.body.children;
                 for (var i = 0; i < children.length; i++) {
-                    const child = children[i];
-                    // Skip loading overlay and script tags
-                    if (child.id !== 'loadingOverlay' && child.tagName !== 'SCRIPT') {
-                        // Remove all inline styles first
-                        child.removeAttribute('style');
-                        // Then set visible styles
-                        if (child.classList && child.classList.contains('app')) {
-                            // App container should have show-content class
-                            child.classList.add('show-content');
-                        } else {
-                            child.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
-                        }
-                    } else if (child.tagName === 'SCRIPT') {
-                        // Ensure scripts are hidden
-                        child.style.cssText = 'display: none !important; visibility: hidden !important;';
+                    if (children[i].id !== 'loadingOverlay') {
+                        children[i].style.display = '';
+                        children[i].style.visibility = 'visible';
+                        children[i].style.opacity = '1';
                     }
                 }
             }
-            
-            // Explicitly ensure app container is visible - add show-content class
-            const appContainer = document.querySelector('.app');
-            if (appContainer) {
-                appContainer.classList.add('show-content');
             }
             
             // Explicitly ensure header is visible
