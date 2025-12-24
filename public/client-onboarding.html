@@ -36,8 +36,16 @@
             opacity: 0 !important;
         }
         
-        /* Ensure app container is visible when content is shown */
+        /* Keep app container hidden until we confirm user is NOT a practitioner */
+        /* This prevents practitioners from seeing the onboarding page */
         body > .app {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+        
+        /* Only show app container when explicitly enabled (for regular users only) */
+        body > .app.show-content {
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
@@ -354,10 +362,10 @@
                 }
             }
             
-            // Explicitly ensure app container is visible
+            // Explicitly ensure app container is visible - add show-content class
             const appContainer = document.querySelector('.app');
             if (appContainer) {
-                appContainer.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                appContainer.classList.add('show-content');
             }
             
             // Explicitly ensure header is visible
