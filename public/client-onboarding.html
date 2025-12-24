@@ -214,6 +214,7 @@
             // This ensures practitioners NEVER see the onboarding page
             let redirectChecked = false;
             let isPractitioner = false;
+            let authStateKnown = false;
             
             async function blockingRedirectCheck() {
                 if (redirectChecked) return;
@@ -226,11 +227,39 @@
                 
                 const user = window.firebaseAuth.currentUser;
                 if (!user) {
-                    // Wait for user to be available
-                    setTimeout(blockingRedirectCheck, 50);
-                    return;
+                    // CRITICAL: Wait for auth state to be known - don't show content until we have a user
+                    if (!authStateKnown) {
+                        // Set up auth state listener if not already set up
+                        if (window.firebaseAuth && !window._authListenerSet) {
+                            window._authListenerSet = true;
+                            window.firebaseAuth.onAuthStateChanged((authUser) => {
+                                authStateKnown = true;
+                                if (authUser) {
+                                    console.log('[HEAD] 🔐 Auth state known - user detected, running blocking check');
+                                    blockingRedirectCheck();
+                                } else {
+                                    // No user - wait a bit more for auth to initialize
+                                    setTimeout(() => {
+                                        if (!window.firebaseAuth.currentUser) {
+                                            console.log('[HEAD] ⚠️ No user after waiting - allowing content (will redirect if practitioner detected)');
+                                            redirectChecked = true;
+                                            window._redirectCheckDone = true;
+                                        }
+                                    }, 2000);
+                                }
+                            });
+                        }
+                        setTimeout(blockingRedirectCheck, 50);
+                        return;
+                    } else {
+                        // Auth state known but no user - allow content (will be checked by other scripts)
+                        redirectChecked = true;
+                        window._redirectCheckDone = true;
+                        return;
+                    }
                 }
                 
+                authStateKnown = true;
                 redirectChecked = true;
                 
                 try {
@@ -267,11 +296,12 @@
             // Start blocking check IMMEDIATELY
             blockingRedirectCheck();
             
-            // Also listen for auth state changes
+            // Also listen for auth state changes - PRIMARY METHOD
             if (window.firebaseAuth) {
                 window.firebaseAuth.onAuthStateChanged((user) => {
+                    authStateKnown = true;
                     if (user && !redirectChecked && window.firebaseDb) {
-                        console.log('[HEAD] Auth state changed - running blocking check');
+                        console.log('[HEAD] 🔐 Auth state changed - user detected, running blocking check');
                         blockingRedirectCheck();
                     }
                 });
