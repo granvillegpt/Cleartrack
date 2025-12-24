@@ -357,6 +357,37 @@
         window._onboardingMutationObserver = null;
         
         window.showOnboardingContent = function() {
+            // CRITICAL: Never show content until we have a user AND confirmed they're NOT a practitioner
+            if (!window.firebaseAuth) {
+                console.log('[onboarding] 🚨 BLOCKED: Firebase Auth not ready');
+                setTimeout(() => {
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                }, 200);
+                return;
+            }
+            
+            const user = window.firebaseAuth.currentUser;
+            if (!user) {
+                console.log('[onboarding] 🚨 BLOCKED: No user - waiting for auth state');
+                // Set up auth listener if not already done
+                if (!window._showContentAuthListenerSet) {
+                    window._showContentAuthListenerSet = true;
+                    window.firebaseAuth.onAuthStateChanged((authUser) => {
+                        if (authUser && window.showOnboardingContent) {
+                            console.log('[onboarding] 🔐 Auth state known - user detected, checking if can show content');
+                            setTimeout(() => {
+                                if (window.showOnboardingContent) {
+                                    window.showOnboardingContent();
+                                }
+                            }, 100);
+                        }
+                    });
+                }
+                return;
+            }
+            
             // CRITICAL: Never show content if redirect check hasn't completed
             if (window._redirectCheckDone === false || window._redirectCheckDone === undefined) {
                 console.log('[onboarding] 🚨 BLOCKED: Redirect check not complete yet');
