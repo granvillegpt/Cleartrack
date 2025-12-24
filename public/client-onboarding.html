@@ -99,22 +99,35 @@
             }
         })();
     </script>
-    <!-- AGGRESSIVE REDIRECT - Uses firebaseAuth/firebaseDb API -->
+    <!-- SIMPLIFIED REDIRECT - Single check, no polling loops -->
     <script>
         (function() {
-            console.log('🚨🚨🚨 IMMEDIATE REDIRECT SCRIPT 🚨🚨🚨');
+            console.log('[HEAD] Redirect check initialized');
+            
+            // Global flag to prevent multiple redirect checks
+            if (window._redirectCheckDone) {
+                return; // Already checked
+            }
             
             async function checkAndRedirect() {
+                // Prevent multiple simultaneous checks
+                if (window._redirectChecking || window._redirectCheckDone) {
+                    return false;
+                }
+                window._redirectChecking = true;
+                
                 if (!window.firebaseAuth || !window.firebaseDb) {
+                    window._redirectChecking = false;
                     return false;
                 }
                 
                 const user = window.firebaseAuth.currentUser;
                 if (!user || !user.email) {
+                    window._redirectChecking = false;
                     return false;
                 }
                 
-                console.log('[REDIRECT] ✅ User found:', user.email);
+                console.log('[HEAD] Checking user role:', user.email);
                 
                 try {
                     // Check by UID FIRST (faster, direct lookup)
@@ -122,87 +135,59 @@
                     if (uidDoc.exists) {
                         const role = String(uidDoc.data().role || '').toLowerCase().trim();
                         if (role === 'practitioner') {
-                            console.log('[REDIRECT] ✅✅✅ REDIRECTING PRACTITIONER (UID)!');
+                            console.log('[HEAD] ✅ Redirecting practitioner');
+                            window._redirectCheckDone = true;
                             window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
                             return true;
                         } else if (role === 'admin') {
-                            console.log('[REDIRECT] ✅✅✅ REDIRECTING ADMIN (UID)!');
+                            console.log('[HEAD] ✅ Redirecting admin');
+                            window._redirectCheckDone = true;
                             window.location.replace('/admin-dashboard.html?v=' + Date.now());
                             return true;
                         }
                     }
                     
-                    // Fallback: Check by email (for email-based documents)
-                    const emailDocs = await window.firebaseDb.collection('users')
-                        .where('email', '==', user.email.toLowerCase().trim())
-                        .limit(5) // Limit for speed
-                        .get();
-                    
-                    console.log('[REDIRECT] Found', emailDocs.size, 'doc(s) by email');
-                    
-                    for (const doc of emailDocs.docs) {
-                        const role = String(doc.data().role || '').toLowerCase().trim();
-                        console.log('[REDIRECT] Doc ID:', doc.id, 'Role:', role);
-                        
-                        if (role === 'practitioner') {
-                            console.log('[REDIRECT] ✅✅✅ REDIRECTING PRACTITIONER NOW!');
-                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
-                            return true;
-                        } else if (role === 'admin') {
-                            console.log('[REDIRECT] ✅✅✅ REDIRECTING ADMIN NOW!');
-                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
-                            return true;
-                        }
-                    }
-                } catch (e) {
-                    console.error('[REDIRECT] Error:', e);
-                }
-                
-                // If no redirect happened, show the page content
-                if (window.showOnboardingContent) {
-                    window.showOnboardingContent();
-                }
-                
-                return false;
-            }
-            
-            // Poll aggressively until Firebase is ready (faster polling)
-            let attempts = 0;
-            let redirectChecked = false;
-            const poll = setInterval(async function() {
-                attempts++;
-                if (attempts > 10 || redirectChecked) { // Stop after 10 attempts or if checked
-                    clearInterval(poll);
-                    // Show content if no redirect after timeout
-                    if (!redirectChecked && window.showOnboardingContent) {
-                        window.showOnboardingContent();
-                    }
-                    return;
-                }
-                
-                const redirected = await checkAndRedirect();
-                if (redirected) {
-                    redirectChecked = true;
-                    clearInterval(poll);
-                } else if (attempts >= 3) {
-                    // After 3 attempts, if no redirect, show content
-                    redirectChecked = true;
-                    clearInterval(poll);
+                    // Regular user - show content
+                    console.log('[HEAD] ✅ User is regular - showing onboarding');
+                    window._redirectCheckDone = true;
                     if (window.showOnboardingContent) {
                         window.showOnboardingContent();
                     }
+                    return false;
+                } catch (e) {
+                    console.error('[HEAD] Error:', e);
+                    window._redirectCheckDone = true;
+                    // On error, show content
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                    return false;
+                } finally {
+                    window._redirectChecking = false;
                 }
-            }, 200); // Poll every 200ms
+            }
             
-            // Also listen for Firebase ready event
+            // Single check after Firebase is ready
+            function runCheck() {
+                if (window._redirectCheckDone) return;
+                if (window.firebaseAuth && window.firebaseDb) {
+                    checkAndRedirect();
+                } else {
+                    setTimeout(runCheck, 200);
+                }
+            }
+            
+            // Listen for Firebase ready
             if (window.addEventListener) {
-                window.addEventListener('firebaseReady', checkAndRedirect);
-                window.addEventListener('load', function() {
-                    setTimeout(checkAndRedirect, 100);
-                    setTimeout(checkAndRedirect, 500);
-                    setTimeout(checkAndRedirect, 1000);
+                window.addEventListener('firebaseReady', () => {
+                    if (!window._redirectCheckDone) {
+                        checkAndRedirect();
+                    }
                 });
             }
+            
+            // Start check after a short delay
+            setTimeout(runCheck, 500);
         })();
     </script>
     <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
@@ -1302,182 +1287,29 @@
             }
         })();
     </script>
-    <!-- AGGRESSIVE BODY REDIRECT - Runs before any other scripts -->
+    <!-- SIMPLIFIED BODY REDIRECT - Single check, no polling -->
     <script>
         (function() {
-            console.log('🚨🚨🚨 BODY REDIRECT SCRIPT 🚨🚨🚨');
+            console.log('[BODY] Redirect check initialized');
             
-            // Function to show page content (called when redirect check confirms user is a client)
-            function showPageContent() {
-                // Use the global function which handles all overlays
+            // Skip if already checked by head script
+            if (window._redirectCheckDone) {
+                console.log('[BODY] Redirect already checked, showing content');
                 if (window.showOnboardingContent) {
                     window.showOnboardingContent();
-                } else {
-                    // Fallback if global function not available
-                    var immediateOverlay = document.getElementById('immediateLoadingOverlay');
-                    if (immediateOverlay) {
-                        immediateOverlay.remove();
-                    }
-                    if (document.body) {
-                        document.body.style.display = '';
-                        document.body.style.visibility = 'visible';
-                        document.body.style.opacity = '1';
-                        if (window.hideLoadingScreen) {
-                            window.hideLoadingScreen();
-                        }
-                    }
                 }
+                return;
             }
             
-            // Set timeout to show content if no redirect happens (safety net)
+            // Safety net: Show content after 3 seconds if no redirect happened
             setTimeout(function() {
-                // Only show if we haven't redirected yet
-                if (window.location.pathname.includes('client-onboarding.html')) {
-                    showPageContent();
-                }
-            }, 2500); // Show after 2.5 seconds max
-            
-            let redirectChecked = false;
-            let redirectHappened = false;
-            
-            async function forceRedirect() {
-                if (redirectChecked || redirectHappened) {
-                    return;
-                }
-                
-                if (!window.firebaseAuth || !window.firebaseDb) {
-                    return;
-                }
-                
-                const user = window.firebaseAuth.currentUser;
-                if (!user || !user.email) {
-                    return;
-                }
-                
-                redirectChecked = true;
-                console.log('[BODY] Checking:', user.email);
-                
-                try {
-                    // Check by UID FIRST (faster, direct lookup)
-                    const uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
-                    if (uidDoc.exists) {
-                        const role = String(uidDoc.data().role || '').toLowerCase().trim();
-                        if (role === 'practitioner') {
-                            console.log('[BODY] ✅✅✅ REDIRECTING PRACTITIONER (UID)!');
-                            redirectHappened = true;
-                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
-                            return;
-                        } else if (role === 'admin') {
-                            console.log('[BODY] ✅✅✅ REDIRECTING ADMIN (UID)!');
-                            redirectHappened = true;
-                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
-                            return;
-                        }
-                    }
-                    
-                    // Fallback: Check by email (for email-based documents)
-                    const emailDocs = await window.firebaseDb.collection('users')
-                        .where('email', '==', user.email.toLowerCase().trim())
-                        .limit(5)
-                        .get();
-                    
-                    for (const doc of emailDocs.docs) {
-                        const role = String(doc.data().role || '').toLowerCase().trim();
-                        console.log('[BODY] Email doc:', doc.id, 'Role:', role);
-                        
-                        if (role === 'practitioner') {
-                            console.log('[BODY] ✅✅✅ REDIRECTING PRACTITIONER NOW!');
-                            redirectHappened = true;
-                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
-                            return;
-                        } else if (role === 'admin') {
-                            console.log('[BODY] ✅✅✅ REDIRECTING ADMIN NOW!');
-                            redirectHappened = true;
-                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
-                            return;
-                        }
-                    }
-                    
-                    // No redirect needed - user is a client, show the page
-                    console.log('[BODY] ✅ User is a client - showing onboarding page');
+                if (window.location.pathname.includes('client-onboarding.html') && !window._redirectCheckDone) {
+                    console.log('[BODY] Safety net: Showing content after timeout');
                     if (window.showOnboardingContent) {
                         window.showOnboardingContent();
-                    } else {
-                        // Fallback
-                        const overlay = document.getElementById('loadingOverlay');
-                        if (overlay) {
-                            overlay.style.display = 'none';
-                            overlay.style.visibility = 'hidden';
-                            overlay.style.opacity = '0';
-                        }
-                        if (document.body) {
-                            var children = document.body.children;
-                            for (var i = 0; i < children.length; i++) {
-                                if (children[i].id !== 'loadingOverlay') {
-                                    children[i].style.display = '';
-                                    children[i].style.visibility = 'visible';
-                                    children[i].style.opacity = '1';
-                                }
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.error('[BODY] Error:', e);
-                    // On error, show content anyway (better UX than blank page)
-                    if (window.showOnboardingContent) {
-                        window.showOnboardingContent();
-                    } else {
-                        // Fallback
-                        const overlay = document.getElementById('loadingOverlay');
-                        if (overlay) {
-                            overlay.style.display = 'none';
-                            overlay.style.visibility = 'hidden';
-                            overlay.style.opacity = '0';
-                        }
-                        if (document.body) {
-                            var children = document.body.children;
-                            for (var i = 0; i < children.length; i++) {
-                                if (children[i].id !== 'loadingOverlay') {
-                                    children[i].style.display = '';
-                                    children[i].style.visibility = 'visible';
-                                    children[i].style.opacity = '1';
-                                }
-                            }
-                        }
                     }
                 }
-            }
-            
-            // Function to show page content (use global function)
-            function showPageContent() {
-                if (!redirectHappened && window.showOnboardingContent) {
-                    window.showOnboardingContent();
-                }
-            }
-            
-            // Poll faster (every 100ms)
-            let count = 0;
-            const poll = setInterval(() => {
-                count++;
-                if (count > 20) { // Reduced further - 2 seconds max
-                    clearInterval(poll);
-                    // Show content if no redirect after timeout
-                    showPageContent();
-                    return;
-                }
-                forceRedirect();
-            }, 100); // Faster polling - 100ms instead of 250ms
-            
-            // Also run on events
-            if (window.addEventListener) {
-                window.addEventListener('firebaseReady', forceRedirect);
-                window.addEventListener('load', forceRedirect);
-            }
-            
-            // Run immediately with staggered attempts
-            setTimeout(forceRedirect, 50);
-            setTimeout(forceRedirect, 200);
-            setTimeout(forceRedirect, 500);
+            }, 3000);
         })();
     </script>
     <header>
@@ -1649,6 +1481,11 @@
             console.log('[onboarding] ⚡⚡⚡ SCRIPT BLOCK EXECUTING NOW ⚡⚡⚡');
             
             async function redirectPractitioners() {
+                // Skip if already checked or content shown
+                if (window._redirectCheckDone || window._onboardingContentShown) {
+                    return;
+                }
+                
                 console.log('[onboarding] 🔍 redirectPractitioners() called');
                 
                 if (!window.firebaseAuth) {
@@ -1680,11 +1517,13 @@
                         
                         if (role === 'practitioner') {
                             console.log('[onboarding] ✅✅✅ PRACTITIONER DETECTED - REDIRECTING NOW');
+                            window._redirectCheckDone = true;
                             window.location.replace('/practitioner-dashboard.html');
                             return;
                         }
                         if (role === 'admin') {
                             console.log('[onboarding] ✅✅✅ ADMIN DETECTED - REDIRECTING NOW');
+                            window._redirectCheckDone = true;
                             window.location.replace('/admin-dashboard.html');
                             return;
                         }
@@ -1701,6 +1540,7 @@
                             console.log('[onboarding] 🔍 Applications found:', apps.size);
                             if (!apps.empty) {
                                 console.log('[onboarding] ✅✅✅ APPROVED APP FOUND - REDIRECTING');
+                                window._redirectCheckDone = true;
                                 window.location.replace('/practitioner-dashboard.html');
                                 return;
                             }
@@ -1708,6 +1548,7 @@
                     }
                     // Regular user confirmed - show onboarding content
                     console.log('[onboarding] ✅ User is regular user - staying on page');
+                    window._redirectCheckDone = true;
                     if (window.showOnboardingContent) {
                         console.log('[onboarding] ✅ Calling showOnboardingContent()');
                         window.showOnboardingContent();
@@ -1715,6 +1556,7 @@
                 } catch (err) {
                     console.error('[onboarding] ❌ Error in redirectPractitioners:', err);
                     // On error, show content anyway
+                    window._redirectCheckDone = true;
                     if (window.showOnboardingContent) {
                         window.showOnboardingContent();
                     }
@@ -1760,25 +1602,27 @@
             }
             
             // Single check - run once, then show content if user is regular
-            let redirectCheckDone = false;
             const runCheckOnce = async () => {
-                if (redirectCheckDone) return;
-                redirectCheckDone = true;
+                if (window._redirectCheckDone) return;
                 console.log('[onboarding] 🔄 Running single redirect check');
                 await redirectPractitioners();
-                // After check, if still on page, show content
+                // After check, if still on page and content not shown, show it
                 setTimeout(() => {
-                    if (window.location.pathname.includes('client-onboarding.html')) {
+                    if (window.location.pathname.includes('client-onboarding.html') && !window._onboardingContentShown) {
                         console.log('[onboarding] ✅ Check complete - showing onboarding content');
                         if (window.showOnboardingContent) {
                             window.showOnboardingContent();
                         }
                     }
-                }, 500);
+                }, 300);
             };
             
             // Run check once after Firebase is ready
-            setTimeout(runCheckOnce, 1000);
+            if (window.firebaseAuth && window.firebaseDb) {
+                runCheckOnce();
+            } else {
+                setTimeout(runCheckOnce, 1000);
+            }
         })();
         
         // Setup handlers
