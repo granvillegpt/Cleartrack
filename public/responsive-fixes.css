@@ -63,7 +63,9 @@ body:not(.practitioner-dashboard) .main {
 
 /* Allow main element to be centered box on index.html - matches terms.html style */
 /* This applies to all screen sizes, not just mobile */
-html body > main {
+/* Practitioner dashboard uses its own main styles - don't override */
+html body.practitioner-dashboard > main,
+html body:not(.practitioner-dashboard) > main {
     max-width: 1000px !important;
     width: 100% !important;
     margin: 2rem auto !important;
@@ -205,17 +207,24 @@ a {
     }
     
     /* Ensure containers respect viewport (but not main element for centered box) */
-    .container,
-    .main,
-    .header,
-    .header-top {
+    /* Practitioner dashboard uses its own main styles - don't override */
+    .practitioner-dashboard .container,
+    body:not(.practitioner-dashboard) .container,
+    .practitioner-dashboard .main,
+    body:not(.practitioner-dashboard) .main,
+    .practitioner-dashboard .header,
+    body:not(.practitioner-dashboard) .header,
+    .practitioner-dashboard .header-top,
+    body:not(.practitioner-dashboard) .header-top {
         width: 100% !important;
         max-width: 100vw !important;
         box-sizing: border-box;
     }
     
     /* Allow main element to be centered box on index.html - matches terms.html style */
-    body > main {
+    /* Practitioner dashboard uses its own main styles - don't override */
+    .practitioner-dashboard > main,
+    body:not(.practitioner-dashboard) > main {
         max-width: 1000px !important;
         width: 100% !important;
         margin: 2rem auto !important;
