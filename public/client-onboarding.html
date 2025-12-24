@@ -205,6 +205,8 @@
     <link rel="stylesheet" href="global-styles.css">
     <link rel="stylesheet" href="/css/ct-theme.css" />
     <link rel="stylesheet" href="/header-responsive-fixes.css" />
+    <link rel="stylesheet" href="user-dashboard-styles.css" />
+    <link rel="stylesheet" href="dashboard-styles.css" />
     
     <!-- Loading screen is already hardcoded in HTML above for immediate display -->
     <script src="loading-screen.js"></script>
@@ -1358,20 +1360,18 @@
             }, 3000);
         })();
     </script>
-    <header>
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <div class="brand">
-                <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
+    <div class="app">
+        <header class="header">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
+                </div>
+                <button class="btn btn-outline" onclick="handleLogout(event)" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
             </div>
-            <button class="menu-toggle-style6" aria-label="Toggle menu" id="menuToggle">☰</button>
-            <nav class="nav-style6" id="mainNav">
-                <a href="#" id="logoutLink">Logout</a>
-            </nav>
-        </div>
-    </header>
-    
-    <main>
-        <div class="onboarding-card">
+        </header>
+        
+        <main class="main">
+            <div class="onboarding-card">
             <h2>Welcome to ClearTrack</h2>
             <p>Please connect with your practitioner to get started.</p>
             
@@ -1434,8 +1434,9 @@
                 <button id="onboarding-questionnaire-submit-btn" class="btn btn-primary">Send Request</button>
                 <div id="onboarding-questionnaire-feedback" class="mt-3"></div>
             </section>
-        </div>
-    </main>
+            </div>
+        </main>
+    </div>
 
     <!-- Mobile Bottom Navigation -->
     <nav class="bottom-nav" id="bottomNav">
@@ -1852,31 +1853,29 @@
         (function() {
             // Ensure nav is visible on desktop immediately
             function ensureNavVisibility() {
-                const mainNav = document.getElementById("mainNav");
-                const logoutLink = document.getElementById("logoutLink");
+                const desktopLogoutBtn = document.getElementById("desktopLogoutBtn");
+                const menuToggle = document.getElementById("menuToggle");
                 const isMobile = window.innerWidth <= 768;
                 
-                if (mainNav) {
+                if (desktopLogoutBtn) {
                     if (isMobile) {
-                        // Mobile: hide nav (use hamburger menu instead)
-                        mainNav.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
-                        console.log('[onboarding] Mobile: Header nav hidden');
+                        // Mobile: hide desktop logout button (use bottom nav instead)
+                        desktopLogoutBtn.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
+                        console.log('[onboarding] Mobile: Desktop logout button hidden');
                     } else {
-                        // Desktop: force nav to be visible
-                        mainNav.style.cssText = 'display: flex !important; position: static !important; background: transparent !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
-                        console.log('[onboarding] Desktop nav forced visible');
+                        // Desktop: show desktop logout button
+                        desktopLogoutBtn.style.cssText = 'display: inline-flex !important; visibility: visible !important; opacity: 1 !important; background: rgba(255,255,255,0.2) !important; color: #ffffff !important; border-color: rgba(255,255,255,0.3) !important;';
+                        console.log('[onboarding] Desktop: Desktop logout button visible');
                     }
                 }
                 
-                if (logoutLink) {
+                if (menuToggle) {
                     if (isMobile) {
-                        // Mobile: hide header logout link (use bottom nav instead)
-                        logoutLink.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
-                        console.log('[onboarding] Mobile: Header logout link hidden');
+                        // Mobile: show hamburger menu
+                        menuToggle.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important;';
                     } else {
-                        // Desktop: show header logout link
-                        logoutLink.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; color: #e0fbff !important;';
-                        console.log('[onboarding] Desktop: Header logout link visible');
+                        // Desktop: hide hamburger menu
+                        menuToggle.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
                     }
                 }
             }
@@ -1885,43 +1884,6 @@
             ensureNavVisibility();
             window.addEventListener('load', ensureNavVisibility);
             window.addEventListener('resize', ensureNavVisibility);
-            
-            const menuToggle = document.getElementById("menuToggle");
-            const mainNav = document.getElementById("mainNav");
-
-            if (menuToggle && mainNav) {
-                function toggleMenu() {
-                    mainNav.classList.toggle('active');
-                    menuToggle.classList.toggle('active');
-                }
-
-                menuToggle.addEventListener("click", function(e) {
-                    e.stopPropagation();
-                    toggleMenu();
-                });
-
-                // Close menu when clicking on a link
-                const navLinks = mainNav.querySelectorAll("a");
-                navLinks.forEach(function(link) {
-                    link.addEventListener("click", function() {
-                        mainNav.classList.remove('active');
-                        menuToggle.classList.remove('active');
-                    });
-                });
-
-                // Close menu when clicking outside (Style 6 dropdown)
-                document.addEventListener('click', function(event) {
-                    const header = document.querySelector("header");
-                    if (mainNav.classList.contains('active')) {
-                        if (header && !header.contains(event.target)) {
-                            mainNav.classList.remove('active');
-                            menuToggle.classList.remove('active');
-                        }
-                    }
-                });
-            } else {
-                console.warn('[onboarding] Menu toggle or nav not found');
-            }
 
             // Logout handler function
             async function handleLogout(e) {
@@ -1960,12 +1922,7 @@
                 }
             }
             
-            // Logout handler for header link
-            const logoutLink = document.getElementById("logoutLink");
-            if (logoutLink) {
-                logoutLink.addEventListener("click", handleLogout);
-            }
-            
+            // Logout handler for desktop logout button (already has onclick in HTML)
             // Logout handler for bottom nav button
             const bottomNavLogout = document.getElementById("bottomNavLogout");
             const bottomNav = document.getElementById("bottomNav");
