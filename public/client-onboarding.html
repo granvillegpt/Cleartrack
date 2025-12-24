@@ -368,7 +368,9 @@
             
             const headerTop = document.querySelector('.header-top');
             if (headerTop) {
-                headerTop.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 10001 !important; padding: 1.5rem 2rem !important; align-items: center !important; justify-content: space-between !important;';
+                // Don't override CSS - let stylesheet handle it
+                headerTop.style.visibility = 'visible';
+                headerTop.style.opacity = '1';
             }
             
             // Remove CSS rules from stylesheets
