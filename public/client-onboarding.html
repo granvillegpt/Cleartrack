@@ -414,19 +414,84 @@
                 if (!window._showContentAuthListenerSet) {
                     window._showContentAuthListenerSet = true;
                     window.firebaseAuth.onAuthStateChanged((authUser) => {
-                        if (authUser && window.showOnboardingContent) {
-                            console.log('[onboarding] 🔐 Auth state known - user detected, checking if can show content');
-                            setTimeout(() => {
-                                if (window.showOnboardingContent) {
-                                    window.showOnboardingContent();
-                                }
-                            }, 100);
+                        if (authUser) {
+                            console.log('[onboarding] 🔐 Auth state changed - user detected:', authUser.uid);
+                            // CRITICAL: Check if user is practitioner BEFORE showing content
+                            if (window.firebaseDb) {
+                                window.firebaseDb.collection('users').doc(authUser.uid).get()
+                                    .then(doc => {
+                                        if (doc.exists) {
+                                            const role = String(doc.data().role || '').toLowerCase().trim();
+                                            if (role === 'practitioner') {
+                                                console.log('[onboarding] 🚨🚨🚨 PRACTITIONER DETECTED IN AUTH LISTENER - REDIRECTING');
+                                                window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                                                return;
+                                            } else if (role === 'admin') {
+                                                console.log('[onboarding] 🚨🚨🚨 ADMIN DETECTED IN AUTH LISTENER - REDIRECTING');
+                                                window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                                                return;
+                                            }
+                                            // Regular user - now safe to show content
+                                            console.log('[onboarding] ✅ Regular user confirmed in auth listener - showing content');
+                                            if (window.showOnboardingContent) {
+                                                setTimeout(() => {
+                                                    if (window.showOnboardingContent) {
+                                                        window.showOnboardingContent();
+                                                    }
+                                                }, 100);
+                                            }
+                                        }
+                                    })
+                                    .catch(err => {
+                                        console.error('[onboarding] Error checking role in auth listener:', err);
+                                    });
+                            }
                         }
                     });
                 }
                 return;
             }
             
+            // CRITICAL: Double-check user is NOT a practitioner before showing content
+            if (window.firebaseDb) {
+                window.firebaseDb.collection('users').doc(user.uid).get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            const role = String(doc.data().role || '').toLowerCase().trim();
+                            if (role === 'practitioner') {
+                                console.log('[onboarding] 🚨🚨🚨 PRACTITIONER DETECTED IN showOnboardingContent - REDIRECTING');
+                                window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                                return;
+                            } else if (role === 'admin') {
+                                console.log('[onboarding] 🚨🚨🚨 ADMIN DETECTED IN showOnboardingContent - REDIRECTING');
+                                window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                                return;
+                            }
+                            // Regular user confirmed - proceed to show content
+                            console.log('[onboarding] ✅ Regular user confirmed - proceeding to show content');
+                            proceedToShowContent();
+                        } else {
+                            // No document - assume regular user
+                            proceedToShowContent();
+                        }
+                    })
+                    .catch(err => {
+                        console.error('[onboarding] Error checking role:', err);
+                        // On error, don't show content - better safe than sorry
+                        return;
+                    });
+            } else {
+                // Firestore not ready - wait
+                console.log('[onboarding] 🚨 BLOCKED: Firestore not ready');
+                setTimeout(() => {
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                }, 200);
+                return;
+            }
+            
+            function proceedToShowContent() {
                 // CRITICAL: Never show content if redirect check hasn't completed
                 if (window._redirectCheckDone === false || window._redirectCheckDone === undefined) {
                     console.log('[onboarding] 🚨 BLOCKED: Redirect check not complete yet');
