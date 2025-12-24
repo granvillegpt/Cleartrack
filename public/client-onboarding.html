@@ -29,11 +29,20 @@
             /* Instead, hide all children except loading overlay */
             overflow: hidden !important;
         }
-        /* Hide all body content EXCEPT the loading overlay */
+        /* CRITICAL: Hide ALL body content EXCEPT the loading overlay */
+        /* This prevents ANY content from showing until explicitly allowed */
         body > *:not(#loadingOverlay) {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        /* CRITICAL: Even if content tries to show, keep it hidden until explicitly enabled */
+        body > *:not(#loadingOverlay).show-content {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
         }
         /* Ensure loading overlay is always visible and on top */
         #loadingOverlay {
