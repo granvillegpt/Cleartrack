@@ -461,18 +461,21 @@
         /* ============================================
            HEADER - FULL WIDTH WITH CENTERED CONTENT
            ============================================ */
+        /* ============================================
+           HEADER - MATCH PRACTITIONER DASHBOARD EXACTLY
+           ============================================ */
         .header {
-            background: #0b7285;
-            color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: #0b7285 !important;
+            color: #fff !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 100 !important;
             width: 100% !important;
             max-width: 100% !important;
-            box-sizing: border-box;
-            display: block;
-            padding: 0;
+            box-sizing: border-box !important;
+            display: block !important;
+            padding: 0 !important;
             margin: 0 !important;
         }
         
@@ -491,13 +494,13 @@
            HEADER TOP SECTION
            ============================================ */
         .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 2rem;
-            position: relative;
-            width: 100%;
-            box-sizing: border-box;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 1.5rem 2rem !important;
+            position: relative !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
         
         /* Desktop: Constrain header-top to match container */
@@ -514,19 +517,19 @@
            LOGOUT BUTTON - DESKTOP POSITIONING
            ============================================ */
         #desktopLogoutBtn {
-            display: block;
-            margin-left: auto;
+            display: block !important;
+            margin-left: auto !important;
         }
         
         /* ============================================
            LOGO
            ============================================ */
         .header .logo {
-            display: flex;
-            align-items: center;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+            display: flex !important;
+            align-items: center !important;
+            position: absolute !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
         }
         
         .header .logo img {
@@ -536,9 +539,17 @@
             display: block !important;
         }
         
-        /* Force override any conflicting styles from dashboard-styles.css */
-        .header {
-            background: #0b7285 !important;
+        /* Mobile logo adjustments */
+        @media (max-width: 768px) {
+            .header .logo img {
+                height: 30px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header .logo img {
+                height: 28px !important;
+            }
         }
         
 
@@ -888,100 +899,6 @@
             }
         }
         
-        /* ============================================
-           HEADER - MATCH USER DASHBOARD STYLE EXACTLY
-           ============================================ */
-        .header {
-            background: #0b7285 !important;
-            color: #fff !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 100 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-            display: block !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            flex-direction: column !important;
-            align-items: stretch !important;
-            overflow: visible !important;
-        }
-        
-        /* Desktop: Header stays full width, content inside is centered */
-        @media (min-width: 769px) {
-            .header {
-                width: 100% !important;
-                max-width: 100% !important;
-                margin: 0 !important;
-                border-radius: 0 !important;
-                overflow: visible !important;
-            }
-        }
-        
-        /* ============================================
-           HEADER TOP SECTION
-           ============================================ */
-        .header-top {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            padding: 1.5rem 2rem !important;
-            position: relative !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-            max-width: 100% !important;
-        }
-        
-        /* Desktop: Constrain header-top to match container */
-        @media (min-width: 769px) {
-            .header-top {
-                max-width: 960px !important;
-                width: 100% !important;
-                margin: 0 auto !important;
-                padding: 1.5rem 2rem !important;
-            }
-        }
-        
-        /* ============================================
-           LOGOUT BUTTON - DESKTOP POSITIONING
-           ============================================ */
-        #desktopLogoutBtn {
-            display: block !important;
-            margin-left: auto !important;
-        }
-        
-        /* ============================================
-           LOGO - CENTERED
-           ============================================ */
-        .header .logo {
-            display: flex !important;
-            align-items: center !important;
-            position: absolute !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-        }
-        
-        .header .logo img {
-            height: 48px !important;
-            width: auto !important;
-            filter: brightness(0) invert(1) !important;
-            display: block !important;
-        }
-        
-        /* Mobile logo adjustments */
-        @media (max-width: 768px) {
-            .header .logo img {
-                height: 30px !important;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .header .logo img {
-                height: 28px !important;
-            }
-        }
         
         main {
             max-width: 800px;
