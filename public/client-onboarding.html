@@ -530,10 +530,15 @@
         }
         
         .header .logo img {
-            height: 48px;
-            width: auto;
-            filter: brightness(0) invert(1);
-            display: block;
+            height: 48px !important;
+            width: auto !important;
+            filter: brightness(0) invert(1) !important;
+            display: block !important;
+        }
+        
+        /* Force override any conflicting styles from dashboard-styles.css */
+        .header {
+            background: #0b7285 !important;
         }
         
 
