@@ -59,10 +59,27 @@
         (function() {
             'use strict';
             
+            // CRITICAL: Set global flag to prevent content from showing
+            window._onboardingBlocked = true;
+            window._practitionerCheckComplete = false;
+            
             // CRITICAL: IMMEDIATE practitioner check - runs BEFORE anything else
             // This prevents practitioners from EVER seeing the onboarding page
             let immediateCheckRunning = false;
+            let checkAttempts = 0;
+            const MAX_CHECK_ATTEMPTS = 200; // 10 seconds max (50ms * 200)
+            
             async function immediatePractitionerCheck() {
+                checkAttempts++;
+                if (checkAttempts > MAX_CHECK_ATTEMPTS) {
+                    console.log('[IMMEDIATE] Max attempts reached - allowing content (assuming regular user)');
+                    window._practitionerCheckComplete = true;
+                    immediateCheckRunning = false;
+                    return;
+                }
+                
+                if (immediateCheckRunning) return; // Prevent multiple simultaneous checks
+                immediateCheckRunning = true;
                 if (immediateCheckRunning) return; // Prevent multiple simultaneous checks
                 immediateCheckRunning = true;
                 
@@ -110,11 +127,16 @@
                             return;
                         }
                         console.log('[IMMEDIATE] ✅ User is regular - allowing content (but content will wait for showOnboardingContent)');
+                        window._practitionerCheckComplete = true;
+                        window._onboardingBlocked = false; // Allow content to show
                     } else {
                         console.log('[IMMEDIATE] ⚠️ User document not found');
+                        window._practitionerCheckComplete = true;
+                        window._onboardingBlocked = false; // Allow content to show (assume regular user)
                     }
                 } catch (e) {
                     console.error('[IMMEDIATE] Error checking role:', e);
+                    // On error, don't allow content - keep blocking
                 } finally {
                     immediateCheckRunning = false;
                 }
@@ -122,6 +144,14 @@
             
             // Start immediate check
             immediatePractitionerCheck();
+            
+            // Also set up auth state listener to catch user when they authenticate
+            if (window.addEventListener) {
+                window.addEventListener('firebaseReady', () => {
+                    console.log('[IMMEDIATE] Firebase ready event - running check');
+                    immediatePractitionerCheck();
+                });
+            }
             
             // Hide all body content except loading overlay
             function hideBodyContent() {
@@ -405,6 +435,17 @@
         window._onboardingMutationObserver = null;
         
         window.showOnboardingContent = function() {
+            // CRITICAL: Check if onboarding is blocked (practitioner check in progress)
+            if (window._onboardingBlocked && !window._practitionerCheckComplete) {
+                console.log('[onboarding] 🚨 BLOCKED: Practitioner check not complete yet');
+                setTimeout(() => {
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                }, 200);
+                return;
+            }
+            
             // CRITICAL: Never show content until we have a user AND confirmed they're NOT a practitioner
             if (!window.firebaseAuth) {
                 console.log('[onboarding] 🚨 BLOCKED: Firebase Auth not ready');
