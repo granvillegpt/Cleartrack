@@ -164,12 +164,13 @@
             
             // Poll aggressively until Firebase is ready (faster polling)
             let attempts = 0;
+            let redirectChecked = false;
             const poll = setInterval(async function() {
                 attempts++;
-                if (attempts > 30) { // Reduced further for faster timeout
+                if (attempts > 10 || redirectChecked) { // Stop after 10 attempts or if checked
                     clearInterval(poll);
                     // Show content if no redirect after timeout
-                    if (window.showOnboardingContent) {
+                    if (!redirectChecked && window.showOnboardingContent) {
                         window.showOnboardingContent();
                     }
                     return;
@@ -177,9 +178,17 @@
                 
                 const redirected = await checkAndRedirect();
                 if (redirected) {
+                    redirectChecked = true;
                     clearInterval(poll);
+                } else if (attempts >= 3) {
+                    // After 3 attempts, if no redirect, show content
+                    redirectChecked = true;
+                    clearInterval(poll);
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
                 }
-            }, 100); // Faster polling - every 100ms instead of 200ms
+            }, 200); // Poll every 200ms
             
             // Also listen for Firebase ready event
             if (window.addEventListener) {
@@ -213,13 +222,36 @@
         })();
         
         // Global function to show page content (called when redirect check confirms user is a client)
+        let contentShown = false; // Flag to prevent multiple calls
         window.showOnboardingContent = function() {
-            // Hide loading screen
+            if (contentShown) {
+                console.log('[onboarding] ⚠️ Content already shown, skipping');
+                return;
+            }
+            contentShown = true;
+            console.log('[onboarding] ✅✅✅ SHOWING ONBOARDING CONTENT NOW');
+            
+            // Remove the CSS that's hiding body content
+            const style = document.querySelector('style');
+            if (style && style.textContent.includes('body > *:not(#loadingOverlay)')) {
+                style.textContent = style.textContent.replace(/body > \*:not\(#loadingOverlay\)[^}]*}/g, '');
+            }
+            
+            // Hide loading screen - use multiple methods to ensure it's hidden
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
-                overlay.style.display = 'none';
-                overlay.style.visibility = 'hidden';
-                overlay.style.opacity = '0';
+                overlay.style.display = 'none !important';
+                overlay.style.visibility = 'hidden !important';
+                overlay.style.opacity = '0 !important';
+                overlay.style.zIndex = '-1 !important';
+                overlay.classList.remove('show');
+                overlay.classList.add('hidden');
+                // Also try removing it
+                setTimeout(() => {
+                    if (overlay.parentNode) {
+                        overlay.style.display = 'none';
+                    }
+                }, 100);
             }
             
             // Also use loading-screen.js hide function if available
@@ -236,6 +268,21 @@
                         children[i].style.visibility = 'visible';
                         children[i].style.opacity = '1';
                     }
+                }
+            }
+            
+            // Remove the CSS rule that hides body content
+            const styleSheet = document.styleSheets;
+            for (let i = 0; i < styleSheet.length; i++) {
+                try {
+                    const rules = styleSheet[i].cssRules || styleSheet[i].rules;
+                    for (let j = 0; j < rules.length; j++) {
+                        if (rules[j].selectorText && rules[j].selectorText.includes('body > *:not(#loadingOverlay)')) {
+                            styleSheet[i].deleteRule(j);
+                        }
+                    }
+                } catch (e) {
+                    // Cross-origin stylesheet, skip
                 }
             }
         };
@@ -1682,23 +1729,26 @@
                 setTimeout(() => clearInterval(waitForAuth), 5000);
             }
             
-            // Single check after 1 second - if user is confirmed regular user, show content
-            let checkCount = 0;
-            const maxChecks = 3;
-            const checkInterval = setInterval(() => {
-                checkCount++;
-                if (checkCount > maxChecks) {
-                    clearInterval(checkInterval);
-                    // After max checks, if still on page, show content
-                    if (window.showOnboardingContent && !document.getElementById('loadingOverlay')?.classList.contains('hidden')) {
-                        console.log('[onboarding] ✅ Max checks reached - showing onboarding content');
-                        window.showOnboardingContent();
+            // Single check - run once, then show content if user is regular
+            let redirectCheckDone = false;
+            const runCheckOnce = async () => {
+                if (redirectCheckDone) return;
+                redirectCheckDone = true;
+                console.log('[onboarding] 🔄 Running single redirect check');
+                await redirectPractitioners();
+                // After check, if still on page, show content
+                setTimeout(() => {
+                    if (window.location.pathname.includes('client-onboarding.html')) {
+                        console.log('[onboarding] ✅ Check complete - showing onboarding content');
+                        if (window.showOnboardingContent) {
+                            window.showOnboardingContent();
+                        }
                     }
-                    return;
-                }
-                console.log('[onboarding] 🔄 Backup check', checkCount);
-                redirectPractitioners();
-            }, 1000);
+                }, 500);
+            };
+            
+            // Run check once after Firebase is ready
+            setTimeout(runCheckOnce, 1000);
         })();
         
         // Setup handlers
