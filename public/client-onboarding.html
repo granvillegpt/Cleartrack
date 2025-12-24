@@ -327,6 +327,24 @@
         window._onboardingMutationObserver = null;
         
         window.showOnboardingContent = function() {
+            // CRITICAL: Never show content if redirect check hasn't completed
+            if (window._redirectCheckDone === false || window._redirectCheckDone === undefined) {
+                console.log('[onboarding] 🚨 BLOCKED: Redirect check not complete yet');
+                // Wait a bit and try again
+                setTimeout(() => {
+                    if (window._redirectCheckDone && window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                }, 200);
+                return;
+            }
+            
+            // Double-check we're still on onboarding page (redirect might have happened)
+            if (!window.location.pathname.includes('client-onboarding.html')) {
+                console.log('[onboarding] 🚨 BLOCKED: Already redirected away');
+                return;
+            }
+            
             if (contentShown) {
                 console.log('[onboarding] ⚠️ Content already shown, skipping');
                 return;
