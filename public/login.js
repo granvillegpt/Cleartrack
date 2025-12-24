@@ -418,7 +418,7 @@ async function routeUserAfterLogin(user, role, userData) {
     // If role is 'user' and no practitioner connection, route directly to onboarding
     if (finalRole === 'user' && !userData?.practitionerId && !userData?.connectedPractitioner) {
       console.log('[login.js] ✅ Regular user detected - routing directly to onboarding (skipping complex queries)');
-      setLoginLoading(false);
+      if (window.setLoginLoading) window.setLoginLoading(false);
       setTimeout(() => {
         safeRedirect('/client-onboarding.html');
       }, 300);
@@ -428,7 +428,7 @@ async function routeUserAfterLogin(user, role, userData) {
     // Only set timeout for users that need role verification
     routingTimeout = setTimeout(() => {
       console.error('[login.js] ⚠️ Routing timeout - forcing redirect to onboarding (regular users only)');
-      setLoginLoading(false);
+      if (window.setLoginLoading) window.setLoginLoading(false);
       safeRedirect('/client-onboarding.html');
     }, 10000);
     
@@ -525,7 +525,7 @@ async function routeUserAfterLogin(user, role, userData) {
     if (routingTimeout) clearTimeout(routingTimeout);
     
     // Hide loading screen before redirect to prevent it from persisting
-    setLoginLoading(false);
+    if (window.setLoginLoading) window.setLoginLoading(false);
     
     if (finalRole === 'practitioner') {
       console.log('[login.js] ✅✅✅✅✅ ROUTING TO PRACTITIONER DASHBOARD');
@@ -561,9 +561,32 @@ async function routeUserAfterLogin(user, role, userData) {
     
   } catch (routingError) {
     console.error('[login.js] ❌ Error in routeUserAfterLogin:', routingError);
+    console.error('[login.js] Routing error stack:', routingError.stack);
     clearTimeout(routingTimeout);
-    setLoginLoading(false);
-    // Fallback: redirect to onboarding
+    if (window.setLoginLoading) window.setLoginLoading(false);
+    
+    // CRITICAL: If role is practitioner/admin, redirect to correct dashboard even on error
+    const email = user?.email?.toLowerCase().trim();
+    let finalRole = String(role || userData?.role || 'user').toLowerCase().trim();
+    
+    if (finalRole === 'practitioner') {
+      console.log('[login.js] ✅✅✅ ERROR BUT PRACTITIONER DETECTED - ROUTING TO PRACTITIONER DASHBOARD');
+      setTimeout(() => {
+        safeRedirect('/practitioner-dashboard.html');
+      }, 200);
+      return;
+    }
+    
+    if (finalRole === 'admin') {
+      console.log('[login.js] ✅✅✅ ERROR BUT ADMIN DETECTED - ROUTING TO ADMIN DASHBOARD');
+      setTimeout(() => {
+        safeRedirect('/admin-dashboard.html');
+      }, 200);
+      return;
+    }
+    
+    // Fallback: redirect to onboarding (only for regular users)
+    console.log('[login.js] ✅ Error fallback: Routing to client onboarding (regular user)');
     setTimeout(() => {
       safeRedirect('/client-onboarding.html');
     }, 200);
@@ -814,7 +837,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
   
-  function setLoginLoading(isLoading, message = 'Signing in to ClearTrack...', submessage = 'Please wait') {
+  // Make setLoginLoading globally accessible
+  window.setLoginLoading = function setLoginLoading(isLoading, message = 'Signing in to ClearTrack...', submessage = 'Please wait') {
     try {
       if (submitBtn) {
         submitBtn.disabled = isLoading;
