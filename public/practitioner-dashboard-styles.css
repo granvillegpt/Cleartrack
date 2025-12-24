@@ -188,17 +188,23 @@ body.practitioner-dashboard .main,
 }
 
 /* Ensure all sections respect main container width */
+body.practitioner-dashboard .main .section,
+.practitioner-dashboard .main .section,
 .main .section {
-    max-width: 100%;
-    width: 100%;
-    box-sizing: border-box;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 /* Ensure cards don't stretch beyond container */
+body.practitioner-dashboard .main .card,
+.practitioner-dashboard .main .card,
 .main .card {
-    max-width: 100%;
-    width: 100%;
-    box-sizing: border-box;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 /* WhatsApp messaging should respect container */
@@ -527,9 +533,10 @@ h3.card-title:hover,
     gap: 1rem;
     align-items: center;
     flex-wrap: wrap;
-    max-width: 100%;
-    width: 100%;
-    box-sizing: border-box;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 .search-input-wrapper {
