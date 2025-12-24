@@ -545,16 +545,36 @@
             display: block !important;
         }
         
-        /* Mobile logo adjustments */
+        /* Mobile header adjustments */
         @media (max-width: 768px) {
+            .header-top {
+                padding: 1rem 1.5rem !important;
+            }
+            
+            .header .logo {
+                position: absolute !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+            }
+            
             .header .logo img {
-                height: 30px !important;
+                height: 40px !important;
+                max-width: 120px !important;
+            }
+            
+            #desktopLogoutBtn {
+                display: none !important;
             }
         }
         
         @media (max-width: 480px) {
+            .header-top {
+                padding: 0.875rem 1rem !important;
+            }
+            
             .header .logo img {
-                height: 28px !important;
+                height: 35px !important;
+                max-width: 100px !important;
             }
         }
         
