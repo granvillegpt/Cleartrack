@@ -115,12 +115,21 @@ a {
         font-size: 14px;
     }
     
-    .main {
+    /* Practitioner dashboard uses its own main styles - don't override */
+    body:not(.practitioner-dashboard) .main {
         padding-left: 0.75rem !important;
         padding-right: 0.75rem !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box;
+    }
+    
+    /* Practitioner dashboard mobile - keep centered but reduce padding */
+    body.practitioner-dashboard .main {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        max-width: 960px !important;
+        margin: 0 auto !important;
     }
     
     /* Ensure buttons don't get squashed */
@@ -240,9 +249,18 @@ a {
         font-size: 12px;
     }
     
-    .main {
+    /* Practitioner dashboard uses its own main styles - don't override */
+    body:not(.practitioner-dashboard) .main {
         padding-left: 0.5rem !important;
         padding-right: 0.5rem !important;
+    }
+    
+    /* Practitioner dashboard small screens - keep centered */
+    body.practitioner-dashboard .main {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        max-width: 960px !important;
+        margin: 0 auto !important;
     }
     
     .logo img {
