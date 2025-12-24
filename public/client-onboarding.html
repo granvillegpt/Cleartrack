@@ -301,23 +301,27 @@
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
                 console.log('[onboarding] ✅ Hiding loading overlay');
-                // Remove all inline styles first
-                overlay.removeAttribute('style');
-                // Add hidden class
+                // Add hidden class first
                 overlay.classList.remove('show');
                 overlay.classList.add('hidden');
-                // Set new styles to hide it with !important
-                overlay.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -1 !important; position: fixed !important; pointer-events: none !important;';
-                // Also mark body as not loading
+                // Mark body as not loading
                 document.body.classList.remove('loading');
                 document.body.classList.add('content-shown');
-                // Also remove from DOM after a moment
+                // Force hide with multiple methods
+                overlay.setAttribute('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -1 !important; position: fixed !important; pointer-events: none !important;');
+                // Also set individual properties
+                overlay.style.setProperty('display', 'none', 'important');
+                overlay.style.setProperty('visibility', 'hidden', 'important');
+                overlay.style.setProperty('opacity', '0', 'important');
+                overlay.style.setProperty('z-index', '-1', 'important');
+                overlay.style.setProperty('pointer-events', 'none', 'important');
+                // Remove from DOM after a moment
                 setTimeout(() => {
                     if (overlay && overlay.parentNode) {
-                        overlay.style.display = 'none';
-                        overlay.style.visibility = 'hidden';
-                        overlay.style.opacity = '0';
-                        overlay.style.zIndex = '-1';
+                        overlay.style.setProperty('display', 'none', 'important');
+                        overlay.style.setProperty('visibility', 'hidden', 'important');
+                        overlay.style.setProperty('opacity', '0', 'important');
+                        overlay.style.setProperty('z-index', '-1', 'important');
                     }
                 }, 100);
             }
