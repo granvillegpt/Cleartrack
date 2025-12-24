@@ -1854,16 +1854,30 @@
             function ensureNavVisibility() {
                 const mainNav = document.getElementById("mainNav");
                 const logoutLink = document.getElementById("logoutLink");
+                const isMobile = window.innerWidth <= 768;
                 
-                if (mainNav && window.innerWidth >= 769) {
-                    // Desktop: force nav to be visible
-                    mainNav.style.cssText = 'display: flex !important; position: static !important; background: transparent !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
-                    console.log('[onboarding] Desktop nav forced visible');
+                if (mainNav) {
+                    if (isMobile) {
+                        // Mobile: hide nav (use hamburger menu instead)
+                        mainNav.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
+                        console.log('[onboarding] Mobile: Header nav hidden');
+                    } else {
+                        // Desktop: force nav to be visible
+                        mainNav.style.cssText = 'display: flex !important; position: static !important; background: transparent !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
+                        console.log('[onboarding] Desktop nav forced visible');
+                    }
                 }
                 
                 if (logoutLink) {
-                    logoutLink.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; color: #e0fbff !important;';
-                    console.log('[onboarding] Logout link forced visible');
+                    if (isMobile) {
+                        // Mobile: hide header logout link (use bottom nav instead)
+                        logoutLink.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
+                        console.log('[onboarding] Mobile: Header logout link hidden');
+                    } else {
+                        // Desktop: show header logout link
+                        logoutLink.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; color: #e0fbff !important;';
+                        console.log('[onboarding] Desktop: Header logout link visible');
+                    }
                 }
             }
             
