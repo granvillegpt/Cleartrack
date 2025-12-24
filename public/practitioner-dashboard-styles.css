@@ -179,12 +179,28 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
 /* CRITICAL: Practitioner dashboard main container - must override all other CSS */
 body.practitioner-dashboard .main,
 .practitioner-dashboard .main,
-.main {
+.main,
+body.practitioner-dashboard main.main,
+.practitioner-dashboard main.main,
+main.main,
+body.practitioner-dashboard .app .main,
+.practitioner-dashboard .app .main,
+.app .main {
     padding: 2.5rem 2rem !important;
     max-width: 960px !important;
     margin: 0 auto !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* CRITICAL: Ensure app container doesn't stretch */
+body.practitioner-dashboard .app,
+.practitioner-dashboard .app {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 /* Ensure all sections respect main container width */
@@ -200,11 +216,19 @@ body.practitioner-dashboard .main .section,
 /* Ensure cards don't stretch beyond container */
 body.practitioner-dashboard .main .card,
 .practitioner-dashboard .main .card,
-.main .card {
+.main .card,
+body.practitioner-dashboard .main #clients .card,
+body.practitioner-dashboard .main #clients .card.mb-4,
+body.practitioner-dashboard .app .main .card,
+.practitioner-dashboard .app .main .card,
+.app .main .card,
+body.practitioner-dashboard .app .main #clients .card,
+body.practitioner-dashboard .app .main #clients .card.mb-4 {
     max-width: 100% !important;
     width: 100% !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
+    min-width: 0 !important;
 }
 
 /* WhatsApp messaging should respect container */
@@ -533,6 +557,18 @@ h3.card-title:hover,
     gap: 1rem;
     align-items: center;
     flex-wrap: wrap;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* CRITICAL: Ensure search-container inside cards respects container */
+body.practitioner-dashboard .main .card .card-body .search-container,
+.practitioner-dashboard .main .card .card-body .search-container,
+.main .card .card-body .search-container,
+body.practitioner-dashboard .main #clients .card .card-body .search-container,
+#clients .card .card-body .search-container {
     max-width: 100% !important;
     width: 100% !important;
     box-sizing: border-box !important;
