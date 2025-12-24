@@ -350,8 +350,8 @@
                         child.removeAttribute('style');
                         // Then set visible styles
                         if (child.classList && child.classList.contains('app')) {
-                            // App container should be block
-                            child.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                            // App container should have show-content class
+                            child.classList.add('show-content');
                         } else {
                             child.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
                         }
