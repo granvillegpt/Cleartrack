@@ -200,9 +200,11 @@
                 } catch (e) {
                     console.error('[HEAD] Error:', e);
                     window._redirectCheckDone = true;
-                    // On error, show content
-                    if (window.showOnboardingContent) {
-                        window.showOnboardingContent();
+                    // On error, only show content if we have a user (might be regular user)
+                    if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                        if (window.showOnboardingContent) {
+                            window.showOnboardingContent();
+                        }
                     }
                     return false;
                 } finally {
@@ -561,12 +563,19 @@
             // Body is already hidden via inline style above
             // This ensures it stays hidden during redirect checks
             
-            // Safety net: Show content after 2.5 seconds if no redirect happened
+            // Safety net: Show content after 5 seconds if no redirect happened AND user is confirmed regular
+            // BUT ONLY if we have a user and confirmed they're NOT a practitioner
             setTimeout(function() {
-                if (window.location.pathname.includes('client-onboarding.html')) {
-                    window.showOnboardingContent();
+                if (window.location.pathname.includes('client-onboarding.html') && 
+                    window._redirectCheckDone && 
+                    window.firebaseAuth && 
+                    window.firebaseAuth.currentUser) {
+                    // Double-check user is not practitioner before showing
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
                 }
-            }, 2500);
+            }, 5000);
         })();
     </script>
     
@@ -1577,24 +1586,35 @@
             console.log('[BODY] Redirect check initialized');
             
             // Skip if already checked by head script
+            // BUT ONLY show content if we have a user AND confirmed they're NOT a practitioner
             if (window._redirectCheckDone) {
-                console.log('[BODY] Redirect already checked, showing content');
-                if (window.showOnboardingContent) {
-                    window.showOnboardingContent();
+                console.log('[BODY] Redirect already checked');
+                // Only show if we have a user
+                if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                    console.log('[BODY] User confirmed - showing content');
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                } else {
+                    console.log('[BODY] No user yet - waiting for auth state');
                 }
                 return;
             }
             
-            // Safety net: Show content after 3 seconds if no redirect happened
-            // Store timeout ID so it can be cleared
+            // Safety net: Show content after 5 seconds if no redirect happened AND user is confirmed regular
+            // BUT ONLY if we have a user and confirmed they're NOT a practitioner
             window._onboardingSafetyNetTimeout = setTimeout(function() {
-                if (window.location.pathname.includes('client-onboarding.html') && !window._redirectCheckDone && !window._onboardingContentShown) {
-                    console.log('[BODY] Safety net: Showing content after timeout');
+                if (window.location.pathname.includes('client-onboarding.html') && 
+                    window._redirectCheckDone && 
+                    !window._onboardingContentShown &&
+                    window.firebaseAuth && 
+                    window.firebaseAuth.currentUser) {
+                    console.log('[BODY] Safety net: Showing content after timeout (user confirmed)');
                     if (window.showOnboardingContent) {
                         window.showOnboardingContent();
                     }
                 }
-            }, 3000);
+            }, 5000);
         })();
     </script>
     <div class="app">
@@ -1839,10 +1859,12 @@
                     }
                 } catch (err) {
                     console.error('[onboarding] ❌ Error in redirectPractitioners:', err);
-                    // On error, show content anyway
+                    // On error, only show content if we have a user (might be regular user)
                     window._redirectCheckDone = true;
-                    if (window.showOnboardingContent) {
-                        window.showOnboardingContent();
+                    if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                        if (window.showOnboardingContent) {
+                            window.showOnboardingContent();
+                        }
                     }
                 }
             }
