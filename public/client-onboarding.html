@@ -1122,11 +1122,18 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease;
-            width: 100%;
+            width: auto;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             text-align: center;
+        }
+        
+        /* Full-width buttons only for form buttons and button groups */
+        .form-group .btn,
+        .btn-group .btn,
+        .btn-full {
+            width: 100%;
         }
         
         .btn-primary {
