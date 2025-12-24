@@ -176,12 +176,15 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
     font-weight: 500;
 }
 
+/* CRITICAL: Practitioner dashboard main container - must override all other CSS */
+body.practitioner-dashboard .main,
+.practitioner-dashboard .main,
 .main {
-    padding: 2.5rem 2rem;
+    padding: 2.5rem 2rem !important;
     max-width: 960px !important;
     margin: 0 auto !important;
-    width: 100%;
-    box-sizing: border-box;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Ensure all sections respect main container width */
