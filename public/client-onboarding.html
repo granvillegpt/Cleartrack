@@ -452,6 +452,9 @@
             
             console.log('[onboarding] ✅✅✅ SHOWING ONBOARDING CONTENT NOW');
             
+            // CRITICAL: Remove body overlay (body::before) immediately
+            document.body.classList.add('show-onboarding-content');
+            
             // CRITICAL: Stop the MutationObserver that's re-hiding content
             if (window._onboardingMutationObserver) {
                 console.log('[onboarding] ✅ Disconnecting MutationObserver');
