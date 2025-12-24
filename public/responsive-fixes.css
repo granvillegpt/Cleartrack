@@ -208,11 +208,8 @@ a {
     /* Practitioner dashboard uses its own main styles - don't override */
     .practitioner-dashboard .container,
     body:not(.practitioner-dashboard) .container,
-    .practitioner-dashboard .main,
     body:not(.practitioner-dashboard) .main,
-    .practitioner-dashboard .header,
     body:not(.practitioner-dashboard) .header,
-    .practitioner-dashboard .header-top,
     body:not(.practitioner-dashboard) .header-top {
         width: 100% !important;
         max-width: 100vw !important;
@@ -221,7 +218,6 @@ a {
     
     /* Allow main element to be centered box on index.html - matches terms.html style */
     /* Practitioner dashboard uses its own main styles - don't override */
-    .practitioner-dashboard > main,
     body:not(.practitioner-dashboard) > main {
         max-width: 1000px !important;
         width: 100% !important;
