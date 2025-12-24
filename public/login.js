@@ -399,21 +399,20 @@ async function routeUserAfterLogin(user, role, userData) {
     
     // CRITICAL: Check for practitioner/admin FIRST before any timeout
     // This prevents practitioners from being sent to onboarding due to timeout
+    // NO DELAY - redirect IMMEDIATELY to prevent onboarding page from loading
     if (finalRole === 'practitioner') {
-      console.log('[login.js] ✅✅✅ PRACTITIONER DETECTED IMMEDIATELY - ROUTING DIRECTLY');
+      console.log('[login.js] ✅✅✅ PRACTITIONER DETECTED IMMEDIATELY - ROUTING DIRECTLY (NO DELAY)');
       if (window.setLoginLoading) window.setLoginLoading(false);
-      setTimeout(() => {
-        safeRedirect('/practitioner-dashboard.html');
-      }, 200);
+      // IMMEDIATE redirect - no delay to prevent onboarding page from loading
+      safeRedirect('/practitioner-dashboard.html');
       return;
     }
     
     if (finalRole === 'admin') {
-      console.log('[login.js] ✅✅✅ ADMIN DETECTED IMMEDIATELY - ROUTING DIRECTLY');
+      console.log('[login.js] ✅✅✅ ADMIN DETECTED IMMEDIATELY - ROUTING DIRECTLY (NO DELAY)');
       if (window.setLoginLoading) window.setLoginLoading(false);
-      setTimeout(() => {
-        safeRedirect('/admin-dashboard.html');
-      }, 200);
+      // IMMEDIATE redirect - no delay to prevent onboarding page from loading
+      safeRedirect('/admin-dashboard.html');
       return;
     }
     
@@ -531,18 +530,16 @@ async function routeUserAfterLogin(user, role, userData) {
     if (window.setLoginLoading) window.setLoginLoading(false);
     
     if (finalRole === 'practitioner') {
-      console.log('[login.js] ✅✅✅✅✅ ROUTING TO PRACTITIONER DASHBOARD');
-      setTimeout(() => {
-        safeRedirect('/practitioner-dashboard.html');
-      }, 200);
+      console.log('[login.js] ✅✅✅✅✅ ROUTING TO PRACTITIONER DASHBOARD (IMMEDIATE)');
+      // IMMEDIATE redirect - no delay
+      safeRedirect('/practitioner-dashboard.html');
       return;
     }
     
     if (finalRole === 'admin') {
-      console.log('[login.js] ✅✅✅✅✅ ROUTING TO ADMIN DASHBOARD');
-      setTimeout(() => {
-        safeRedirect('/admin-dashboard.html');
-      }, 200);
+      console.log('[login.js] ✅✅✅✅✅ ROUTING TO ADMIN DASHBOARD (IMMEDIATE)');
+      // IMMEDIATE redirect - no delay
+      safeRedirect('/admin-dashboard.html');
       return;
     }
     
@@ -573,18 +570,16 @@ async function routeUserAfterLogin(user, role, userData) {
     let finalRole = String(role || userData?.role || 'user').toLowerCase().trim();
     
     if (finalRole === 'practitioner') {
-      console.log('[login.js] ✅✅✅ ERROR BUT PRACTITIONER DETECTED - ROUTING TO PRACTITIONER DASHBOARD');
-      setTimeout(() => {
-        safeRedirect('/practitioner-dashboard.html');
-      }, 200);
+      console.log('[login.js] ✅✅✅ ERROR BUT PRACTITIONER DETECTED - ROUTING TO PRACTITIONER DASHBOARD (IMMEDIATE)');
+      // IMMEDIATE redirect - no delay
+      safeRedirect('/practitioner-dashboard.html');
       return;
     }
     
     if (finalRole === 'admin') {
-      console.log('[login.js] ✅✅✅ ERROR BUT ADMIN DETECTED - ROUTING TO ADMIN DASHBOARD');
-      setTimeout(() => {
-        safeRedirect('/admin-dashboard.html');
-      }, 200);
+      console.log('[login.js] ✅✅✅ ERROR BUT ADMIN DETECTED - ROUTING TO ADMIN DASHBOARD (IMMEDIATE)');
+      // IMMEDIATE redirect - no delay
+      safeRedirect('/admin-dashboard.html');
       return;
     }
     
