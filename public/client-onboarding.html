@@ -368,7 +368,7 @@
             
             const headerTop = document.querySelector('.header-top');
             if (headerTop) {
-                headerTop.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 10001 !important;';
+                headerTop.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 10001 !important; padding: 1.5rem 2rem !important; align-items: center !important; justify-content: space-between !important;';
             }
             
             // Remove CSS rules from stylesheets
@@ -530,13 +530,6 @@
             margin-bottom: 0 !important; /* Ensure no margin pushes main down */
         }
         
-        /* Ensure header is always on top except loading overlay */
-        .header-top {
-            z-index: 10001 !important;
-            position: relative !important;
-            background: transparent !important; /* Ensure no background covers content */
-        }
-        
         /* Desktop: Header stays full width, content inside is centered */
         @media (min-width: 769px) {
             .header {
@@ -549,7 +542,7 @@
         }
         
         /* ============================================
-           HEADER TOP SECTION
+           HEADER TOP SECTION - COMPLETE DEFINITION
            ============================================ */
         .header-top {
             display: flex !important;
@@ -562,6 +555,8 @@
             background: transparent !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
+            z-index: 10001 !important;
+            min-height: auto !important; /* Ensure it has proper height */
         }
         
         /* Desktop: Constrain header-top to match container */
