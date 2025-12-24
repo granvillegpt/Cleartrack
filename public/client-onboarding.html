@@ -446,80 +446,110 @@
             box-sizing: border-box;
         }
         
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f5f7fa;
-            color: #1f2933;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e5f3f7;
+            color: #333;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
             overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
         }
         
-        /* Style 6: Compact Dropdown (Minimal) - Clean Implementation */
-        /* Header styles moved to .header section below to match user dashboard */
-        
-        /* Prevent body/html from clipping header */
-        html, body {
+        html {
             overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            height: 100%;
         }
         
-        /* Ensure header container has proper spacing for logout */
+        /* ============================================
+           HEADER - FULL WIDTH WITH CENTERED CONTENT
+           ============================================ */
+        .header {
+            background: #0b7285;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+            display: block;
+            padding: 0;
+            margin: 0 !important;
+        }
+        
+        /* Desktop: Header stays full width, content inside is centered */
         @media (min-width: 769px) {
-            header > div:first-child {
-                padding-right: 2.5rem !important;
+            .header {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
             }
         }
         
-        /* Header inner container - matches dashboard structure */
-        header > div:first-child {
+        /* ============================================
+           HEADER TOP SECTION
+           ============================================ */
+        .header-top {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             padding: 1.5rem 2rem;
+            position: relative;
             width: 100%;
             box-sizing: border-box;
-            min-height: 60px;
-            position: relative;
-            overflow: visible;
+            max-width: 100%;
         }
         
-        /* Desktop: Constrain header content width like dashboards */
+        /* Desktop: Constrain header-top to match container */
         @media (min-width: 769px) {
-            header > div:first-child {
-                max-width: 960px;
-                margin: 0 auto;
-                padding: 1.5rem 2rem;
-                width: 100%;
-                min-width: 0;
+            .header-top {
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 1.5rem 2rem !important;
             }
         }
         
-        /* On very wide screens, ensure proper spacing */
-        @media (min-width: 1000px) {
-            header > div:first-child {
-                width: 100%;
-                max-width: 960px;
-                padding: 1.5rem 2rem;
-            }
+        /* ============================================
+           LOGOUT BUTTON - DESKTOP POSITIONING
+           ============================================ */
+        #desktopLogoutBtn {
+            display: block;
+            margin-left: auto;
         }
-
-        .brand {
-            font-weight: 700;
-            letter-spacing: 0.04em;
+        
+        /* ============================================
+           LOGO
+           ============================================ */
+        .header .logo {
             display: flex;
             align-items: center;
-            flex-shrink: 0;
-            min-width: 0; /* Prevent flex item from overflowing */
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
-
-        .brand img {
-            height: 40px;
-            max-width: 150px;
+        
+        .header .logo img {
+            height: 48px;
             width: auto;
-            object-fit: contain;
             filter: brightness(0) invert(1);
             display: block;
         }
+        
 
         /* Style 6: Hamburger menu button */
         .menu-toggle-style6 {
