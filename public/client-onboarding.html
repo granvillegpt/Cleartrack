@@ -682,7 +682,9 @@
                 color: #1f2933;
                 text-decoration: none;
                 padding: 0.75rem 1.25rem;
-                display: block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 font-size: 0.95rem;
                 transition: all 0.2s;
                 border: none;
@@ -849,7 +851,9 @@
                 color: #1f2933;
                 text-decoration: none;
                 padding: 0.75rem 1.25rem;
-                display: block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 font-size: 0.95rem;
                 transition: all 0.2s;
                 border: none;
@@ -1864,7 +1868,13 @@
                 }
                 
                 if (logoutLink) {
-                    logoutLink.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; color: #e0fbff !important; text-align: center !important;';
+                    // Only apply desktop styles on desktop
+                    if (window.innerWidth >= 769) {
+                        logoutLink.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; color: #e0fbff !important;';
+                    } else {
+                        // Mobile: ensure centered
+                        logoutLink.style.cssText = 'display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; text-align: center !important;';
+                    }
                     console.log('[onboarding] Logout link forced visible');
                 }
             }
