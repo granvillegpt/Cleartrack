@@ -72,14 +72,12 @@
             async function immediatePractitionerCheck() {
                 checkAttempts++;
                 if (checkAttempts > MAX_CHECK_ATTEMPTS) {
-                    console.log('[IMMEDIATE] Max attempts reached - allowing content (assuming regular user)');
-                    window._practitionerCheckComplete = true;
+                    console.log('[IMMEDIATE] Max attempts reached - but NOT allowing content without user confirmation');
+                    // Don't set _practitionerCheckComplete = true here - keep blocking until we have a user
                     immediateCheckRunning = false;
                     return;
                 }
                 
-                if (immediateCheckRunning) return; // Prevent multiple simultaneous checks
-                immediateCheckRunning = true;
                 if (immediateCheckRunning) return; // Prevent multiple simultaneous checks
                 immediateCheckRunning = true;
                 
@@ -436,8 +434,13 @@
         
         window.showOnboardingContent = function() {
             // CRITICAL: Check if onboarding is blocked (practitioner check in progress)
-            if (window._onboardingBlocked && !window._practitionerCheckComplete) {
-                console.log('[onboarding] 🚨 BLOCKED: Practitioner check not complete yet');
+            // This MUST complete before any content can show
+            if (window._onboardingBlocked === true && window._practitionerCheckComplete !== true) {
+                console.log('[onboarding] 🚨 BLOCKED: Immediate practitioner check not complete yet');
+                console.log('[onboarding] Block status:', {
+                    blocked: window._onboardingBlocked,
+                    checkComplete: window._practitionerCheckComplete
+                });
                 setTimeout(() => {
                     if (window.showOnboardingContent) {
                         window.showOnboardingContent();
@@ -1936,13 +1939,24 @@
                             }
                         }
                     }
-                    // Regular user confirmed - show onboarding content
+                    // Regular user confirmed - BUT wait for immediate check to complete first
                     console.log('[onboarding] ✅ User is regular user - staying on page');
                     window._redirectCheckDone = true;
-                    if (window.showOnboardingContent) {
-                        console.log('[onboarding] ✅ Calling showOnboardingContent()');
-                        window.showOnboardingContent();
+                    
+                    // CRITICAL: Wait for immediate practitioner check to complete before showing content
+                    function waitForImmediateCheckThenShow() {
+                        if (window._onboardingBlocked && !window._practitionerCheckComplete) {
+                            console.log('[onboarding] ⏳ Waiting for immediate check to complete...');
+                            setTimeout(waitForImmediateCheckThenShow, 100);
+                            return;
+                        }
+                        // Immediate check complete - safe to show content
+                        if (window.showOnboardingContent) {
+                            console.log('[onboarding] ✅ Immediate check complete - calling showOnboardingContent()');
+                            window.showOnboardingContent();
+                        }
                     }
+                    waitForImmediateCheckThenShow();
                 } catch (err) {
                     console.error('[onboarding] ❌ Error in redirectPractitioners:', err);
                     // On error, only show content if we have a user (might be regular user)
@@ -2016,17 +2030,27 @@
                 console.log('[onboarding] 🔄 Running single redirect check');
                 await redirectPractitioners();
                 // After check, if still on page and content not shown, show it
-                // BUT ONLY if redirect check is done AND we have a user (meaning we confirmed user is NOT practitioner)
+                // BUT ONLY if redirect check is done AND we have a user AND immediate check is complete
                 setTimeout(() => {
                     if (window.location.pathname.includes('client-onboarding.html') && 
                         !window._onboardingContentShown && 
                         window._redirectCheckDone &&
+                        window._practitionerCheckComplete && // CRITICAL: Wait for immediate check
                         window.firebaseAuth && 
                         window.firebaseAuth.currentUser) {
-                        console.log('[onboarding] ✅ Check complete - showing onboarding content (user confirmed)');
+                        console.log('[onboarding] ✅ Check complete - showing onboarding content (user confirmed, immediate check done)');
                         if (window.showOnboardingContent) {
                             window.showOnboardingContent();
                         }
+                    } else {
+                        console.log('[onboarding] ⏳ Not showing content yet - waiting for checks:', {
+                            onPage: window.location.pathname.includes('client-onboarding.html'),
+                            contentShown: window._onboardingContentShown,
+                            redirectDone: window._redirectCheckDone,
+                            immediateCheckComplete: window._practitionerCheckComplete,
+                            hasAuth: !!window.firebaseAuth,
+                            hasUser: !!(window.firebaseAuth && window.firebaseAuth.currentUser)
+                        });
                     }
                 }, 300);
             };
