@@ -38,6 +38,13 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Ensure app container doesn't stretch */
+.app {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 /* Responsive Images */
 img {
     max-width: 100%;
@@ -171,8 +178,8 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
 
 .main {
     padding: 2.5rem 2rem;
-    max-width: 960px;
-    margin: 0 auto;
+    max-width: 960px !important;
+    margin: 0 auto !important;
     width: 100%;
     box-sizing: border-box;
 }
