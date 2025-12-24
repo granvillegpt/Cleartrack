@@ -52,26 +52,45 @@
             
             // CRITICAL: IMMEDIATE practitioner check - runs BEFORE anything else
             // This prevents practitioners from EVER seeing the onboarding page
+            let immediateCheckRunning = false;
             async function immediatePractitionerCheck() {
+                if (immediateCheckRunning) return; // Prevent multiple simultaneous checks
+                immediateCheckRunning = true;
+                
                 // Wait for Firebase to be ready
                 if (!window.firebaseAuth || !window.firebaseDb) {
-                    // Keep checking every 50ms until Firebase is ready
+                    console.log('[IMMEDIATE] Waiting for Firebase...');
+                    immediateCheckRunning = false;
                     setTimeout(immediatePractitionerCheck, 50);
                     return;
                 }
                 
                 const user = window.firebaseAuth.currentUser;
                 if (!user) {
-                    // Wait for user to be available
+                    console.log('[IMMEDIATE] Waiting for user...');
+                    immediateCheckRunning = false;
+                    // Also set up auth state listener
+                    if (window.firebaseAuth && !window._immediateAuthListenerSet) {
+                        window._immediateAuthListenerSet = true;
+                        window.firebaseAuth.onAuthStateChanged((authUser) => {
+                            if (authUser) {
+                                console.log('[IMMEDIATE] Auth state changed - user detected, checking role');
+                                immediatePractitionerCheck();
+                            }
+                        });
+                    }
                     setTimeout(immediatePractitionerCheck, 50);
                     return;
                 }
+                
+                console.log('[IMMEDIATE] User found:', user.uid, '- checking role NOW');
                 
                 // User found - check role IMMEDIATELY
                 try {
                     const uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
                     if (uidDoc.exists) {
                         const role = String(uidDoc.data().role || '').toLowerCase().trim();
+                        console.log('[IMMEDIATE] Role found:', role);
                         if (role === 'practitioner') {
                             console.log('[IMMEDIATE] 🚨🚨🚨 PRACTITIONER DETECTED - REDIRECTING IMMEDIATELY');
                             window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
@@ -81,9 +100,14 @@
                             window.location.replace('/admin-dashboard.html?v=' + Date.now());
                             return;
                         }
+                        console.log('[IMMEDIATE] ✅ User is regular - allowing content (but content will wait for showOnboardingContent)');
+                    } else {
+                        console.log('[IMMEDIATE] ⚠️ User document not found');
                     }
                 } catch (e) {
                     console.error('[IMMEDIATE] Error checking role:', e);
+                } finally {
+                    immediateCheckRunning = false;
                 }
             }
             
@@ -403,30 +427,30 @@
                 return;
             }
             
-            // CRITICAL: Never show content if redirect check hasn't completed
-            if (window._redirectCheckDone === false || window._redirectCheckDone === undefined) {
-                console.log('[onboarding] 🚨 BLOCKED: Redirect check not complete yet');
-                // Wait a bit and try again
-                setTimeout(() => {
-                    if (window._redirectCheckDone && window.showOnboardingContent) {
-                        window.showOnboardingContent();
-                    }
-                }, 200);
-                return;
-            }
-            
-            // Double-check we're still on onboarding page (redirect might have happened)
-            if (!window.location.pathname.includes('client-onboarding.html')) {
-                console.log('[onboarding] 🚨 BLOCKED: Already redirected away');
-                return;
-            }
-            
-            if (contentShown) {
-                console.log('[onboarding] ⚠️ Content already shown, skipping');
-                return;
-            }
-            contentShown = true;
-            window._onboardingContentShown = true; // Set global flag
+                // CRITICAL: Never show content if redirect check hasn't completed
+                if (window._redirectCheckDone === false || window._redirectCheckDone === undefined) {
+                    console.log('[onboarding] 🚨 BLOCKED: Redirect check not complete yet');
+                    // Wait a bit and try again
+                    setTimeout(() => {
+                        if (window._redirectCheckDone && window.showOnboardingContent) {
+                            window.showOnboardingContent();
+                        }
+                    }, 200);
+                    return;
+                }
+                
+                // Double-check we're still on onboarding page (redirect might have happened)
+                if (!window.location.pathname.includes('client-onboarding.html')) {
+                    console.log('[onboarding] 🚨 BLOCKED: Already redirected away');
+                    return;
+                }
+                
+                if (contentShown) {
+                    console.log('[onboarding] ⚠️ Content already shown, skipping');
+                    return;
+                }
+                contentShown = true;
+                window._onboardingContentShown = true; // Set global flag
             
             // Clear safety net timeout since content is now shown
             if (window._onboardingSafetyNetTimeout) {
