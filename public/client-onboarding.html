@@ -1957,8 +1957,8 @@
             window.addEventListener('load', ensureNavVisibility);
             window.addEventListener('resize', ensureNavVisibility);
 
-            // Logout handler function
-            async function handleLogout(e) {
+            // Logout handler function - make it globally accessible
+            window.handleLogout = async function handleLogout(e) {
                 if (e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1973,13 +1973,25 @@
                 
                 try {
                     // Check if Firebase Auth is available
-                    if (window.firebaseAuth) {
-                        await window.firebaseAuth.signOut();
+                    if (!window.firebaseAuth) {
+                        console.error('[onboarding] Firebase Auth not available. Please ensure firebase-init.js is loaded.');
+                        if (window.hideLoadingScreen) window.hideLoadingScreen();
+                        return;
                     }
+                    
+                    console.log('[onboarding] Signing out from Firebase...');
+                    
+                    // Sign out from Firebase
+                    await window.firebaseAuth.signOut();
+                    
+                    console.log('[onboarding] Firebase sign out successful');
                     
                     // Clear any local storage
                     localStorage.removeItem('token');
                     localStorage.removeItem('firebaseUser');
+                    localStorage.removeItem('rememberMeEmail');
+                    
+                    console.log('[onboarding] Local storage cleared, redirecting...');
                     
                     // Small delay to show loading message
                     await new Promise(resolve => setTimeout(resolve, 300));
@@ -1987,12 +1999,13 @@
                     // Redirect to index page
                     window.location.href = '/index.html';
                 } catch (error) {
-                    console.error('Logout error:', error);
+                    console.error('[onboarding] Logout error:', error);
+                    console.error('[onboarding] Error details:', error.message, error.code);
                     if (window.hideLoadingScreen) window.hideLoadingScreen();
                     // Still redirect even if logout fails
                     window.location.href = '/index.html';
                 }
-            }
+            };
             
             // Logout handler for desktop logout button (already has onclick in HTML)
             // Logout handler for bottom nav button
