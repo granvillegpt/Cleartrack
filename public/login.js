@@ -522,7 +522,7 @@ async function routeUserAfterLogin(user, role, userData) {
     console.log('[login.js] ========================================');
     
     // Clear timeout since we're routing successfully
-    clearTimeout(routingTimeout);
+    if (routingTimeout) clearTimeout(routingTimeout);
     
     // Hide loading screen before redirect to prevent it from persisting
     setLoginLoading(false);
