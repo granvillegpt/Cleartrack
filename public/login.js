@@ -1720,7 +1720,18 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (routingError) {
         console.error('[login.js] Routing error:', routingError);
         console.error('[login.js] Routing error stack:', routingError.stack);
-        // Fallback: redirect to onboarding
+        // CRITICAL: Check role before fallback redirect
+        const errorRole = String(role || userData?.role || 'user').toLowerCase().trim();
+        if (errorRole === 'practitioner') {
+          console.log('[login.js] ✅✅✅ ERROR BUT PRACTITIONER - REDIRECTING TO PRACTITIONER DASHBOARD');
+          safeRedirect('/practitioner-dashboard.html');
+          return;
+        } else if (errorRole === 'admin') {
+          console.log('[login.js] ✅✅✅ ERROR BUT ADMIN - REDIRECTING TO ADMIN DASHBOARD');
+          safeRedirect('/admin-dashboard.html');
+          return;
+        }
+        // Fallback: redirect to onboarding (only for regular users)
         safeRedirect('/client-onboarding.html');
       }
 
