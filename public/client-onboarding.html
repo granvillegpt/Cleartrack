@@ -513,11 +513,15 @@
                                             const role = String(doc.data().role || '').toLowerCase().trim();
                                             if (role === 'practitioner') {
                                                 console.log('[onboarding] 🚨🚨🚨 PRACTITIONER DETECTED IN AUTH LISTENER - REDIRECTING');
+                                                window.stop(); // Stop page loading
                                                 window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                                                window.location.href = '/practitioner-dashboard.html?v=' + Date.now();
                                                 return;
                                             } else if (role === 'admin') {
                                                 console.log('[onboarding] 🚨🚨🚨 ADMIN DETECTED IN AUTH LISTENER - REDIRECTING');
+                                                window.stop(); // Stop page loading
                                                 window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                                                window.location.href = '/admin-dashboard.html?v=' + Date.now();
                                                 return;
                                             }
                                             // Regular user - now safe to show content
@@ -549,11 +553,15 @@
                             const role = String(doc.data().role || '').toLowerCase().trim();
                             if (role === 'practitioner') {
                                 console.log('[onboarding] 🚨🚨🚨 PRACTITIONER DETECTED IN showOnboardingContent - REDIRECTING');
+                                window.stop(); // Stop page loading
                                 window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                                window.location.href = '/practitioner-dashboard.html?v=' + Date.now();
                                 return;
                             } else if (role === 'admin') {
                                 console.log('[onboarding] 🚨🚨🚨 ADMIN DETECTED IN showOnboardingContent - REDIRECTING');
+                                window.stop(); // Stop page loading
                                 window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                                window.location.href = '/admin-dashboard.html?v=' + Date.now();
                                 return;
                             }
                             // Regular user confirmed - proceed to show content
