@@ -157,9 +157,12 @@
                     console.log('[HEAD] ✅ User is regular - showing onboarding');
                     window._redirectCheckDone = true;
                     // Small delay to ensure redirect doesn't happen after this
+                    // BUT ONLY show if we still have a user (double-check)
                     setTimeout(() => {
-                        // Double-check we're still on onboarding page
-                        if (window.location.pathname.includes('client-onboarding.html')) {
+                        // Double-check we're still on onboarding page AND still have a user
+                        if (window.location.pathname.includes('client-onboarding.html') &&
+                            window.firebaseAuth && 
+                            window.firebaseAuth.currentUser) {
                             if (window.showOnboardingContent) {
                                 window.showOnboardingContent();
                             }
