@@ -59,6 +59,28 @@
         (function() {
             'use strict';
             
+            // CRITICAL: Redirect practitioners IMMEDIATELY if they're already authenticated
+            // This runs BEFORE any other script, before Firebase even loads
+            try {
+                // Check if we have localStorage/sessionStorage with user info
+                const storedUser = localStorage.getItem('firebaseUser') || sessionStorage.getItem('firebaseUser');
+                if (storedUser) {
+                    try {
+                        const userData = JSON.parse(storedUser);
+                        if (userData && userData.role && (userData.role.toLowerCase() === 'practitioner' || userData.role.toLowerCase() === 'admin')) {
+                            console.log('[IMMEDIATE PRE-FIREBASE] Practitioner detected in storage - redirecting NOW');
+                            window.location.replace(userData.role.toLowerCase() === 'practitioner' ? '/practitioner-dashboard.html' : '/admin-dashboard.html');
+                            // Stop all execution
+                            throw new Error('Redirecting');
+                        }
+                    } catch (e) {
+                        if (e.message === 'Redirecting') throw e;
+                    }
+                }
+            } catch (e) {
+                if (e.message === 'Redirecting') return; // Stop execution
+            }
+            
             // CRITICAL: Set global flag to prevent content from showing
             window._onboardingBlocked = true;
             window._practitionerCheckComplete = false;
@@ -569,6 +591,9 @@
                 }
                 contentShown = true;
                 window._onboardingContentShown = true; // Set global flag
+                
+                // CRITICAL: Add class to body to allow CSS to show content
+                document.body.classList.add('content-allowed');
             
             // Clear safety net timeout since content is now shown
             if (window._onboardingSafetyNetTimeout) {
