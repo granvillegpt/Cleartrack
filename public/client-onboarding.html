@@ -29,11 +29,18 @@
             /* Instead, hide all children except loading overlay */
             overflow: hidden !important;
         }
-        /* Hide all body content EXCEPT the loading overlay */
-        body > *:not(#loadingOverlay):not(script) {
+        /* Hide all body content EXCEPT the loading overlay and app container */
+        body > *:not(#loadingOverlay):not(script):not(.app) {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
+        }
+        
+        /* Ensure app container is visible when content is shown */
+        body > .app {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         /* Ensure scripts are always hidden */
         script {
@@ -313,12 +320,23 @@
                         // Remove all inline styles first
                         child.removeAttribute('style');
                         // Then set visible styles
-                        child.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                        if (child.classList && child.classList.contains('app')) {
+                            // App container should be block
+                            child.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                        } else {
+                            child.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                        }
                     } else if (child.tagName === 'SCRIPT') {
                         // Ensure scripts are hidden
                         child.style.cssText = 'display: none !important; visibility: hidden !important;';
                     }
                 }
+            }
+            
+            // Explicitly ensure app container is visible
+            const appContainer = document.querySelector('.app');
+            if (appContainer) {
+                appContainer.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
             }
             
             // Explicitly ensure header is visible
