@@ -184,12 +184,18 @@
                         }
                     }
                     
-                    // Regular user - show content
+                    // Regular user - show content ONLY after confirming NOT a practitioner
                     console.log('[HEAD] ✅ User is regular - showing onboarding');
                     window._redirectCheckDone = true;
-                    if (window.showOnboardingContent) {
-                        window.showOnboardingContent();
-                    }
+                    // Small delay to ensure redirect doesn't happen after this
+                    setTimeout(() => {
+                        // Double-check we're still on onboarding page
+                        if (window.location.pathname.includes('client-onboarding.html')) {
+                            if (window.showOnboardingContent) {
+                                window.showOnboardingContent();
+                            }
+                        }
+                    }, 100);
                     return false;
                 } catch (e) {
                     console.error('[HEAD] Error:', e);
@@ -204,13 +210,14 @@
                 }
             }
             
-            // Single check after Firebase is ready
+            // Single check after Firebase is ready - IMMEDIATE, NO DELAY
             function runCheck() {
                 if (window._redirectCheckDone) return;
                 if (window.firebaseAuth && window.firebaseDb) {
                     checkAndRedirect();
                 } else {
-                    setTimeout(runCheck, 200);
+                    // Check more frequently - every 50ms instead of 200ms
+                    setTimeout(runCheck, 50);
                 }
             }
             
@@ -223,8 +230,18 @@
                 });
             }
             
-            // Start check after a short delay
-            setTimeout(runCheck, 500);
+            // Also listen for auth state changes - IMMEDIATE redirect when user is known
+            if (window.firebaseAuth) {
+                window.firebaseAuth.onAuthStateChanged((user) => {
+                    if (user && !window._redirectCheckDone && window.firebaseDb) {
+                        console.log('[HEAD] Auth state changed - checking role immediately');
+                        checkAndRedirect();
+                    }
+                });
+            }
+            
+            // Start check IMMEDIATELY - no delay
+            runCheck();
         })();
     </script>
     <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
