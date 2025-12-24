@@ -1828,12 +1828,14 @@
                 console.log('[onboarding] 🔄 Running single redirect check');
                 await redirectPractitioners();
                 // After check, if still on page and content not shown, show it
-                // BUT ONLY if redirect check is done (meaning we confirmed user is NOT practitioner)
+                // BUT ONLY if redirect check is done AND we have a user (meaning we confirmed user is NOT practitioner)
                 setTimeout(() => {
                     if (window.location.pathname.includes('client-onboarding.html') && 
                         !window._onboardingContentShown && 
-                        window._redirectCheckDone) {
-                        console.log('[onboarding] ✅ Check complete - showing onboarding content');
+                        window._redirectCheckDone &&
+                        window.firebaseAuth && 
+                        window.firebaseAuth.currentUser) {
+                        console.log('[onboarding] ✅ Check complete - showing onboarding content (user confirmed)');
                         if (window.showOnboardingContent) {
                             window.showOnboardingContent();
                         }
