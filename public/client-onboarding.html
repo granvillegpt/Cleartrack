@@ -210,37 +210,91 @@
                 }
             }
             
-            // Single check after Firebase is ready - IMMEDIATE, NO DELAY
-            function runCheck() {
-                if (window._redirectCheckDone) return;
-                if (window.firebaseAuth && window.firebaseDb) {
-                    checkAndRedirect();
-                } else {
-                    // Check more frequently - every 50ms instead of 200ms
-                    setTimeout(runCheck, 50);
+            // BLOCKING CHECK: Prevent ANY content from showing until redirect is confirmed
+            // This ensures practitioners NEVER see the onboarding page
+            let redirectChecked = false;
+            let isPractitioner = false;
+            
+            async function blockingRedirectCheck() {
+                if (redirectChecked) return;
+                
+                // Wait for Firebase to be ready
+                if (!window.firebaseAuth || !window.firebaseDb) {
+                    setTimeout(blockingRedirectCheck, 50);
+                    return;
+                }
+                
+                const user = window.firebaseAuth.currentUser;
+                if (!user) {
+                    // Wait for user to be available
+                    setTimeout(blockingRedirectCheck, 50);
+                    return;
+                }
+                
+                redirectChecked = true;
+                
+                try {
+                    // CRITICAL: Check role immediately
+                    const uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                    if (uidDoc.exists) {
+                        const role = String(uidDoc.data().role || '').toLowerCase().trim();
+                        if (role === 'practitioner') {
+                            console.log('[HEAD] 🚨 PRACTITIONER DETECTED - BLOCKING CONTENT, REDIRECTING NOW');
+                            isPractitioner = true;
+                            window._redirectCheckDone = true;
+                            // Use replace to prevent back button
+                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                            return;
+                        } else if (role === 'admin') {
+                            console.log('[HEAD] 🚨 ADMIN DETECTED - BLOCKING CONTENT, REDIRECTING NOW');
+                            isPractitioner = true;
+                            window._redirectCheckDone = true;
+                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                            return;
+                        }
+                    }
+                    
+                    // Regular user - allow content to show
+                    console.log('[HEAD] ✅ Regular user confirmed - allowing content');
+                    window._redirectCheckDone = true;
+                } catch (e) {
+                    console.error('[HEAD] Error in blocking check:', e);
+                    // On error, assume regular user
+                    window._redirectCheckDone = true;
                 }
             }
             
-            // Listen for Firebase ready
-            if (window.addEventListener) {
-                window.addEventListener('firebaseReady', () => {
-                    if (!window._redirectCheckDone) {
-                        checkAndRedirect();
-                    }
-                });
-            }
+            // Start blocking check IMMEDIATELY
+            blockingRedirectCheck();
             
-            // Also listen for auth state changes - IMMEDIATE redirect when user is known
+            // Also listen for auth state changes
             if (window.firebaseAuth) {
                 window.firebaseAuth.onAuthStateChanged((user) => {
-                    if (user && !window._redirectCheckDone && window.firebaseDb) {
-                        console.log('[HEAD] Auth state changed - checking role immediately');
-                        checkAndRedirect();
+                    if (user && !redirectChecked && window.firebaseDb) {
+                        console.log('[HEAD] Auth state changed - running blocking check');
+                        blockingRedirectCheck();
                     }
                 });
             }
             
-            // Start check IMMEDIATELY - no delay
+            // Listen for Firebase ready event
+            if (window.addEventListener) {
+                window.addEventListener('firebaseReady', () => {
+                    if (!redirectChecked) {
+                        blockingRedirectCheck();
+                    }
+                });
+            }
+            
+            // Fallback: Also run the original check function
+            function runCheck() {
+                if (window._redirectCheckDone || isPractitioner) return;
+                if (window.firebaseAuth && window.firebaseDb) {
+                    checkAndRedirect();
+                } else {
+                    setTimeout(runCheck, 50);
+                }
+            }
             runCheck();
         })();
     </script>
