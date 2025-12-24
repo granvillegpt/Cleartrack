@@ -691,16 +691,13 @@
                 color: #1f2933;
                 text-decoration: none;
                 padding: 0.75rem 1.25rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                display: block;
                 font-size: 0.95rem;
                 transition: all 0.2s;
                 border: none;
                 margin: 0;
                 width: 100%;
                 box-sizing: border-box;
-                text-align: center;
             }
 
             nav.nav-style6 a:hover {
@@ -869,16 +866,13 @@
                 color: #1f2933;
                 text-decoration: none;
                 padding: 0.75rem 1.25rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                display: block;
                 font-size: 0.95rem;
                 transition: all 0.2s;
                 border: none;
                 margin: 0;
                 width: 100%;
                 box-sizing: border-box;
-                text-align: center;
             }
 
             nav.nav-style6 a:hover {
@@ -1886,13 +1880,7 @@
                 }
                 
                 if (logoutLink) {
-                    // Only apply desktop styles on desktop
-                    if (window.innerWidth >= 769) {
-                        logoutLink.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; color: #e0fbff !important;';
-                    } else {
-                        // Mobile: ensure centered
-                        logoutLink.style.cssText = 'display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; text-align: center !important;';
-                    }
+                    logoutLink.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; color: #e0fbff !important;';
                     console.log('[onboarding] Logout link forced visible');
                 }
             }
