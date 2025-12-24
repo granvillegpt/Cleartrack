@@ -890,6 +890,85 @@
             }
         }
         
+        /* ============================================
+           HEADER - MATCH USER DASHBOARD STYLE
+           ============================================ */
+        .header {
+            background: #0b7285;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+            display: block;
+            padding: 0;
+            margin: 0 !important;
+        }
+        
+        /* Desktop: Header stays full width, content inside is centered */
+        @media (min-width: 769px) {
+            .header {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
+            }
+        }
+        
+        /* ============================================
+           HEADER TOP SECTION
+           ============================================ */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+        
+        /* Desktop: Constrain header-top to match container */
+        @media (min-width: 769px) {
+            .header-top {
+                max-width: 960px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 1.5rem 2rem !important;
+            }
+        }
+        
+        /* ============================================
+           LOGOUT BUTTON - DESKTOP POSITIONING
+           ============================================ */
+        #desktopLogoutBtn {
+            display: block;
+            margin-left: auto;
+        }
+        
+        /* ============================================
+           LOGO
+           ============================================ */
+        .header .logo {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .header .logo img {
+            height: 48px;
+            width: auto;
+            filter: brightness(0) invert(1);
+            display: block;
+        }
+        
         main {
             max-width: 800px;
             margin: 0 auto;
