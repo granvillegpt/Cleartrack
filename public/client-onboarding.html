@@ -49,6 +49,47 @@
     <script>
         (function() {
             'use strict';
+            
+            // CRITICAL: IMMEDIATE practitioner check - runs BEFORE anything else
+            // This prevents practitioners from EVER seeing the onboarding page
+            async function immediatePractitionerCheck() {
+                // Wait for Firebase to be ready
+                if (!window.firebaseAuth || !window.firebaseDb) {
+                    // Keep checking every 50ms until Firebase is ready
+                    setTimeout(immediatePractitionerCheck, 50);
+                    return;
+                }
+                
+                const user = window.firebaseAuth.currentUser;
+                if (!user) {
+                    // Wait for user to be available
+                    setTimeout(immediatePractitionerCheck, 50);
+                    return;
+                }
+                
+                // User found - check role IMMEDIATELY
+                try {
+                    const uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                    if (uidDoc.exists) {
+                        const role = String(uidDoc.data().role || '').toLowerCase().trim();
+                        if (role === 'practitioner') {
+                            console.log('[IMMEDIATE] 🚨🚨🚨 PRACTITIONER DETECTED - REDIRECTING IMMEDIATELY');
+                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                            return;
+                        } else if (role === 'admin') {
+                            console.log('[IMMEDIATE] 🚨🚨🚨 ADMIN DETECTED - REDIRECTING IMMEDIATELY');
+                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('[IMMEDIATE] Error checking role:', e);
+                }
+            }
+            
+            // Start immediate check
+            immediatePractitionerCheck();
+            
             // Hide all body content except loading overlay
             function hideBodyContent() {
                 if (document.body) {
