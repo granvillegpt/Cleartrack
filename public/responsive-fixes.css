@@ -47,7 +47,6 @@ body {
 
 /* Main Content */
 /* Practitioner dashboard uses its own main styles - don't override */
-.practitioner-dashboard .main,
 body:not(.practitioner-dashboard) .main {
     width: 100%;
     max-width: 100%;
@@ -64,7 +63,6 @@ body:not(.practitioner-dashboard) .main {
 /* Allow main element to be centered box on index.html - matches terms.html style */
 /* This applies to all screen sizes, not just mobile */
 /* Practitioner dashboard uses its own main styles - don't override */
-html body.practitioner-dashboard > main,
 html body:not(.practitioner-dashboard) > main {
     max-width: 1000px !important;
     width: 100% !important;
