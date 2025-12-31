@@ -38,6 +38,13 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Ensure app container doesn't stretch */
+.app {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 /* Responsive Images */
 img {
     max-width: 100%;
@@ -169,10 +176,79 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
     font-weight: 500;
 }
 
-.main {
-    padding: 2.5rem 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
+/* CRITICAL: Practitioner dashboard main container - must override all other CSS */
+/* Use extremely high specificity to override any conflicting rules */
+html body.practitioner-dashboard .app .main,
+html body.practitioner-dashboard .main,
+html .practitioner-dashboard .app .main,
+html .practitioner-dashboard .main,
+body.practitioner-dashboard .app .main,
+body.practitioner-dashboard .main,
+.practitioner-dashboard .app .main,
+.practitioner-dashboard .main {
+    padding: 2.5rem 2rem !important;
+    max-width: 960px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    display: block !important;
+}
+
+/* CRITICAL: Ensure app container doesn't stretch */
+body.practitioner-dashboard .app,
+.practitioner-dashboard .app {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* Ensure all sections respect main container width */
+body.practitioner-dashboard .main .section,
+.practitioner-dashboard .main .section,
+.main .section {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* Ensure flex containers inside sections don't stretch */
+body.practitioner-dashboard .main .section > .flex,
+body.practitioner-dashboard .main .section .flex.justify-between,
+.practitioner-dashboard .main .section > .flex,
+.practitioner-dashboard .main .section .flex.justify-between,
+.main .section > .flex,
+.main .section .flex.justify-between {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure cards don't stretch beyond container */
+body.practitioner-dashboard .main .card,
+.practitioner-dashboard .main .card,
+.main .card,
+body.practitioner-dashboard .main #clients .card,
+body.practitioner-dashboard .main #clients .card.mb-4,
+body.practitioner-dashboard .app .main .card,
+.practitioner-dashboard .app .main .card,
+.app .main .card,
+body.practitioner-dashboard .app .main #clients .card,
+body.practitioner-dashboard .app .main #clients .card.mb-4 {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
+}
+
+/* WhatsApp messaging should respect container */
+.main .whatsapp-messaging {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .main h1 {
@@ -183,143 +259,9 @@ p, h1, h2, h3, h4, h5, h6, span, div, label, button {
     letter-spacing: -0.02em;
 }
 
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.75rem;
-    margin-bottom: 2.5rem;
-}
+/* Dashboard grid and stat-card styles are in dashboard-styles.css - don't override here */
 
-.stat-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-radius: 16px;
-    padding: 1.75rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    border-left: 5px solid var(--ct-primary);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, transparent, rgba(11, 114, 133, 0.3), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-}
-
-.stat-card:hover::before {
-    opacity: 1;
-}
-
-.stat-card.success {
-    border-left-color: #10b981;
-    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-}
-
-.stat-card.success::before {
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
-}
-
-.stat-card.warning {
-    border-left-color: #f59e0b;
-    background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
-}
-
-.stat-card.warning::before {
-    background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.3), transparent);
-}
-
-.stat-card.danger {
-    border-left-color: #ef4444;
-    background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
-}
-
-.stat-card.danger::before {
-    background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.3), transparent);
-}
-
-/* Clickable Tile Styles */
-.clickable-tile {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.clickable-tile:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.clickable-tile:active {
-    transform: translateY(0);
-}
-
-.tile-hint {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.clickable-tile:hover .tile-hint {
-    opacity: 1;
-}
-
-.stat-value {
-    font-size: 2.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.5rem;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-}
-
-.stat-card.success .stat-value {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.stat-card.warning .stat-value {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.stat-card.danger .stat-value {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.stat-label {
-    color: #64748b;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-top: 0.5rem;
-}
+/* Clickable tile, stat-value, stat-label styles are in dashboard-styles.css - don't override here */
 
 .card {
     background: rgba(255, 255, 255, 0.95);
@@ -494,12 +436,30 @@ h3.card-title:hover,
     gap: 1rem;
     align-items: center;
     flex-wrap: wrap;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* CRITICAL: Ensure search-container inside cards respects container */
+body.practitioner-dashboard .main .card .card-body .search-container,
+.practitioner-dashboard .main .card .card-body .search-container,
+.main .card .card-body .search-container,
+body.practitioner-dashboard .main #clients .card .card-body .search-container,
+#clients .card .card-body .search-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 .search-input-wrapper {
     position: relative;
     flex: 1;
-    min-width: 300px;
+    min-width: 200px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .search-input {
@@ -530,6 +490,8 @@ h3.card-title:hover,
 
 .search-filters {
     flex-shrink: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-select {
@@ -580,7 +542,7 @@ h3.card-title:hover,
     padding: 0.875rem 1rem;
     border: 2px solid #e5e7eb;
     border-radius: 10px;
-    font-size: 0.9375rem;
+    font-size: 16px; /* Prevents zoom on iOS */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -1202,6 +1164,21 @@ h1 {
     .main {
         padding: 1rem 0.75rem;
         width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure sections don't stretch on mobile */
+    .main .section {
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure cards don't stretch on mobile */
+    .main .card {
+        max-width: 100%;
+        width: 100%;
         box-sizing: border-box;
     }
     
@@ -1316,7 +1293,7 @@ h1 {
     .form-group select,
     .form-group textarea {
         padding: 0.625rem;
-        font-size: 0.9375rem;
+        font-size: 16px; /* Prevents zoom on iOS */
         width: 100%;
         box-sizing: border-box;
         max-width: 100%;
@@ -1380,10 +1357,23 @@ h1 {
         flex-direction: column;
         align-items: stretch;
         gap: 0.75rem;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .search-input-wrapper {
         min-width: 100%;
+        max-width: 100%;
+        width: 100%;
+        flex: 1 1 auto;
+        box-sizing: border-box;
+    }
+    
+    .search-filters {
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .search-input {
@@ -1512,10 +1502,23 @@ h1 {
     
     .search-container {
         flex-wrap: wrap;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .search-input-wrapper {
-        min-width: 250px;
+        min-width: 200px;
+        max-width: 100%;
+        flex: 1 1 auto;
+        box-sizing: border-box;
+    }
+    
+    .search-filters {
+        max-width: 100%;
+        width: auto;
+        flex-shrink: 0;
+        box-sizing: border-box;
     }
     
     .client-stats {
@@ -1693,6 +1696,31 @@ h1 {
     
     .main {
         padding: 0;
+        max-width: 960px;
+        margin: 0 auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure all sections respect container on desktop */
+    .main .section {
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure cards respect container on desktop */
+    .main .card {
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure WhatsApp messaging respects container */
+    .main .whatsapp-messaging {
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .card {

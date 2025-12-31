@@ -699,7 +699,8 @@
         /* ============================================
            MAIN CONTENT CONTAINER - CENTERED BLOCKS (GOOGLE STYLE)
            ============================================ */
-        .main {
+        /* Practitioner dashboard uses its own main styles - don't override */
+        body:not(.practitioner-dashboard) .main {
             padding: 1.5rem;
             max-width: 100%;
             margin: 0 auto;
@@ -709,7 +710,8 @@
         
         /* Mobile: Full width with padding */
         @media (max-width: 768px) {
-            .main {
+            /* Practitioner dashboard uses its own main styles - don't override */
+            body:not(.practitioner-dashboard) .main {
                 padding: 1rem !important;
                 max-width: 100% !important;
                 width: 100% !important;
@@ -719,7 +721,8 @@
         
         /* Desktop: Centered block design like Google */
         @media (min-width: 769px) {
-            .main {
+            /* Practitioner dashboard uses its own main styles - don't override */
+            body:not(.practitioner-dashboard) .main {
                 padding: 2rem 2rem !important;
                 max-width: 960px !important;
                 width: 100% !important;
@@ -766,7 +769,8 @@
         
         /* Large desktop screens - maintain centered block */
         @media (min-width: 1440px) {
-            .main {
+            /* Practitioner dashboard uses its own main styles - don't override */
+            body:not(.practitioner-dashboard) .main {
                 max-width: 960px !important;
                 width: 100% !important;
                 padding: 2.5rem 2.5rem !important;
@@ -776,7 +780,8 @@
         
         /* Ultra-wide screens - maintain centered block */
         @media (min-width: 1920px) {
-            .main {
+            /* Practitioner dashboard uses its own main styles - don't override */
+            body:not(.practitioner-dashboard) .main {
                 max-width: 960px !important;
                 width: 100% !important;
                 padding: 2.5rem 2.5rem !important;
@@ -2114,7 +2119,8 @@
         @media (max-width: 768px) {
             /* Header styles removed - Style 6 handles all mobile header styling */
             
-            .main {
+            /* Practitioner dashboard uses its own main styles - don't override */
+            body:not(.practitioner-dashboard) .main {
                 padding: 1rem;
             }
             

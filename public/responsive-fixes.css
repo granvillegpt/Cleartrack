@@ -46,7 +46,8 @@ body {
 }
 
 /* Main Content */
-.main {
+/* Practitioner dashboard uses its own main styles - don't override */
+body:not(.practitioner-dashboard) .main {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -61,7 +62,8 @@ body {
 
 /* Allow main element to be centered box on index.html - matches terms.html style */
 /* This applies to all screen sizes, not just mobile */
-html body > main {
+/* Practitioner dashboard uses its own main styles - don't override */
+html body:not(.practitioner-dashboard) > main {
     max-width: 1000px !important;
     width: 100% !important;
     margin: 2rem auto !important;
@@ -113,12 +115,21 @@ a {
         font-size: 14px;
     }
     
-    .main {
+    /* Practitioner dashboard uses its own main styles - don't override */
+    body:not(.practitioner-dashboard) .main {
         padding-left: 0.75rem !important;
         padding-right: 0.75rem !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box;
+    }
+    
+    /* Practitioner dashboard mobile - keep centered but reduce padding */
+    body.practitioner-dashboard .main {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        max-width: 960px !important;
+        margin: 0 auto !important;
     }
     
     /* Ensure buttons don't get squashed */
@@ -203,17 +214,20 @@ a {
     }
     
     /* Ensure containers respect viewport (but not main element for centered box) */
-    .container,
-    .main,
-    .header,
-    .header-top {
+    /* Practitioner dashboard uses its own main styles - don't override */
+    .practitioner-dashboard .container,
+    body:not(.practitioner-dashboard) .container,
+    body:not(.practitioner-dashboard) .main,
+    body:not(.practitioner-dashboard) .header,
+    body:not(.practitioner-dashboard) .header-top {
         width: 100% !important;
         max-width: 100vw !important;
         box-sizing: border-box;
     }
     
     /* Allow main element to be centered box on index.html - matches terms.html style */
-    body > main {
+    /* Practitioner dashboard uses its own main styles - don't override */
+    body:not(.practitioner-dashboard) > main {
         max-width: 1000px !important;
         width: 100% !important;
         margin: 2rem auto !important;
@@ -235,9 +249,18 @@ a {
         font-size: 12px;
     }
     
-    .main {
+    /* Practitioner dashboard uses its own main styles - don't override */
+    body:not(.practitioner-dashboard) .main {
         padding-left: 0.5rem !important;
         padding-right: 0.5rem !important;
+    }
+    
+    /* Practitioner dashboard small screens - keep centered */
+    body.practitioner-dashboard .main {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        max-width: 960px !important;
+        margin: 0 auto !important;
     }
     
     .logo img {
