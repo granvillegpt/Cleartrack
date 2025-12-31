@@ -65,21 +65,21 @@
         
         // iOS Splash Screens
         const splashScreens = [
-          { media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
-          { media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-se.png' },
-          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-iphone-xr.png' },
-          { media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs.png' },
-          { media: '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12.png' },
-          { media: '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro.png' },
-          { media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-8-plus.png' },
-          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-xs-max.png' },
-          { media: '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-12-pro-max.png' },
-          { media: '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)', href: '/splash/splash-iphone-14-pro-max.png' },
-          { media: '(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-mini.png' },
-          { media: '(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad.png' },
-          { media: '(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-air.png' },
-          { media: '(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-11.png' },
-          { media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)', href: '/splash/splash-ipad-pro-12.png' }
+          { media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)', href: '/assets/splash/splash-1170x2532.png' },
+          { media: '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)', href: '/assets/splash/splash-1170x2532.png' },
+          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)', href: '/assets/splash/splash-1170x2532.png' },
+          { media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)', href: '/assets/splash/splash-1170x2532.png' },
+          { media: '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)', href: '/assets/splash/splash-1170x2532.png' },
+          { media: '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)', href: '/assets/splash/splash-1170x2532.png' },
+          { media: '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)', href: '/assets/splash/splash-1170x2532.png' },
+          { media: '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)', href: '/assets/splash/splash-1170x2532.png' },
+          { media: '(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)', href: '/assets/splash/splash-1290x2796.png' },
+          { media: '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)', href: '/assets/splash/splash-1290x2796.png' },
+          { media: '(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)', href: '/assets/splash/splash-1290x2796.png' },
+          { media: '(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2)', href: '/assets/splash/splash-1290x2796.png' },
+          { media: '(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2)', href: '/assets/splash/splash-1290x2796.png' },
+          { media: '(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)', href: '/assets/splash/splash-1290x2796.png' },
+          { media: '(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)', href: '/assets/splash/splash-1290x2796.png' }
         ];
         splashScreens.forEach(screen => {
           const link = document.createElement('link');
@@ -361,6 +361,23 @@
 
       text-decoration: underline;
 
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.9rem;
+      font-size: 0.9rem;
+      color: #334e68;
+      cursor: pointer;
+    }
+
+    .remember-me input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      cursor: pointer;
     }
 
     .brand {
@@ -663,8 +680,8 @@
 
 <body>
 
-  <!-- Loading Screen Overlay (shown on initial app load, then faded out) -->
-  <div id="loadingOverlay" class="loading-overlay show">
+  <!-- Loading Screen Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
     <div class="loading-spinner-wrapper" style="position: relative !important; width: 100px !important; height: 100px !important; margin: 0 auto 1.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;">
       <div class="loading-spinner" style="width: 100px !important; height: 100px !important; border: 4px solid #e5e7eb !important; border-top: 4px solid #0b7285 !important; border-radius: 50% !important; animation: spin 1s linear infinite !important; margin: 0 !important; position: absolute !important; top: 0 !important; left: 0 !important; background: transparent !important; z-index: 1 !important;"></div>
       <div class="loading-spinner-logo" id="loginLoadingLogo" style="position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 75px !important; height: 75px !important; z-index: 10 !important; display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; background: transparent !important;">
@@ -676,23 +693,32 @@
   </div>
   
   <script>
-    // Simple in-app splash: show immediately, fade out shortly after load
-    (function () {
-      function hideSplash() {
+    // Ensure loading overlay is ready but don't force hide it
+    // The login.js will control when to show/hide it
+    (function() {
+      function ensureOverlayReady() {
         try {
           const overlay = document.getElementById('loadingOverlay');
-          if (!overlay) return;
-          overlay.classList.remove('show');
+          if (overlay) {
+            // Only remove show class if it exists, but don't force hide
+            // This ensures it's ready to be shown when needed
+            overlay.classList.remove('show');
+          }
         } catch (error) {
-          console.warn('[login.html] Error hiding splash overlay:', error);
+          console.warn('[login.html] Error ensuring overlay ready:', error);
         }
       }
-
-      // Keep splash visible while the page and scripts are loading,
-      // then fade it out shortly after the full load event.
-      window.addEventListener('load', function () {
-        setTimeout(hideSplash, 800);
-      });
+      
+      // Ensure overlay exists when DOM is ready
+      try {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', ensureOverlayReady);
+        } else {
+          ensureOverlayReady();
+        }
+      } catch (initError) {
+        console.warn('[login.html] Error initializing overlay check:', initError);
+      }
     })();
   </script>
 
@@ -744,6 +770,11 @@
         <a href="#" id="forgotPasswordLink" class="forgot-password-link">Forgot password?</a>
 
         <div id="forgotPasswordSuccess" class="success-notification" style="display: none;">Password reset email sent! Please check your inbox and follow the instructions to reset your password.</div>
+
+        <label class="remember-me" id="rememberMeContainer" style="display: none;">
+          <input type="checkbox" id="rememberMeCheckbox" />
+          Remember me on this device
+        </label>
 
         <button id="submitBtn" type="submit">Sign in</button>
 
@@ -989,6 +1020,73 @@
       if (shouldShowInstall) {
         installContainer.style.display = 'block';
       }
+    })();
+  </script>
+
+  <!-- Remember Me Checkbox - PWA Only -->
+  <script>
+    (function() {
+      // Wait for DOM to be fully ready
+      function initRememberMe() {
+        // Detect PWA mode with multiple methods
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        const isIOSStandalone = navigator.standalone === true;
+        const isPWA = isStandalone || isIOSStandalone;
+        
+        console.log('[Remember Me] PWA Detection:', {
+          isStandalone: isStandalone,
+          isIOSStandalone: isIOSStandalone,
+          isPWA: isPWA,
+          displayMode: window.matchMedia('(display-mode: standalone)').media,
+          navigatorStandalone: navigator.standalone
+        });
+        
+        const rememberMeContainer = document.getElementById('rememberMeContainer');
+        const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
+        
+        if (!rememberMeContainer) {
+          console.error('[Remember Me] Container not found!');
+          return;
+        }
+        
+        if (!rememberMeCheckbox) {
+          console.error('[Remember Me] Checkbox not found!');
+          return;
+        }
+        
+        // Show checkbox only in PWA mode
+        if (isPWA) {
+          rememberMeContainer.style.display = 'flex';
+          console.log('[Remember Me] Checkbox shown (PWA mode detected)');
+        } else {
+          rememberMeContainer.style.display = 'none';
+          console.log('[Remember Me] Checkbox hidden (not in PWA mode)');
+        }
+        
+        // Restore checkbox state from localStorage
+        const savedState = localStorage.getItem('ctRememberMe');
+        if (savedState === '1') {
+          rememberMeCheckbox.checked = true;
+          console.log('[Remember Me] Restored checked state from localStorage');
+        }
+        
+        // Save checkbox state to localStorage on change
+        rememberMeCheckbox.addEventListener('change', function() {
+          localStorage.setItem('ctRememberMe', this.checked ? '1' : '0');
+          console.log('[Remember Me] Saved state to localStorage:', this.checked ? '1' : '0');
+        });
+      }
+      
+      // Run when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRememberMe);
+      } else {
+        // DOM already ready
+        initRememberMe();
+      }
+      
+      // Also try after a short delay to ensure everything is loaded
+      setTimeout(initRememberMe, 100);
     })();
   </script>
 

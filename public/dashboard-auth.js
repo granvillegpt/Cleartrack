@@ -131,6 +131,39 @@ document.addEventListener('DOMContentLoaded', function() {
           window.cleartrackAuthApi.redirectByRole(role);
           return;
         }
+        
+        // Check if practitioner is suspended or fraud-tagged
+        const practitionerStatus = profile ? profile.practitionerStatus : null;
+        const isFraudTagged = profile ? (profile.fraudTagged === true || profile.practitionerStatus === 'fraud') : false;
+        
+        console.log('[dashboard-auth] Practitioner status check:', {
+          practitionerStatus: practitionerStatus,
+          fraudTagged: isFraudTagged,
+          profileExists: !!profile
+        });
+        
+        if (practitionerStatus === 'suspended') {
+          console.log('[dashboard-auth] Access denied: Practitioner account is suspended.');
+          alert('Your practitioner account has been suspended. Please contact support for assistance.');
+          window.firebaseAuth.signOut().then(() => {
+            window.location.href = '/login.html';
+          }).catch(() => {
+            window.location.href = '/login.html';
+          });
+          return;
+        }
+        
+        if (isFraudTagged) {
+          console.log('[dashboard-auth] Access denied: Practitioner account is fraud-tagged.');
+          alert('Your practitioner account has been flagged. Please contact support for assistance.');
+          window.firebaseAuth.signOut().then(() => {
+            window.location.href = '/login.html';
+          }).catch(() => {
+            window.location.href = '/login.html';
+          });
+          return;
+        }
+        
         // Role is practitioner and on practitioner page - access granted
         console.log('[dashboard-auth] Access granted for role: practitioner');
       } else if (isUserPage) {

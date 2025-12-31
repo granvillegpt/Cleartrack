@@ -1,7 +1,13 @@
 {
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "update-sw": "node update-sw-version.js",
+    "predeploy": "node update-sw-version.js",
+    "deploy": "npm run update-sw && firebase deploy",
+    "deploy:staging:hosting": "npx firebase use cleartrack-hosting && npx firebase deploy --only hosting:staging",
+    "deploy:staging:1f6c6": "npx firebase use cleartrack-1f6c6 && npx firebase deploy --only hosting:staging",
+    "deploy:staging:all": "npm run deploy:staging:hosting && npm run deploy:staging:1f6c6"
   },
   "devDependencies": {
     "firebase-tools": "^14.26.0",

@@ -1149,18 +1149,6 @@
             color: #6b7280;
             font-size: 1rem;
             pointer-events: none;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Normalize search icon size so the inline SVG displays correctly */
-        .search-icon img[alt="Search"] {
-            width: 18px;
-            height: 18px;
-            display: block;
         }
         
         .search-filters {
@@ -1771,7 +1759,7 @@
         
         /* Icon sizes for img tags */
         img.icon {
-            width: 1.25rem;
+            width: 25px;
             height: 1.25rem;
             object-fit: contain;
             display: inline-block;
@@ -1779,8 +1767,8 @@
         }
         
         img.icon-sm {
-            width: 1rem;
-            height: 1rem;
+            width: 25px;
+            height: 25px;
         }
         
         img.icon-lg {

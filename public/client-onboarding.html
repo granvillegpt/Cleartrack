@@ -3,11 +3,479 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>ClearTrack - Get Started</title>
+    
+    <!-- CRITICAL: Hide body content IMMEDIATELY - but keep loading screen visible -->
+    <style>
+        html { 
+            background: #f5f7fa !important;
+            /* Match loading screen background to prevent white flash */
+            background-image: url('/splash/Splash Screen cleartrack.png');
+            background-size: cover;
+            background-position: center 30%;
+            background-repeat: no-repeat;
+        }
+        @media (min-width: 768px) {
+            html {
+                background-image: url('/splash/Splash Screen Travel App Mobile Prototypes (1920 x 1080 px).png');
+                background-position: center 25%;
+            }
+        }
+        body { 
+            /* Don't hide body completely - we need loading screen visible */
+            /* Instead, hide all children except loading overlay */
+            overflow: hidden !important;
+        }
+        /* Hide all body content EXCEPT the loading overlay */
+        body > *:not(#loadingOverlay) {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+        /* Ensure loading overlay is always visible and on top */
+        #loadingOverlay {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: fixed !important;
+            z-index: 999999 !important;
+        }
+    </style>
+    
+    <!-- IMMEDIATE blocking script - runs before ANY other content -->
+    <script>
+        (function() {
+            'use strict';
+            // Store observer reference globally so it can be disconnected
+            window.hideBodyContentObserver = null;
+            let isContentShown = false;
+            
+            // Hide all body content except loading overlay
+            function hideBodyContent() {
+                // Don't hide if content has been explicitly shown
+                if (isContentShown) {
+                    return;
+                }
+                
+                if (document.body) {
+                    // Hide all children except loading overlay
+                    var children = document.body.children;
+                    for (var i = 0; i < children.length; i++) {
+                        if (children[i].id !== 'loadingOverlay') {
+                            children[i].style.display = 'none';
+                            children[i].style.visibility = 'hidden';
+                            children[i].style.opacity = '0';
+                        }
+                    }
+                    // Ensure loading overlay is visible
+                    var overlay = document.getElementById('loadingOverlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                        overlay.style.visibility = 'visible';
+                        overlay.style.opacity = '1';
+                        overlay.style.position = 'fixed';
+                        overlay.style.zIndex = '999999';
+                    }
+                }
+            }
+            
+            // Run immediately
+            hideBodyContent();
+            
+            // Intercept body creation and new content
+            window.hideBodyContentObserver = new MutationObserver(function(mutations) {
+                if (document.body && !isContentShown) {
+                    hideBodyContent();
+                }
+            });
+            
+            if (document.documentElement) {
+                window.hideBodyContentObserver.observe(document.documentElement, { childList: true, subtree: true });
+            }
+            
+            // Also run on DOMContentLoaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (!isContentShown) {
+                        hideBodyContent();
+                    }
+                });
+            } else {
+                if (!isContentShown) {
+                    hideBodyContent();
+                }
+            }
+            
+            // Expose function to stop hiding
+            window.stopHidingBodyContent = function() {
+                isContentShown = true;
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client-onboarding.html:108',message:'stopHidingBodyContent executed',data:{isContentShown,observerExists:!!window.hideBodyContentObserver},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
+                if (window.hideBodyContentObserver) {
+                    window.hideBodyContentObserver.disconnect();
+                    window.hideBodyContentObserver = null;
+                }
+            };
+        })();
+    </script>
+    <!-- AGGRESSIVE REDIRECT - Uses firebaseAuth/firebaseDb API -->
+    <script>
+        (function() {
+            console.log('🚨🚨🚨 IMMEDIATE REDIRECT SCRIPT 🚨🚨🚨');
+            
+            async function checkAndRedirect() {
+                if (!window.firebaseAuth || !window.firebaseDb) {
+                    return false;
+                }
+                
+                const user = window.firebaseAuth.currentUser;
+                if (!user || !user.email) {
+                    return false;
+                }
+                
+                console.log('[REDIRECT] ✅ User found:', user.email);
+                
+                try {
+                    // Check by UID FIRST (faster, direct lookup)
+                    let uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                    if (!uidDoc.exists) {
+                        // Try to create profile if helper function is available
+                        if (typeof window.ensureUserProfileExists === 'function') {
+                            console.log('[REDIRECT] ⚠️ User document not found - creating profile');
+                            const profile = await window.ensureUserProfileExists(user.uid, user.email);
+                            if (profile) {
+                                // Re-fetch after creation
+                                uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                                console.log('[REDIRECT] ✅ Profile created, re-fetched document');
+                            } else {
+                                // Profile creation failed - show onboarding anyway
+                                console.log('[REDIRECT] ⚠️ Profile creation failed, showing onboarding');
+                                if (window.showOnboardingContent) {
+                                    window.showOnboardingContent();
+                                }
+                                return false;
+                            }
+                        } else {
+                            // Helper function not available yet - show onboarding
+                            console.log('[REDIRECT] ⚠️ Profile helper not available yet, showing onboarding');
+                            if (window.showOnboardingContent) {
+                                window.showOnboardingContent();
+                            }
+                            return false;
+                        }
+                    }
+                    
+                    if (uidDoc.exists) {
+                        const role = String(uidDoc.data().role || '').toLowerCase().trim();
+                        if (role === 'practitioner') {
+                            console.log('[REDIRECT] ✅✅✅ REDIRECTING PRACTITIONER (UID)!');
+                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                            return true;
+                        } else if (role === 'admin') {
+                            console.log('[REDIRECT] ✅✅✅ REDIRECTING ADMIN (UID)!');
+                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                            return true;
+                        }
+                    }
+                    
+                    // Fallback: Check by email (for email-based documents)
+                    const emailDocs = await window.firebaseDb.collection('users')
+                        .where('email', '==', user.email.toLowerCase().trim())
+                        .limit(5) // Limit for speed
+                        .get();
+                    
+                    console.log('[REDIRECT] Found', emailDocs.size, 'doc(s) by email');
+                    
+                    for (const doc of emailDocs.docs) {
+                        const role = String(doc.data().role || '').toLowerCase().trim();
+                        console.log('[REDIRECT] Doc ID:', doc.id, 'Role:', role);
+                        
+                        if (role === 'practitioner') {
+                            console.log('[REDIRECT] ✅✅✅ REDIRECTING PRACTITIONER NOW!');
+                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                            return true;
+                        } else if (role === 'admin') {
+                            console.log('[REDIRECT] ✅✅✅ REDIRECTING ADMIN NOW!');
+                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                            return true;
+                        }
+                    }
+                } catch (e) {
+                    console.error('[REDIRECT] Error:', e);
+                    // Show onboarding even on error
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                }
+                
+                // If no redirect happened, show the page content
+                if (window.showOnboardingContent) {
+                    window.showOnboardingContent();
+                }
+                
+                return false;
+            }
+            
+            // Poll aggressively until Firebase is ready (faster polling)
+            let attempts = 0;
+            const poll = setInterval(async function() {
+                attempts++;
+                if (attempts > 30) { // Reduced further for faster timeout
+                    clearInterval(poll);
+                    // Show content if no redirect after timeout
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                    return;
+                }
+                
+                const redirected = await checkAndRedirect();
+                if (redirected) {
+                    clearInterval(poll);
+                }
+            }, 100); // Faster polling - every 100ms instead of 200ms
+            
+            // Also listen for Firebase ready event
+            if (window.addEventListener) {
+                window.addEventListener('firebaseReady', checkAndRedirect);
+                window.addEventListener('load', function() {
+                    setTimeout(checkAndRedirect, 100);
+                    setTimeout(checkAndRedirect, 500);
+                    setTimeout(checkAndRedirect, 1000);
+                });
+            }
+        })();
+    </script>
     <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
     <link rel="stylesheet" href="global-styles.css">
     <link rel="stylesheet" href="/css/ct-theme.css" />
     <link rel="stylesheet" href="/header-responsive-fixes.css" />
+    
+    <!-- Loading screen is already hardcoded in HTML above for immediate display -->
+    <script src="loading-screen.js"></script>
+    <script>
+        // Loading screen is already visible (hardcoded in HTML)
+        // Just ensure it stays visible and update text if needed
+        (function() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                // Ensure it's visible
+                overlay.style.display = 'flex';
+                overlay.style.visibility = 'visible';
+                overlay.style.opacity = '1';
+            }
+        })();
+        
+        // Global function to show page content (called when redirect check confirms user is a client)
+        window.showOnboardingContent = function() {
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client-onboarding.html:271',message:'showOnboardingContent called',data:{observerExists:!!window.hideBodyContentObserver,stopFunctionExists:!!window.stopHidingBodyContent,bodyExists:!!document.body,bodyChildrenCount:document.body?.children?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
+            console.log('[onboarding] 🎯 showOnboardingContent() called');
+            
+            // Stop the MutationObserver from hiding content
+            if (window.stopHidingBodyContent) {
+                window.stopHidingBodyContent();
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client-onboarding.html:277',message:'stopHidingBodyContent called',data:{observerStillExists:!!window.hideBodyContentObserver},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
+            }
+            
+            // Disconnect observer if it exists
+            if (window.hideBodyContentObserver) {
+                window.hideBodyContentObserver.disconnect();
+                window.hideBodyContentObserver = null;
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client-onboarding.html:283',message:'Observer disconnected',data:{observerDisconnected:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
+            }
+            
+            // Hide loading screen
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+                overlay.style.visibility = 'hidden';
+                overlay.style.opacity = '0';
+            }
+            
+            // Also use loading-screen.js hide function if available
+            if (window.hideLoadingScreen) {
+                window.hideLoadingScreen();
+            }
+            
+            // Remove the CSS rule that hides content
+            const styleSheet = document.styleSheets[0];
+            let cssRuleRemoved = false;
+            if (styleSheet) {
+                try {
+                    const rules = styleSheet.cssRules || styleSheet.rules;
+                    for (let i = 0; i < rules.length; i++) {
+                        if (rules[i].selectorText === 'body > *:not(#loadingOverlay)') {
+                            styleSheet.deleteRule(i);
+                            cssRuleRemoved = true;
+                            console.log('[onboarding] ✅ Removed CSS rule hiding body content');
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[onboarding] Could not remove CSS rule:', e);
+                }
+            }
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client-onboarding.html:310',message:'CSS rule removal attempt',data:{cssRuleRemoved,styleSheetExists:!!styleSheet},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
+            
+            // Show all body content (remove hiding from children with !important override)
+            let visibleChildrenCount = 0;
+            if (document.body) {
+                var children = document.body.children;
+                for (var i = 0; i < children.length; i++) {
+                    if (children[i].id !== 'loadingOverlay') {
+                        children[i].style.setProperty('display', 'block', 'important');
+                        children[i].style.setProperty('visibility', 'visible', 'important');
+                        children[i].style.setProperty('opacity', '1', 'important');
+                        visibleChildrenCount++;
+                    }
+                }
+                console.log('[onboarding] ✅ Made', children.length, 'body children visible');
+            }
+            
+            // Also ensure body itself is visible
+            if (document.body) {
+                document.body.style.setProperty('visibility', 'visible', 'important');
+                document.body.style.setProperty('opacity', '1', 'important');
+            }
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client-onboarding.html:333',message:'Content visibility set',data:{visibleChildrenCount,bodyVisibility:document.body?.style.visibility,bodyOpacity:document.body?.style.opacity,firstChildDisplay:document.body?.children[0]?.style.display,firstChildVisibility:document.body?.children[0]?.style.visibility},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
+            
+            console.log('[onboarding] ✅ Onboarding content should now be visible');
+        };
+        
+        // Keep body hidden until redirect check completes
+        (function() {
+            // Body is already hidden via inline style above
+            // This ensures it stays hidden during redirect checks
+            
+            // Safety net: Show content after 2.5 seconds if no redirect happened
+            setTimeout(function() {
+                if (window.location.pathname.includes('client-onboarding.html')) {
+                    window.showOnboardingContent();
+                }
+            }, 2500);
+        })();
+    </script>
+    
+    <!-- CRITICAL: Role check - MUST execute immediately -->
+    <script>
+        console.log('[onboarding] ⚡⚡⚡ HEAD SCRIPT EXECUTING ⚡⚡⚡');
+        
+        async function redirectIfPractitioner() {
+            console.log('[onboarding] 🔍 redirectIfPractitioner() called');
+            
+            if (!window.firebaseAuth || !window.firebaseDb) {
+                console.log('[onboarding] ⏳ Firebase not ready');
+                return;
+            }
+            
+            const user = window.firebaseAuth.currentUser;
+            if (!user) {
+                console.log('[onboarding] ⚠️ No user');
+                return;
+            }
+            
+            console.log('[onboarding] ✅ User found:', user.uid);
+            
+            try {
+                let doc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                console.log('[onboarding] 🔍 Doc exists:', doc.exists);
+                
+                if (!doc.exists) {
+                    console.log('[onboarding] ⚠️ User document not found - creating profile');
+                    const profile = await window.ensureUserProfileExists(user.uid, user.email);
+                    if (profile) {
+                        // Re-fetch after creation
+                        doc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                        console.log('[onboarding] ✅ Profile created, re-fetched document');
+                    } else {
+                        // Profile creation failed - show onboarding anyway
+                        console.log('[onboarding] ⚠️ Profile creation failed, showing onboarding');
+                        if (window.showOnboardingContent) {
+                            window.showOnboardingContent();
+                        }
+                        return;
+                    }
+                }
+                
+                if (doc.exists) {
+                    const role = String(doc.data().role || 'user').toLowerCase().trim();
+                    console.log('[onboarding] 🔍 Role:', role);
+                    
+                    if (role === 'practitioner') {
+                        console.log('[onboarding] ✅✅✅ REDIRECTING PRACTITIONER NOW');
+                        window.location.replace('/practitioner-dashboard.html');
+                        return;
+                    }
+                    if (role === 'admin') {
+                        console.log('[onboarding] ✅✅✅ REDIRECTING ADMIN NOW');
+                        window.location.replace('/admin-dashboard.html');
+                        return;
+                    }
+                }
+                
+                // If we reach here, user is a client - show onboarding
+                if (window.showOnboardingContent) {
+                    window.showOnboardingContent();
+                }
+            } catch (err) {
+                console.error('[onboarding] Error:', err);
+                // Show onboarding even on error
+                if (window.showOnboardingContent) {
+                    window.showOnboardingContent();
+                }
+            }
+        }
+        
+        // Run when Firebase is ready
+        function initCheck() {
+            if (window.firebaseAuth && window.firebaseDb) {
+                console.log('[onboarding] ✅ Firebase ready - checking role');
+                redirectIfPractitioner();
+            } else {
+                setTimeout(initCheck, 200);
+            }
+        }
+        
+        initCheck();
+        
+        // Also listen for Firebase ready event
+        window.addEventListener('firebaseReady', () => {
+            console.log('[onboarding] 🔔 firebaseReady event');
+            redirectIfPractitioner();
+        });
+        
+        // Set callback
+        window.onFirebaseReady = function() {
+            console.log('[onboarding] 🔔 onFirebaseReady callback');
+            redirectIfPractitioner();
+        };
+        
+        // Check on auth state change
+        if (window.firebaseAuth) {
+            window.firebaseAuth.onAuthStateChanged((user) => {
+                if (user) {
+                    console.log('[onboarding] 🔍 Auth changed - user:', user.uid);
+                    setTimeout(redirectIfPractitioner, 500);
+                }
+            });
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -761,9 +1229,299 @@
         .bottom-nav-item.logout:hover svg {
             color: #b91c1c;
         }
+        
+        /* ============================================
+           LOADING SCREEN STYLES (Branded Splash Screen)
+           ============================================ */
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 99999;
+            opacity: 1;
+            visibility: visible;
+            /* Splash screen background - mobile */
+            background-image: url('/splash/Splash Screen cleartrack.png');
+            background-size: cover;
+            background-position: center 30%;
+            background-repeat: no-repeat;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
+        }
+        
+        /* Desktop splash screen */
+        @media (min-width: 768px) {
+            .loading-overlay {
+                background-image: url('/splash/Splash Screen Travel App Mobile Prototypes (1920 x 1080 px).png');
+                background-position: center 25%;
+            }
+        }
+        
+        .loading-spinner-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-spinner {
+            width: 100px;
+            height: 100px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #0b7285;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: transparent;
+            z-index: 1;
+        }
+        
+        .loading-spinner-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 75px;
+            height: 75px;
+            z-index: 10 !important;
+            pointer-events: none;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .loading-spinner-logo img,
+        #loadingLogoImg {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+            object-position: center center !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 10 !important;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 1.1rem;
+            color: #0b7285;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            background: transparent;
+            padding: 0;
+        }
+        
+        .loading-subtext {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            background: transparent;
+            padding: 0;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Screen Overlay - Hardcoded for immediate display with inline styles -->
+    <div id="loadingOverlay" class="loading-overlay" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-direction: column !important; z-index: 999999 !important; opacity: 1 !important; visibility: visible !important; background-image: url('/splash/Splash Screen cleartrack.png') !important; background-size: cover !important; background-position: center 30% !important; background-repeat: no-repeat !important; background-color: rgba(255, 255, 255, 0.2) !important; backdrop-filter: blur(1px) !important; -webkit-backdrop-filter: blur(1px) !important;">
+        <div class="loading-spinner-wrapper" style="position: relative !important; width: 100px !important; height: 100px !important; margin: 0 auto 1.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;">
+            <div class="loading-spinner" style="width: 100px !important; height: 100px !important; border: 4px solid #e5e7eb !important; border-top: 4px solid #0b7285 !important; border-radius: 50% !important; animation: spin 1s linear infinite !important; margin: 0 !important; position: absolute !important; top: 0 !important; left: 0 !important; background: transparent !important; z-index: 1 !important;"></div>
+            <div class="loading-spinner-logo" id="onboardingLoadingLogo" style="position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 75px !important; height: 75px !important; z-index: 10 !important; display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; background: transparent !important;">
+                <img src="/assets/images/icon%20logo.png" alt="ClearTrack Logo" id="loadingLogoImg" style="width: 100% !important; height: 100% !important; display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 10 !important; object-fit: contain !important; object-position: center center !important; border: none !important;" onload="console.log('✅ LOGO LOADED:', this.src);" onerror="console.error('❌ LOGO FAILED:', this.src);">
+            </div>
+        </div>
+        <div class="loading-text" id="loadingText" style="font-size: 1.1rem !important; color: #0b7285 !important; font-weight: 500 !important; margin-top: 0.5rem !important; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important; background: transparent !important; padding: 0 !important;">Loading your profile...</div>
+        <div class="loading-subtext" id="loadingSubtext" style="font-size: 0.9rem !important; color: #6b7280 !important; margin-top: 0.5rem !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important; background: transparent !important; padding: 0 !important;">Setting up your ClearTrack account</div>
+    </div>
+    <script>
+        // Update background for desktop immediately
+        (function() {
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay && window.innerWidth >= 768) {
+                overlay.style.backgroundImage = "url('/splash/Splash Screen Travel App Mobile Prototypes (1920 x 1080 px).png')";
+                overlay.style.backgroundPosition = 'center 25%';
+            }
+        })();
+    </script>
+    <!-- AGGRESSIVE BODY REDIRECT - Runs before any other scripts -->
+    <script>
+        (function() {
+            console.log('🚨🚨🚨 BODY REDIRECT SCRIPT 🚨🚨🚨');
+            
+            // Function to show page content (called when redirect check confirms user is a client)
+            function showPageContent() {
+                // Use the global function which handles all overlays
+                if (window.showOnboardingContent) {
+                    window.showOnboardingContent();
+                } else {
+                    // Fallback if global function not available
+                    var immediateOverlay = document.getElementById('immediateLoadingOverlay');
+                    if (immediateOverlay) {
+                        immediateOverlay.remove();
+                    }
+                    if (document.body) {
+                        document.body.style.display = '';
+                        document.body.style.visibility = 'visible';
+                        document.body.style.opacity = '1';
+                        if (window.hideLoadingScreen) {
+                            window.hideLoadingScreen();
+                        }
+                    }
+                }
+            }
+            
+            // Set timeout to show content if no redirect happens (safety net)
+            setTimeout(function() {
+                // Only show if we haven't redirected yet
+                if (window.location.pathname.includes('client-onboarding.html')) {
+                    showPageContent();
+                }
+            }, 2500); // Show after 2.5 seconds max
+            
+            let redirectChecked = false;
+            let redirectHappened = false;
+            
+            async function forceRedirect() {
+                if (redirectChecked || redirectHappened) {
+                    return;
+                }
+                
+                if (!window.firebaseAuth || !window.firebaseDb) {
+                    return;
+                }
+                
+                const user = window.firebaseAuth.currentUser;
+                if (!user || !user.email) {
+                    return;
+                }
+                
+                redirectChecked = true;
+                console.log('[BODY] Checking:', user.email);
+                
+                try {
+                    // Check by UID FIRST (faster, direct lookup)
+                    let uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                    if (!uidDoc.exists) {
+                        console.log('[BODY] ⚠️ User document not found - creating profile');
+                        const profile = await window.ensureUserProfileExists(user.uid, user.email);
+                        if (profile) {
+                            // Re-fetch after creation
+                            uidDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                            console.log('[BODY] ✅ Profile created, re-fetched document');
+                        } else {
+                            // Profile creation failed - show onboarding anyway
+                            console.log('[BODY] ⚠️ Profile creation failed, showing onboarding');
+                            showPageContent();
+                            return;
+                        }
+                    }
+                    
+                    if (uidDoc.exists) {
+                        const role = String(uidDoc.data().role || '').toLowerCase().trim();
+                        if (role === 'practitioner') {
+                            console.log('[BODY] ✅✅✅ REDIRECTING PRACTITIONER (UID)!');
+                            redirectHappened = true;
+                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                            return;
+                        } else if (role === 'admin') {
+                            console.log('[BODY] ✅✅✅ REDIRECTING ADMIN (UID)!');
+                            redirectHappened = true;
+                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                            return;
+                        }
+                    }
+                    
+                    // Fallback: Check by email (for email-based documents)
+                    const emailDocs = await window.firebaseDb.collection('users')
+                        .where('email', '==', user.email.toLowerCase().trim())
+                        .limit(5)
+                        .get();
+                    
+                    for (const doc of emailDocs.docs) {
+                        const role = String(doc.data().role || '').toLowerCase().trim();
+                        console.log('[BODY] Email doc:', doc.id, 'Role:', role);
+                        
+                        if (role === 'practitioner') {
+                            console.log('[BODY] ✅✅✅ REDIRECTING PRACTITIONER NOW!');
+                            redirectHappened = true;
+                            window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
+                            return;
+                        } else if (role === 'admin') {
+                            console.log('[BODY] ✅✅✅ REDIRECTING ADMIN NOW!');
+                            redirectHappened = true;
+                            window.location.replace('/admin-dashboard.html?v=' + Date.now());
+                            return;
+                        }
+                    }
+                    
+                    // No redirect needed - user is a client, show the page
+                    console.log('[BODY] ✅ User is a client - showing onboarding page');
+                    showPageContent();
+                } catch (e) {
+                    console.error('[BODY] Error:', e);
+                    // On error, show content anyway (better UX than blank page)
+                    showPageContent();
+                }
+            }
+            
+            // Function to show page content (use global function)
+            function showPageContent() {
+                if (!redirectHappened && window.showOnboardingContent) {
+                    window.showOnboardingContent();
+                }
+            }
+            
+            // Poll faster (every 100ms)
+            let count = 0;
+            const poll = setInterval(() => {
+                count++;
+                if (count > 20) { // Reduced further - 2 seconds max
+                    clearInterval(poll);
+                    // Show content if no redirect after timeout
+                    showPageContent();
+                    return;
+                }
+                forceRedirect();
+            }, 100); // Faster polling - 100ms instead of 250ms
+            
+            // Also run on events
+            if (window.addEventListener) {
+                window.addEventListener('firebaseReady', forceRedirect);
+                window.addEventListener('load', forceRedirect);
+            }
+            
+            // Run immediately with staggered attempts
+            setTimeout(forceRedirect, 50);
+            setTimeout(forceRedirect, 200);
+            setTimeout(forceRedirect, 500);
+        })();
+    </script>
     <header>
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
             <div class="brand">
@@ -866,63 +1624,395 @@
     <script src="js/client-linking.js"></script>
     <!-- Loading Screen Utility -->
     <script src="loading-screen.js"></script>
+    <!-- Diagnostic tool -->
+    <script src="diagnose-user.js"></script>
     <!-- Note: dashboard-auth.js is NOT included here to avoid conflicts -->
     
     <script>
-        // Setup handlers immediately - no auth check on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Setup handlers right away so form works
-            setupOnboardingHandlers();
+        // CRITICAL: This runs AFTER Firebase loads - check role immediately
+        console.log('[onboarding] 🔥 BODY SCRIPT LOADED - Firebase should be ready');
+        
+        // Call the immediate check function if it exists - run multiple times
+        if (window.checkPractitionerRole) {
+            console.log('[onboarding] Calling immediate check function');
+            window.checkPractitionerRole(); // Run immediately
+            setTimeout(() => window.checkPractitionerRole(), 500);
+            setTimeout(() => window.checkPractitionerRole(), 1000);
+            setTimeout(() => window.checkPractitionerRole(), 2000);
+            setTimeout(() => window.checkPractitionerRole(), 3000);
+        }
+        
+        // Also set up a listener for when Firebase is ready
+        const checkWhenReady = setInterval(() => {
+            if (window.firebaseAuth && window.firebaseDb && window.checkPractitionerRole) {
+                window.checkPractitionerRole();
+            }
+        }, 500);
+        setTimeout(() => clearInterval(checkWhenReady), 10000);
+        
+        (function checkRoleAfterFirebase() {
+            console.log('[onboarding] 🔥 checkRoleAfterFirebase() executing');
             
-            // Check auth status in background (non-blocking) after page is fully loaded
-            // This allows the page to stay visible for styling/testing
-            window.addEventListener('load', function() {
-                setTimeout(() => {
-                    checkAuthStatusBackground();
-                }, 2000); // Wait 2 seconds after page load
-            });
+            if (!window.firebaseAuth || !window.firebaseDb) {
+                console.log('[onboarding] ⏳ Firebase not ready in body script');
+                setTimeout(checkRoleAfterFirebase, 300);
+                return;
+            }
+            
+            const user = window.firebaseAuth.currentUser;
+            if (!user) {
+                console.log('[onboarding] ⚠️ No user in body script');
+                return;
+            }
+            
+            console.log('[onboarding] ✅✅✅ USER FOUND IN BODY SCRIPT:', user.uid, user.email);
+            
+            window.firebaseDb.collection('users').doc(user.uid).get()
+                .then(doc => {
+                    console.log('[onboarding] 🔍 Body script - Doc exists:', doc.exists);
+                    if (doc.exists) {
+                        const role = String(doc.data().role || 'user').toLowerCase().trim();
+                        console.log('[onboarding] 🔍 Body script - Role:', role);
+                        
+                        if (role === 'practitioner') {
+                            console.log('[onboarding] ✅✅✅ BODY SCRIPT - REDIRECTING PRACTITIONER');
+                            window.location.replace('/practitioner-dashboard.html');
+                        } else if (role === 'admin') {
+                            console.log('[onboarding] ✅✅✅ BODY SCRIPT - REDIRECTING ADMIN');
+                            window.location.replace('/admin-dashboard.html');
+                        }
+                    }
+                })
+                .catch(err => console.error('[onboarding] Body script error:', err));
+        })();
+        
+        // Also run the old script
+        (function() {
+            console.log('[onboarding] ⚡⚡⚡ SCRIPT BLOCK EXECUTING NOW ⚡⚡⚡');
+            
+            async function redirectPractitioners() {
+                console.log('[onboarding] 🔍 redirectPractitioners() called');
+                
+                if (!window.firebaseAuth) {
+                    console.log('[onboarding] ⏳ firebaseAuth not ready');
+                    return;
+                }
+                
+                if (!window.firebaseDb) {
+                    console.log('[onboarding] ⏳ firebaseDb not ready');
+                    return;
+                }
+                
+                const user = window.firebaseAuth.currentUser;
+                if (!user) {
+                    console.log('[onboarding] ⚠️ No user logged in');
+                    return;
+                }
+                
+                console.log('[onboarding] ✅ User found - UID:', user.uid, 'Email:', user.email);
+                
+                try {
+                    let userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                    console.log('[onboarding] 🔍 User document exists:', userDoc.exists);
+                    
+                    if (!userDoc.exists) {
+                        console.log('[onboarding] ⚠️ User document not found - creating profile');
+                        const profile = await window.ensureUserProfileExists(user.uid, user.email);
+                        if (profile) {
+                            // Re-fetch after creation
+                            userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                            console.log('[onboarding] ✅ Profile created, re-fetched document');
+                        } else {
+                            // Profile creation failed - check for practitioner applications before showing onboarding
+                            console.log('[onboarding] ⚠️ Profile creation failed, checking applications');
+                            const email = user.email?.toLowerCase().trim();
+                            if (email) {
+                                const apps = await window.firebaseDb.collection('practitionerApplications')
+                                    .where('email', '==', email)
+                                    .where('status', '==', 'approved')
+                                    .limit(1)
+                                    .get();
+                                
+                                console.log('[onboarding] 🔍 Applications found:', apps.size);
+                                if (!apps.empty) {
+                                    console.log('[onboarding] ✅✅✅ APPROVED APP FOUND - REDIRECTING');
+                                    window.location.replace('/practitioner-dashboard.html');
+                                    return;
+                                }
+                            }
+                            // Show onboarding even if profile creation failed
+                            console.log('[onboarding] ✅ Showing onboarding despite profile creation failure');
+                            if (window.showOnboardingContent) {
+                                window.showOnboardingContent();
+                            }
+                            return;
+                        }
+                    }
+                    
+                    if (userDoc.exists) {
+                        const data = userDoc.data();
+                        const role = String(data.role || 'user').toLowerCase().trim();
+                        console.log('[onboarding] 🔍 Role from document:', role, 'Raw:', data.role);
+                        
+                        if (role === 'practitioner') {
+                            console.log('[onboarding] ✅✅✅ PRACTITIONER DETECTED - REDIRECTING NOW');
+                            window.location.replace('/practitioner-dashboard.html');
+                            return;
+                        }
+                        if (role === 'admin') {
+                            console.log('[onboarding] ✅✅✅ ADMIN DETECTED - REDIRECTING NOW');
+                            window.location.replace('/admin-dashboard.html');
+                            return;
+                        }
+                    } else {
+                        console.log('[onboarding] ⚠️ User document still not found after creation attempt, checking applications');
+                        const email = user.email?.toLowerCase().trim();
+                        if (email) {
+                            const apps = await window.firebaseDb.collection('practitionerApplications')
+                                .where('email', '==', email)
+                                .where('status', '==', 'approved')
+                                .limit(1)
+                                .get();
+                            
+                            console.log('[onboarding] 🔍 Applications found:', apps.size);
+                            if (!apps.empty) {
+                                console.log('[onboarding] ✅✅✅ APPROVED APP FOUND - REDIRECTING');
+                                window.location.replace('/practitioner-dashboard.html');
+                                return;
+                            }
+                        }
+                    }
+                    console.log('[onboarding] ✅ User is regular user - staying on page');
+                    // Ensure onboarding content is shown
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                } catch (err) {
+                    console.error('[onboarding] ❌ Error in redirectPractitioners:', err);
+                    // Show onboarding even on error
+                    if (window.showOnboardingContent) {
+                        window.showOnboardingContent();
+                    }
+                }
+            }
+            
+            // Start checking immediately
+            function startChecks() {
+                console.log('[onboarding] 🔄 startChecks() called');
+                if (window.firebaseAuth && window.firebaseDb) {
+                    console.log('[onboarding] ✅ Firebase ready - running check');
+                    redirectPractitioners();
+                } else {
+                    console.log('[onboarding] ⏳ Waiting for Firebase...');
+                    setTimeout(startChecks, 200);
+                }
+            }
+            
+            // Run immediately
+            startChecks();
+            
+            // Also check on auth state change
+            if (window.firebaseAuth) {
+                console.log('[onboarding] ✅ Setting up auth state listener');
+                window.firebaseAuth.onAuthStateChanged((user) => {
+                    console.log('[onboarding] 🔍 Auth state changed, user:', user ? user.uid : 'null');
+                    if (user) {
+                        setTimeout(redirectPractitioners, 500);
+                    }
+                });
+            } else {
+                const waitForAuth = setInterval(() => {
+                    if (window.firebaseAuth) {
+                        clearInterval(waitForAuth);
+                        window.firebaseAuth.onAuthStateChanged((user) => {
+                            if (user) {
+                                setTimeout(redirectPractitioners, 500);
+                            }
+                        });
+                    }
+                }, 100);
+                setTimeout(() => clearInterval(waitForAuth), 5000);
+            }
+            
+            // Backup checks - run multiple times
+            setTimeout(() => {
+                console.log('[onboarding] 🔄 Backup check 1s');
+                redirectPractitioners();
+            }, 1000);
+            setTimeout(() => {
+                console.log('[onboarding] 🔄 Backup check 2s');
+                redirectPractitioners();
+            }, 2000);
+            setTimeout(() => {
+                console.log('[onboarding] 🔄 Backup check 3s');
+                redirectPractitioners();
+            }, 3000);
+            setTimeout(() => {
+                console.log('[onboarding] 🔄 Backup check 5s');
+                redirectPractitioners();
+            }, 5000);
+        })();
+        
+        // Setup handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[onboarding] DOMContentLoaded - setting up handlers');
+            setupOnboardingHandlers();
         });
+        
+        // Helper function to ensure user profile exists (creates if missing)
+        // Make it globally accessible for head scripts
+        window.ensureUserProfileExists = async function ensureUserProfileExists(uid, email) {
+            if (!window.firebaseDb) {
+                console.error('[onboarding] Firestore not available');
+                return null;
+            }
+            
+            try {
+                const userRef = window.firebaseDb.collection('users').doc(uid);
+                const userDoc = await userRef.get();
+                
+                if (userDoc.exists) {
+                    console.log('[onboarding] User profile already exists');
+                    return userDoc.data();
+                }
+                
+                // Profile doesn't exist - create it with minimal defaults
+                console.log('[onboarding] Creating new user profile for:', uid);
+                const defaultProfile = {
+                    uid: uid,
+                    email: email || null,
+                    role: 'client',
+                    onboardingStep: 1,
+                    createdAt: window.firebaseDb.FieldValue && window.firebaseDb.FieldValue.serverTimestamp ? 
+                        window.firebaseDb.FieldValue.serverTimestamp() : 
+                        new Date().toISOString()
+                };
+                
+                await userRef.set(defaultProfile);
+                console.log('[onboarding] ✅ User profile created successfully');
+                return defaultProfile;
+            } catch (error) {
+                console.error('[onboarding] ❌ Error ensuring user profile:', error);
+                // Return null on error - let the flow continue with error handling
+                return null;
+            }
+        }
         
         // Background auth check - only redirects if absolutely necessary
         async function checkAuthStatusBackground() {
+            console.log('[onboarding] 🔍 checkAuthStatusBackground() called');
             try {
                 if (!window.firebaseAuth) {
-                    console.log('Firebase not ready - page will work without auth check');
+                    console.log('[onboarding] ⚠️ Firebase not ready - page will work without auth check');
                     return;
                 }
                 
                 // Check if user is logged in
                 const currentUser = window.firebaseAuth.currentUser;
+                console.log('[onboarding] 🔍 Current user:', currentUser ? currentUser.uid : 'NOT LOGGED IN');
                 
                 if (!currentUser) {
                     // Not logged in - but don't redirect immediately
                     // Let them see the page, they'll be redirected when they try to submit
-                    console.log('User not logged in - will redirect on form submission');
+                    console.log('[onboarding] ⚠️ User not logged in - will redirect on form submission');
                     return;
                 }
                 
-                // User is logged in - check if they already have practitioner
+                // User is logged in - check role FIRST
                 if (!window.firebaseDb) {
+                    console.log('[onboarding] ⚠️ Firestore not ready');
                     return;
                 }
                 
-                const userDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+                console.log('[onboarding] 🔍 Fetching user document for UID:', currentUser.uid);
+                let userDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+                console.log('[onboarding] 🔍 User document exists:', userDoc.exists);
+                
+                if (!userDoc.exists) {
+                    console.log('[onboarding] ⚠️ User document does not exist - creating profile');
+                    const profile = await ensureUserProfileExists(currentUser.uid, currentUser.email);
+                    if (!profile) {
+                        // Error creating profile - show error message but still show onboarding
+                        console.error('[onboarding] Failed to create profile, showing onboarding anyway');
+                        const loadingText = document.getElementById('loadingText');
+                        if (loadingText) {
+                            loadingText.textContent = 'Setting up your account...';
+                        }
+                        if (window.showOnboardingContent) {
+                            window.showOnboardingContent();
+                        }
+                        return;
+                    }
+                    // Profile created - re-fetch to get the created document
+                    userDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+                    console.log('[onboarding] ✅ Profile created, re-fetched document');
+                }
+                
                 if (userDoc.exists) {
                     const userData = userDoc.data();
+                    console.log('[onboarding] 🔍 User data:', JSON.stringify(userData, null, 2));
+                    const role = (userData.role || 'user').toLowerCase().trim();
+                    console.log('[onboarding] 🔍 Detected role:', role, 'type:', typeof role);
+                    
+                    // CRITICAL: Redirect practitioners and admins immediately
+                    if (role === 'practitioner') {
+                        console.log('[onboarding] ✅ Practitioner detected - redirecting immediately to practitioner dashboard');
+                        window.location.href = '/practitioner-dashboard.html';
+                        return;
+                    } else if (role === 'admin') {
+                        console.log('[onboarding] ✅ Admin detected - redirecting immediately to admin dashboard');
+                        window.location.href = '/admin-dashboard.html';
+                        return;
+                    }
+                    
+                    // For regular users, check if they already have practitioner
                     const practitionerId = userData.practitionerId || userData.connectedPractitioner || null;
+                    console.log('[onboarding] 🔍 Practitioner ID:', practitionerId);
                     
                     if (practitionerId) {
                         // Already linked - redirect to dashboard
-                        console.log('User already has practitioner, redirecting to dashboard');
+                        console.log('[onboarding] ✅ User already has practitioner, redirecting to dashboard');
                         window.location.href = '/user-dashboard.html';
                         return;
                     }
+                } else {
+                    // This should not happen after ensureUserProfileExists, but handle it anyway
+                    console.log('[onboarding] ⚠️ User document still does not exist after creation attempt');
+                    // Check for approved practitioner application
+                    const normalizedEmail = currentUser.email?.toLowerCase().trim();
+                    if (normalizedEmail) {
+                        console.log('[onboarding] 🔍 Checking for approved practitioner application with email:', normalizedEmail);
+                        try {
+                            const practitionerAppSnapshot = await window.firebaseDb.collection('practitionerApplications')
+                                .where('email', '==', normalizedEmail)
+                                .where('status', '==', 'approved')
+                                .limit(1)
+                                .get();
+                            
+                            if (!practitionerAppSnapshot.empty) {
+                                console.log('[onboarding] ✅ Found approved practitioner application - redirecting to practitioner dashboard');
+                                window.location.href = '/practitioner-dashboard.html';
+                                return;
+                            } else {
+                                console.log('[onboarding] ⚠️ No approved practitioner application found');
+                            }
+                        } catch (appCheckError) {
+                            console.warn('[onboarding] Error checking practitioner application:', appCheckError);
+                        }
+                    }
+                }
+                
+                // If we reach here, user is a client without practitioner - show onboarding
+                console.log('[onboarding] ✅ User is a client - showing onboarding content');
+                if (window.showOnboardingContent) {
+                    window.showOnboardingContent();
                 }
                 
                 // Setup real-time listener for when practitioner gets linked
                 setupPractitionerIdListener(currentUser.uid);
             } catch (error) {
-                console.error('Error in background auth check:', error);
+                console.error('[onboarding] ❌ Error in background auth check:', error);
+                console.error('[onboarding] Error stack:', error.stack);
                 // Don't redirect on error
             }
         }
@@ -1188,4 +2278,5 @@
     </script>
 </body>
 </html>
+
 

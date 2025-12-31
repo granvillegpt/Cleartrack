@@ -1591,3 +1591,8 @@ h1 {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* Support Section Styles */
+#support h1.mb-6 {
+    text-align: center;
+}

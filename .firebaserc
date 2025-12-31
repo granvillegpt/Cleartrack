@@ -3,6 +3,34 @@
     "default": "cleartrack-1f6c6",
     "host": "cleartrack-hosting"
   },
-  "targets": {},
+  "targets": {
+    "cleartrack-1f6c6": {
+      "hosting": {
+        "production": [
+          "cleartrack-1f6c6"
+        ],
+        "staging": [
+          "cleartrack-staging"
+        ]
+      }
+    },
+    "cleartrack-hosting": {
+      "hosting": {
+        "production": [
+          "cleartrack-hosting"
+        ],
+        "staging": [
+          "cleartrack-staging"
+        ]
+      }
+    },
+    "cleartrack-staging": {
+      "hosting": {
+        "production": [
+          "cleartrack-staging"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

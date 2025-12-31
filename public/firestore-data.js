@@ -674,14 +674,49 @@ class FirestoreDataManager {
         }
 
         try {
-            // Get messages where user is sender or receiver
+            // Get messages in both directions:
+            // 1. User sends to practitioner (userId == userId, practitionerId == practitionerId)
+            // 2. Practitioner sends to user (userId == userId, practitionerId == practitionerId, but sender is 'practitioner')
+            // Note: Messages are stored with userId = client.id and practitionerId = practitioner.id regardless of sender
+            
             const snapshot1 = await this.db.collection('messages')
                 .where('userId', '==', userId)
                 .where('practitionerId', '==', practitionerId)
                 .orderBy('timestamp', 'asc')
                 .get();
 
-            const messages = snapshot1.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let messages = snapshot1.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Also check reverse direction in case messages were stored differently
+            // This handles edge cases where message structure might vary
+            try {
+                const snapshot2 = await this.db.collection('messages')
+                    .where('userId', '==', practitionerId)
+                    .where('practitionerId', '==', userId)
+                    .orderBy('timestamp', 'asc')
+                    .get();
+                
+                const reverseMessages = snapshot2.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Merge and deduplicate by message ID
+                const messageMap = new Map();
+                [...messages, ...reverseMessages].forEach(msg => {
+                    if (!messageMap.has(msg.id)) {
+                        messageMap.set(msg.id, msg);
+                    }
+                });
+                messages = Array.from(messageMap.values());
+            } catch (reverseError) {
+                // If reverse query fails (e.g., no index), just use the first query results
+                console.log('Reverse message query not available, using primary query only');
+            }
+
+            // Sort by timestamp
+            messages.sort((a, b) => {
+                const timeA = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : new Date(a.timestamp || 0).getTime();
+                const timeB = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : new Date(b.timestamp || 0).getTime();
+                return timeA - timeB;
+            });
 
             return messages;
         } catch (error) {

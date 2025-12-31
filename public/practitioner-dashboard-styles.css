@@ -675,6 +675,14 @@ h3.card-title:hover,
     color: #111827;
 }
 
+/* Make modal titles white for specific modals */
+#allClientsModal .modal-title,
+#activeClientsModal .modal-title,
+#completedReturnsModal .modal-title,
+#pendingReturnsModal .modal-title {
+    color: #ffffff !important;
+}
+
 .modal-close {
     background: none;
     border: none;
@@ -1608,6 +1616,68 @@ h1 {
     .table th,
     .table td {
         padding: 1rem 0.75rem;
+    }
+}
+
+/* Support Section Styles */
+#support h1.mb-6 {
+    text-align: center;
+}
+
+/* Support Section - Desktop: Button inline with h1 */
+@media (min-width: 769px) {
+    .support-header-wrapper {
+        display: flex;
+        align-items: center; /* Vertical alignment */
+        justify-content: space-between; /* Button on right */
+        width: 100%;
+        margin-bottom: 15px;
+        gap: 1rem; /* Space between h1 and button */
+    }
+    
+    .support-header-wrapper h1.mb-6 {
+        margin-bottom: 0;
+        text-align: left;
+        flex: 0 0 auto; /* Don't grow, don't shrink */
+    }
+    
+    /* Support new ticket button margins */
+    #supportNewTicketBtn {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    
+    /* Ensure button is properly aligned */
+    .support-header-wrapper #supportNewTicketBtn {
+        flex: 0 0 auto;
+        align-self: center;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        box-sizing: content-box;
+        height: 15px;
+        min-height: 15px;
+        width: 75px;
+    }
+    
+    /* Hide button in sidebar on desktop */
+    #supportSidebar .ct-messaging-sidebar-header .ct-messaging-sidebar-actions {
+        display: none;
+    }
+    
+    #supportSidebar .ct-messaging-sidebar-header {
+        justify-content: flex-start;
+    }
+    
+    /* Add margin-top to messaging container to ensure spacing below header wrapper */
+    #support .ct-messaging-messaging,
+    #supportMessaging {
+        margin-top: 15px !important;
+        padding-top: 0 !important;
+    }
+    
+    /* Alternative: Add padding-top to support section content area */
+    #support > .ct-messaging-messaging {
+        margin-top: 15px !important;
     }
 }
 

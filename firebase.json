@@ -2,31 +2,147 @@
   "firestore": {
     "rules": "firestore.rules"
   },
-  "hosting": {
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "headers": [
-      {
-        "source": "**/*.css",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/css; charset=utf-8"
-          },
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=3600"
-          }
-        ]
-      }
-    ]
-  },
+  "hosting": [
+    {
+      "target": "production",
+      "public": "public",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.css",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/css; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
+          ]
+        },
+        {
+          "source": "/sw.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate, max-age=0"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/sw-register.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate, max-age=0"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "**/*.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate, max-age=0"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "staging",
+      "public": "public",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.css",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/css; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
+          ]
+        },
+        {
+          "source": "/sw.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate, max-age=0"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/sw-register.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate, max-age=0"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "**/*.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate, max-age=0"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "functions": {
     "source": "functions"
   }
 }
-

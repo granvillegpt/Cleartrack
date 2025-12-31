@@ -1,7 +1,11 @@
 // Service Worker for Cleartrack PWA - Updated for performance and stability
-const CACHE_NAME = 'cleartrack-v2024-24';
-const STATIC_CACHE = 'cleartrack-static-v2024-24';
-const DYNAMIC_CACHE = 'cleartrack-dynamic-v2024-24';
+// Auto-versioning: Version is updated automatically via update-sw-version.js script
+// Format: YYYYMMDD-HHMM (updates automatically on deploy)
+// Run: node update-sw-version.js (or it runs automatically on deploy)
+const CACHE_VERSION = '20251230-0850';
+const CACHE_NAME = `cleartrack-v${CACHE_VERSION}`;
+const STATIC_CACHE = `cleartrack-static-v${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `cleartrack-dynamic-v${CACHE_VERSION}`;
 
 const urlsToCache = [
   '/',
@@ -26,26 +30,41 @@ const urlsToCache = [
 
 // Install event - Force fresh cache
 self.addEventListener('install', event => {
-  console.log('Service Worker installing with updated icons...');
+  console.log(`Service Worker installing with cache version: ${CACHE_VERSION}`);
   event.waitUntil(
-    // Delete ALL old caches first
+    // Delete ALL old caches first (any cache not matching current version)
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
+          // Only delete caches that don't match current version
+          if (!cacheName.includes(CACHE_VERSION)) {
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
+          }
+          return Promise.resolve();
         })
       );
     }).then(() => {
-      // Create new cache with updated icons
+      // Create new cache with current version
       return caches.open(CACHE_NAME).then(cache => {
-        console.log('Creating new cache with updated icons');
-        return cache.addAll(urlsToCache);
+        console.log(`Creating new cache: ${CACHE_NAME}`);
+        // Use addAll but catch individual failures
+        return cache.addAll(urlsToCache).catch(err => {
+          console.warn('[sw] Some resources failed to cache during install:', err);
+          // Try to cache individually to see which ones fail
+          return Promise.allSettled(
+            urlsToCache.map(url => 
+              cache.add(url).catch(err => {
+                console.debug('[sw] Failed to cache:', url);
+                return null; // Continue even if one fails
+              })
+            )
+          );
+        });
       });
     })
   );
-  // Allow service worker to activate, but don't claim clients immediately
-  // This prevents refresh loops while still allowing activation
+  // Force activation immediately to use new cache version
   self.skipWaiting();
 });
 
@@ -60,8 +79,51 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // For HTML files, ALWAYS fetch fresh from network - never use cache
-  // This prevents showing old cached versions on first click
+  // CRITICAL: client-onboarding.html must NEVER be cached - always fetch fresh
+  // This ensures practitioner redirects work immediately
+  if (url.pathname.includes('client-onboarding.html')) {
+    event.respondWith(
+      fetch(request, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      }).catch(() => {
+        return new Response('Page unavailable', { status: 503 });
+      })
+    );
+    return;
+  }
+  
+  // For HTML files (especially dashboards with AI), ALWAYS fetch fresh from network - never use cache
+  // This prevents showing old cached versions that don't have AI SDK initialization
+  // CRITICAL: Dashboard files must always be fresh to ensure AI features work
+  if (url.pathname.includes('dashboard.html') || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(request, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      }).then(response => {
+        // Don't cache HTML files - always fetch fresh
+        return response;
+      }).catch(() => {
+        // Only fallback to cache if network completely fails
+        return caches.match(request).then(cachedResponse => {
+          if (cachedResponse) {
+            // If we have cached version, return it but also trigger a reload message
+            console.warn('[sw] Serving cached HTML - user should refresh for latest version');
+            return cachedResponse;
+          }
+          return new Response('Page unavailable', { status: 503 });
+        });
+      })
+    );
+    return;
+  }
   if (request.destination === 'document' || url.pathname.endsWith('.html')) {
     event.respondWith(
       fetch(request, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } }).then(response => {
@@ -86,13 +148,23 @@ self.addEventListener('fetch', event => {
       fetch(request, { cache: 'no-store' })
         .then(response => {
           // Update cache but always return fresh from network
-          const responseClone = response.clone();
-          caches.open(STATIC_CACHE).then(cache => {
-            cache.put(request, responseClone);
-          });
+          if (response && response.ok) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then(cache => {
+              cache.put(request, responseClone).catch(err => {
+                // Silently fail cache updates
+                console.debug('[sw] Cache update failed for manifest/icon:', url.pathname);
+              });
+            }).catch(() => {}); // Silently fail cache open
+          }
           return response;
         })
-        .catch(() => caches.match(request))
+        .catch(() => {
+          // Network failed, try cache
+          return caches.match(request).catch(() => {
+            return new Response('Resource not available', { status: 404 });
+          });
+        })
     );
   }
   // For CSS files, ALWAYS fetch fresh from network - never use cache
@@ -176,45 +248,65 @@ self.addEventListener('fetch', event => {
           if (response) {
             // Return cached image immediately, update in background
             fetch(request).then(fetchResponse => {
-              if (fetchResponse.ok) {
+              if (fetchResponse && fetchResponse.ok) {
                 const responseClone = fetchResponse.clone();
                 caches.open(DYNAMIC_CACHE).then(cache => {
-                  cache.put(request, responseClone);
-                });
+                  cache.put(request, responseClone).catch(err => {
+                    // Silently fail cache updates - don't spam console
+                    console.debug('[sw] Cache update failed for image:', url.pathname);
+                  });
+                }).catch(() => {}); // Silently fail cache open
               }
-            }).catch(() => {}); // Silently fail
+            }).catch(() => {}); // Silently fail fetch
             return response;
           }
           // No cache, fetch from network
           return fetch(request).then(fetchResponse => {
-            if (fetchResponse.ok) {
+            if (fetchResponse && fetchResponse.ok) {
               const responseClone = fetchResponse.clone();
               caches.open(DYNAMIC_CACHE).then(cache => {
-                cache.put(request, responseClone);
-              });
+                cache.put(request, responseClone).catch(err => {
+                  // Silently fail cache updates
+                  console.debug('[sw] Cache update failed for image:', url.pathname);
+                });
+              }).catch(() => {}); // Silently fail cache open
             }
             return fetchResponse;
+          }).catch(err => {
+            // Network error - return error response instead of throwing
+            console.debug('[sw] Network error fetching image:', url.pathname);
+            return new Response('Network error', { status: 503 });
           });
         })
     );
   }
-  // For other assets, cache first
+  // For other assets, network first with cache fallback (don't cache failures)
   else {
     event.respondWith(
-      caches.match(request)
-        .then(response => {
-          if (response) {
-            return response;
-          }
-          return fetch(request).then(fetchResponse => {
-            // Only cache GET requests, not POST/PUT/DELETE
-            if (request.method === 'GET' && fetchResponse.status === 200) {
+      fetch(request)
+        .then(fetchResponse => {
+          // Only cache successful GET requests
+          if (request.method === 'GET' && fetchResponse && fetchResponse.ok && fetchResponse.status === 200) {
             const responseClone = fetchResponse.clone();
+            // Cache in background - don't wait for it
             caches.open(DYNAMIC_CACHE).then(cache => {
-              cache.put(request, responseClone);
-            });
+              cache.put(request, responseClone).catch(() => {
+                // Silently fail - cache is optional
+              });
+            }).catch(() => {}); // Silently fail cache open
+          }
+          return fetchResponse;
+        })
+        .catch(fetchError => {
+          // Network failed - try cache
+          return caches.match(request).then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
             }
-            return fetchResponse;
+            // No cache - return error
+            return new Response('Network error and no cache available', { status: 503 });
+          }).catch(() => {
+            return new Response('Service unavailable', { status: 503 });
           });
         })
     );
@@ -223,26 +315,28 @@ self.addEventListener('fetch', event => {
 
 // Activate event - Clean up old caches
 self.addEventListener('activate', event => {
-  console.log('Service Worker activating - clearing ALL old caches...');
+  console.log(`Service Worker activating with version: ${CACHE_VERSION} - cleaning old caches...`);
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // Delete ALL old caches to force fresh load
-          console.log('Deleting cache:', cacheName);
+          // Delete caches that don't match current version
+          if (!cacheName.includes(CACHE_VERSION)) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
+          }
+          return Promise.resolve();
         })
       );
     }).then(() => {
-      console.log('Service Worker activated - all caches cleared');
-      // Don't claim clients immediately - let them continue naturally
-      // This prevents refresh loops
-      // return self.clients.claim();
+      console.log(`Service Worker activated - using cache version: ${CACHE_VERSION}`);
+      // Claim clients to immediately use new service worker
+      return self.clients.claim();
     })
   );
 });
 
-// Message event - Handle cache clearing
+// Message event - Handle cache clearing and skip waiting
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'CLEAR_CACHE') {
     event.waitUntil(
@@ -254,5 +348,11 @@ self.addEventListener('message', event => {
         event.ports[0].postMessage({ success: true });
       })
     );
+  }
+  
+  // Add handler for skipWaiting
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[sw] Received SKIP_WAITING message, activating immediately');
+    self.skipWaiting();
   }
 });

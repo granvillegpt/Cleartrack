@@ -287,11 +287,15 @@
         console.log('Global hamburger menu and navigation initialized');
     }
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initGlobalHamburgerMenu);
+    // Initialize when DOM is ready (skip if flag is set)
+    if (window.skipGlobalHamburgerMenu) {
+        console.log('Global hamburger menu: Skipped initialization (skipGlobalHamburgerMenu flag set)');
     } else {
-        initGlobalHamburgerMenu();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGlobalHamburgerMenu);
+        } else {
+            initGlobalHamburgerMenu();
+        }
     }
 })();
 

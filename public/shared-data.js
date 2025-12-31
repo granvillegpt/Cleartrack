@@ -1,6 +1,31 @@
 // Shared Data Storage System for Cleartrack
 // This file provides a unified data layer for user-practitioner connections
 
+// Default Travel Reasons - Central source for logbook generation
+// Organized by category: sales, support, admin
+const DEFAULT_TRAVEL_REASONS = {
+    sales: [
+        "Client visit – sales",
+        "Client visit – follow-up",
+        "Prospecting / new client visit"
+    ],
+    support: [
+        "Product demo / training",
+        "Installation / onboarding",
+        "Collection of documents"
+    ],
+    admin: [
+        "Internal business meeting",
+        "Compliance / admin travel",
+        "Other business-related travel"
+    ]
+};
+
+// Helper function to get default travel reason
+function getDefaultTravelReason() {
+    return "Client visit – sales";
+}
+
 // Prevent duplicate declarations
 if (typeof CleartrackDataManager === 'undefined') {
 // Make class available globally by assigning to window
@@ -593,7 +618,7 @@ var CleartrackDataManager = class CleartrackDataManager {
         const practitionerInvoices = [];
         
         if (!data.invoices) {
-            console.log('❌ No invoices in data storage');
+            console.debug('No invoices in data storage');
             return [];
         }
         
@@ -932,15 +957,8 @@ var CleartrackDataManager = class CleartrackDataManager {
         const data = this.getData();
         const user = data.users[userId];
         
-        if (!user) {
-            return null;
-        }
-        
-        // Check both practitionerId and connectedPractitioner fields
-        const practitionerId = user.practitionerId || user.connectedPractitioner;
-        
-        if (practitionerId && data.practitioners && data.practitioners[practitionerId]) {
-            return data.practitioners[practitionerId];
+        if (user && user.connectedPractitioner) {
+            return data.practitioners[user.connectedPractitioner];
         }
         
         return null;
@@ -1242,4 +1260,9 @@ if (!window.cleartrackData) {
     }
 }
 
+// Export DEFAULT_TRAVEL_REASONS globally for reuse across logbook generation features
+window.DEFAULT_TRAVEL_REASONS = DEFAULT_TRAVEL_REASONS;
+
+// Export getDefaultTravelReason helper function globally
+window.getDefaultTravelReason = getDefaultTravelReason;
 

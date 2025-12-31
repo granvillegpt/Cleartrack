@@ -1,4 +1,4 @@
-// WhatsApp-style Messaging Service for ClearTrack
+// ClearTrack Messaging Service
 // This service handles all messaging functionality using the backend API
 
 class MessagingService {
@@ -7,6 +7,7 @@ class MessagingService {
         this.currentConversation = null;
         this.messagePollingInterval = null;
         this.pollingInterval = 3000; // Poll every 3 seconds
+        this.unreadPollingDisabled = false; // Permanently disable unread polling if endpoint returns 404
     }
 
     // Initialize messaging service
@@ -70,8 +71,8 @@ class MessagingService {
         }
     }
 
-    // Send message using local storage
-    sendMessageLocal(recipientId, content, messageType = 'text', replyTo = null, attachment = null) {
+    // Send message using local storage (with Firestore support)
+    async sendMessageLocal(recipientId, content, messageType = 'text', replyTo = null, attachment = null) {
         console.log('💾 MessagingService.sendMessageLocal called:', {
             recipientId,
             content,
@@ -129,28 +130,50 @@ class MessagingService {
                             hasFileData: !!messageWithAttachment.attachment.fileData
                         });
                         
-                        // Use the shared data manager to add message
-                        if (window.cleartrackData && typeof cleartrackData.addMessage === 'function') {
-                            const message = cleartrackData.addMessage(currentUserId, recipientId, messageWithAttachment);
-                            resolve(message);
-                        } else {
-                            // Fallback: create message manually and store in localStorage
-                            const messageId = 'msg_' + Date.now();
-                            const message = {
-                                id: messageId,
-                                userId: currentUserId,
-                                practitionerId: recipientId,
-                                ...messageWithAttachment,
-                                timestamp: new Date().toISOString()
-                            };
-                            
-                            // Store in localStorage as fallback
-                            const existingMessages = JSON.parse(localStorage.getItem('cleartrack_messages') || '{}');
-                            existingMessages[messageId] = message;
-                            localStorage.setItem('cleartrack_messages', JSON.stringify(existingMessages));
-                            
-                            resolve(message);
-                        }
+                        // Use Firestore if available, fallback to localStorage
+                        (async () => {
+                            try {
+                                if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                                    const message = await window.firestoreData.addMessage(currentUserId, recipientId, messageWithAttachment);
+                                    resolve(message);
+                                } else if (window.cleartrackData && typeof cleartrackData.addMessage === 'function') {
+                                    const message = cleartrackData.addMessage(currentUserId, recipientId, messageWithAttachment);
+                                    resolve(message);
+                                } else {
+                                    // Fallback: create message manually and store in localStorage
+                                    const messageId = 'msg_' + Date.now();
+                                    const message = {
+                                        id: messageId,
+                                        userId: currentUserId,
+                                        practitionerId: recipientId,
+                                        ...messageWithAttachment,
+                                        timestamp: new Date().toISOString()
+                                    };
+                                    
+                                    // Store in localStorage as fallback
+                                    const existingMessages = JSON.parse(localStorage.getItem('cleartrack_messages') || '{}');
+                                    existingMessages[messageId] = message;
+                                    localStorage.setItem('cleartrack_messages', JSON.stringify(existingMessages));
+                                    
+                                    resolve(message);
+                                }
+                            } catch (error) {
+                                console.error('Error saving message:', error);
+                                // Final fallback to localStorage
+                                const messageId = 'msg_' + Date.now();
+                                const message = {
+                                    id: messageId,
+                                    userId: currentUserId,
+                                    practitionerId: recipientId,
+                                    ...messageWithAttachment,
+                                    timestamp: new Date().toISOString()
+                                };
+                                const existingMessages = JSON.parse(localStorage.getItem('cleartrack_messages') || '{}');
+                                existingMessages[messageId] = message;
+                                localStorage.setItem('cleartrack_messages', JSON.stringify(existingMessages));
+                                resolve(message);
+                            }
+                        })();
                     };
                     reader.onerror = function(error) {
                         reject(error);
@@ -159,8 +182,10 @@ class MessagingService {
                 });
             } else {
                 // No attachment, proceed normally
-                // Use the shared data manager to add message
-                if (window.cleartrackData && typeof cleartrackData.addMessage === 'function') {
+                // Use Firestore if available, fallback to localStorage
+                if (window.firestoreData && typeof window.firestoreData.addMessage === 'function') {
+                    return await window.firestoreData.addMessage(currentUserId, recipientId, messageData);
+                } else if (window.cleartrackData && typeof cleartrackData.addMessage === 'function') {
                     return cleartrackData.addMessage(currentUserId, recipientId, messageData);
                 } else {
                     // Fallback: create message manually and store in localStorage
@@ -238,50 +263,47 @@ class MessagingService {
         }
     }
 
-    // Get conversation using local storage
-    getConversationLocal(userId) {
+    // Get conversation using local storage (with Firestore support)
+    async getConversationLocal(userId) {
         try {
             const currentUserId = this.getCurrentUserId();
             if (!currentUserId) {
                 throw new Error('User not authenticated');
             }
 
-            // Use the shared data manager to get messages
-            if (window.cleartrackData && typeof cleartrackData.getMessages === 'function') {
+            // Use Firestore if available, fallback to localStorage
+            let messages = [];
+            if (window.firestoreData && typeof window.firestoreData.getMessages === 'function') {
                 // Try both directions to find messages
-                let messages = cleartrackData.getMessages(currentUserId, userId);
+                messages = await window.firestoreData.getMessages(currentUserId, userId);
+                if (messages.length === 0) {
+                    messages = await window.firestoreData.getMessages(userId, currentUserId);
+                }
+            } else if (window.cleartrackData && typeof cleartrackData.getMessages === 'function') {
+                // Try both directions to find messages
+                messages = cleartrackData.getMessages(currentUserId, userId);
                 if (messages.length === 0) {
                     messages = cleartrackData.getMessages(userId, currentUserId);
                 }
-                return {
-                    messages: messages,
-                    unreadCount: 0,
-                    otherUser: {
-                        id: userId,
-                        name: 'Practitioner',
-                        email: '',
-                        isPractitioner: true
-                    }
-                };
             } else {
                 // Fallback: get messages from localStorage
                 const allMessages = JSON.parse(localStorage.getItem('cleartrack_messages') || '{}');
-                const messages = Object.values(allMessages).filter(msg => 
+                messages = Object.values(allMessages).filter(msg => 
                     (msg.userId === currentUserId && msg.practitionerId === userId) ||
                     (msg.userId === userId && msg.practitionerId === currentUserId)
                 ).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                
-                return {
-                    messages: messages,
-                    unreadCount: 0,
-                    otherUser: {
-                        id: userId,
-                        name: 'Practitioner',
-                        email: '',
-                        isPractitioner: true
-                    }
-                };
             }
+            
+            return {
+                messages: messages,
+                unreadCount: 0,
+                otherUser: {
+                    id: userId,
+                    name: 'Practitioner',
+                    email: '',
+                    isPractitioner: true
+                }
+            };
         } catch (error) {
             console.error('Get conversation local error:', error);
             return {
@@ -346,16 +368,19 @@ class MessagingService {
         }
     }
 
-    // Mark all messages as read using local storage
-    markAllMessagesAsReadLocal(userId) {
+    // Mark all messages as read using local storage (with Firestore support)
+    async markAllMessagesAsReadLocal(userId) {
         try {
             const currentUserId = this.getCurrentUserId();
             if (!currentUserId) {
                 throw new Error('User not authenticated');
             }
 
-            // Use the shared data manager to mark messages as read
-            if (window.cleartrackData && typeof cleartrackData.markMessagesAsRead === 'function') {
+            // Use Firestore if available, fallback to localStorage
+            if (window.firestoreData && typeof window.firestoreData.markMessagesAsRead === 'function') {
+                await window.firestoreData.markMessagesAsRead(currentUserId, userId);
+                return { success: true };
+            } else if (window.cleartrackData && typeof cleartrackData.markMessagesAsRead === 'function') {
                 cleartrackData.markMessagesAsRead(currentUserId, userId);
                 return { success: true };
             } else {
@@ -401,6 +426,11 @@ class MessagingService {
 
     // Get unread message count
     async getUnreadCount() {
+        // If unread polling is permanently disabled (404 occurred), return early
+        if (this.unreadPollingDisabled) {
+            return 0;
+        }
+        
         // Skip API calls when running from file:// protocol to prevent CORS errors
         if (window.location.protocol === 'file:') {
             console.log('🔄 Skipping API call - running from file:// protocol');
@@ -416,6 +446,14 @@ class MessagingService {
                 }
             });
 
+            // Check for 404 first, before checking response.ok
+            if (response.status === 404) {
+                this.unreadPollingDisabled = true;
+                console.warn('Unread-count endpoint missing (404). Disabling unread polling.');
+                this.stopMessagePolling();
+                return 0;
+            }
+
             if (!response.ok) {
                 throw new Error('Failed to get unread count');
             }
@@ -423,13 +461,27 @@ class MessagingService {
             const result = await response.json();
             return result.unreadCount;
         } catch (error) {
-            console.error('Get unread count error:', error);
+            // Check if error is related to 404
+            if (error.message && error.message.includes('404')) {
+                this.unreadPollingDisabled = true;
+                this.stopMessagePolling();
+                return 0;
+            }
+            // Only log non-404 errors
+            if (error.message && !error.message.includes('404')) {
+                console.debug('Get unread count error:', error);
+            }
             return 0;
         }
     }
 
     // Start polling for new messages
     startMessagePolling() {
+        // Don't start if unread polling is disabled (404 occurred)
+        if (this.unreadPollingDisabled) {
+            return;
+        }
+        
         if (this.messagePollingInterval) {
             clearInterval(this.messagePollingInterval);
         }
@@ -439,7 +491,10 @@ class MessagingService {
                 if (this.currentConversation) {
                     await this.refreshCurrentConversation();
                 }
-                await this.updateUnreadCount();
+                // Unread count polling disabled - do not call /api/messages/unread-count
+                // if (!this.unreadPollingDisabled) {
+                //     await this.updateUnreadCount();
+                // }
             } catch (error) {
                 console.error('Message polling error:', error);
             }
@@ -468,11 +523,19 @@ class MessagingService {
 
     // Update unread count in UI
     async updateUnreadCount() {
+        // Skip if unread polling is permanently disabled
+        if (this.unreadPollingDisabled) {
+            return;
+        }
+        
         try {
             const unreadCount = await this.getUnreadCount();
             this.updateUnreadCountUI(unreadCount);
         } catch (error) {
-            console.error('Update unread count error:', error);
+            // Don't log errors if polling is disabled
+            if (!this.unreadPollingDisabled) {
+                console.error('Update unread count error:', error);
+            }
         }
     }
 

@@ -248,11 +248,211 @@ const firebaseApi = {
       console.error('[roles] Error getting user role:', error);
       return null;
     }
+  },
+
+  // Support Ticket Helpers ---------------------
+  async createSupportTicket(ticketData) {
+    if (!window.firebaseDb) {
+      throw new Error('Firebase is not initialized. Please refresh the page.');
+    }
+    
+    try {
+      const db = window.firebaseDb;
+      // Get serverTimestamp from Firebase (works with both legacy and modular SDK)
+      const getServerTimestamp = () => {
+        if (window.firebase?.firestore?.FieldValue) {
+          return window.firebase.firestore.FieldValue.serverTimestamp();
+        }
+        if (typeof firebase !== 'undefined' && firebase.firestore?.FieldValue) {
+          return firebase.firestore.FieldValue.serverTimestamp();
+        }
+        throw new Error('Firebase serverTimestamp not available');
+      };
+      
+      // Create ticket document
+      const ticketRef = db.collection('supportTickets').doc();
+      const ticketId = ticketRef.id;
+      
+      const ticketDoc = {
+        ticketId: ticketId,
+        createdAt: getServerTimestamp(),
+        updatedAt: getServerTimestamp(),
+        status: 'open',
+        type: ticketData.type || '',
+        subject: ticketData.subject || '',
+        requester: {
+          userId: ticketData.requester?.userId || '',
+          role: ticketData.requester?.role || '',
+          name: ticketData.requester?.name || '',
+          email: ticketData.requester?.email || ''
+        },
+        assignedTo: {
+          adminId: null,
+          name: null
+        },
+        lastMessage: ticketData.message || '',
+        lastMessageAt: getServerTimestamp(),
+        unreadByAdmin: true,
+        unreadByRequester: false
+      };
+      
+      await ticketRef.set(ticketDoc);
+      
+      // Create first message in subcollection
+      const messageRef = db.collection('supportTickets').doc(ticketId).collection('messages').doc();
+      const messageDoc = {
+        messageId: messageRef.id,
+        senderId: ticketData.requester?.userId || '',
+        senderRole: ticketData.requester?.role || 'practitioner',
+        senderName: ticketData.requester?.name || '',
+        message: ticketData.message || '',
+        createdAt: getServerTimestamp(),
+        aiDraft: false
+      };
+      
+      await messageRef.set(messageDoc);
+      
+      return { ticketId, ...ticketDoc };
+    } catch (error) {
+      console.error('[firebase-api] createSupportTicket error:', error);
+      throw error;
+    }
+  },
+
+  async addSupportMessage(ticketId, messageData) {
+    if (!window.firebaseDb) {
+      throw new Error('Firebase is not initialized. Please refresh the page.');
+    }
+    
+    try {
+      const db = window.firebaseDb;
+      // Get serverTimestamp from Firebase (works with both legacy and modular SDK)
+      const getServerTimestamp = () => {
+        if (window.firebase?.firestore?.FieldValue) {
+          return window.firebase.firestore.FieldValue.serverTimestamp();
+        }
+        if (typeof firebase !== 'undefined' && firebase.firestore?.FieldValue) {
+          return firebase.firestore.FieldValue.serverTimestamp();
+        }
+        throw new Error('Firebase serverTimestamp not available');
+      };
+      
+      // Add message to subcollection
+      const messageRef = db.collection('supportTickets').doc(ticketId).collection('messages').doc();
+      const messageDoc = {
+        messageId: messageRef.id,
+        senderId: messageData.senderId || '',
+        senderRole: messageData.senderRole || 'practitioner',
+        senderName: messageData.senderName || '',
+        message: messageData.message || '',
+        createdAt: getServerTimestamp(),
+        aiDraft: messageData.aiDraft || false
+      };
+      
+      await messageRef.set(messageDoc);
+      
+      // Update parent ticket
+      const ticketRef = db.collection('supportTickets').doc(ticketId);
+      const updateData = {
+        lastMessage: messageData.message || '',
+        lastMessageAt: getServerTimestamp(),
+        updatedAt: getServerTimestamp()
+      };
+      
+      // Set unread flags based on sender role
+      if (messageData.senderRole === 'admin') {
+        updateData.unreadByRequester = true;
+        updateData.unreadByAdmin = false;
+      } else {
+        updateData.unreadByAdmin = true;
+        updateData.unreadByRequester = false;
+      }
+      
+      await ticketRef.update(updateData);
+      
+      return { messageId: messageRef.id, ...messageDoc };
+    } catch (error) {
+      console.error('[firebase-api] addSupportMessage error:', error);
+      throw error;
+    }
+  },
+
+  async getSupportTicketsForUser(userId, role) {
+    if (!window.firebaseDb) {
+      throw new Error('Firebase is not initialized. Please refresh the page.');
+    }
+    
+    try {
+      const db = window.firebaseDb;
+      let query;
+      
+      if (role === 'admin') {
+        // Admin gets all tickets ordered by updatedAt desc
+        query = db.collection('supportTickets')
+          .orderBy('updatedAt', 'desc');
+      } else {
+        // Practitioner or client gets only their tickets
+        query = db.collection('supportTickets')
+          .where('requester.userId', '==', userId)
+          .orderBy('updatedAt', 'desc');
+      }
+      
+      const snapshot = await query.get();
+      const tickets = [];
+      snapshot.forEach(doc => {
+        tickets.push({ id: doc.id, ...doc.data() });
+      });
+      
+      return tickets;
+    } catch (error) {
+      console.error('[firebase-api] getSupportTicketsForUser error:', error);
+      throw error;
+    }
+  },
+
+  listenToSupportMessages(ticketId, callback) {
+    if (!window.firebaseDb) {
+      throw new Error('Firebase is not initialized. Please refresh the page.');
+    }
+    
+    try {
+      const db = window.firebaseDb;
+      const messagesRef = db.collection('supportTickets')
+        .doc(ticketId)
+        .collection('messages')
+        .orderBy('createdAt', 'asc');
+      
+      const unsubscribe = messagesRef.onSnapshot((snapshot) => {
+        const messages = [];
+        snapshot.forEach(doc => {
+          messages.push({ id: doc.id, ...doc.data() });
+        });
+        callback(messages);
+      }, (error) => {
+        console.error('[firebase-api] listenToSupportMessages error:', error);
+        callback([]);
+      });
+      
+      return unsubscribe;
+    } catch (error) {
+      console.error('[firebase-api] listenToSupportMessages error:', error);
+      throw error;
+    }
   }
 };
 
 // Expose globally
 window.firebaseApi = firebaseApi;
+
+// Expose support ticket functions on cleartrackApi
+if (!window.cleartrackApi) {
+  window.cleartrackApi = {};
+}
+
+window.cleartrackApi.createSupportTicket = firebaseApi.createSupportTicket.bind(firebaseApi);
+window.cleartrackApi.addSupportMessage = firebaseApi.addSupportMessage.bind(firebaseApi);
+window.cleartrackApi.getSupportTicketsForUser = firebaseApi.getSupportTicketsForUser.bind(firebaseApi);
+window.cleartrackApi.listenToSupportMessages = firebaseApi.listenToSupportMessages.bind(firebaseApi);
 
 /**
  * ClearTrack Auth API - Focused auth + profile helper API for login flow

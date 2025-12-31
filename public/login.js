@@ -374,6 +374,132 @@ let isRedirecting = false;
 let redirectTimeout = null;
 
 // Guard against multiple redirects
+/**
+ * Routes user after successful login based on their role
+ * ABSOLUTELY BULLETPROOF: ALWAYS checks by email FIRST before routing
+ */
+async function routeUserAfterLogin(user, role, userData) {
+  console.log('[login.js] ========================================');
+  console.log('[login.js] routeUserAfterLogin() - Starting');
+  console.log('[login.js] User UID:', user.uid);
+  console.log('[login.js] User email:', user.email);
+  console.log('[login.js] Role parameter:', role);
+  
+  setLoginLoading(true, 'Welcome to ClearTrack!', 'Redirecting to your dashboard');
+  
+  const email = user.email?.toLowerCase().trim();
+  let finalRole = String(role || userData?.role || 'user').toLowerCase().trim();
+  
+  // CRITICAL: ALWAYS check by email FIRST - this is the most reliable method
+  if (email) {
+    console.log('[login.js] 🔍🔍🔍 CHECKING BY EMAIL FIRST (MOST RELIABLE) 🔍🔍🔍');
+    console.log('[login.js] 🔍 Email to check:', email);
+    
+    try {
+      const emailQuery = window.firebaseDb.collection('users')
+        .where('email', '==', email);
+      
+      console.log('[login.js] 🔍 Executing email query...');
+      const emailDocs = await Promise.race([
+        emailQuery.get(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+      ]);
+      
+      console.log('[login.js] 🔍 Query completed. Found', emailDocs.size, 'document(s) by email');
+      
+      if (emailDocs.empty) {
+        console.log('[login.js] ⚠️ NO DOCUMENTS FOUND BY EMAIL!');
+      } else {
+        // Check ALL documents found by email
+        for (const doc of emailDocs.docs) {
+          const data = doc.data();
+          const docRole = String(data.role || 'user').toLowerCase().trim();
+          console.log('[login.js] 🔍 Email doc ID:', doc.id);
+          console.log('[login.js] 🔍 Email doc data:', JSON.stringify(data, null, 2));
+          console.log('[login.js] 🔍 Email doc role:', docRole, 'type:', typeof docRole);
+          
+          if (docRole === 'practitioner' || docRole === 'admin') {
+            console.log('[login.js] ✅✅✅✅✅ FOUND', docRole.toUpperCase(), 'BY EMAIL - ID:', doc.id);
+            
+            // Migrate to UID immediately
+            try {
+              await window.firebaseDb.collection('users').doc(user.uid).set(data, { merge: true });
+              console.log('[login.js] ✅ Migrated to UID document');
+              
+              if (doc.id !== user.uid) {
+                await doc.ref.delete();
+                console.log('[login.js] ✅ Deleted old document:', doc.id);
+              }
+            } catch (migrateError) {
+              console.warn('[login.js] Migration error (continuing anyway):', migrateError);
+            }
+            
+            finalRole = docRole;
+            console.log('[login.js] ✅✅✅✅✅ FINAL ROLE SET TO:', finalRole);
+            break; // Found practitioner/admin, stop checking
+          } else {
+            console.log('[login.js] ⚠️ Doc role is not practitioner/admin:', docRole);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[login.js] ❌ Email check error:', err);
+      console.error('[login.js] Error details:', err.message, err.stack);
+    }
+  } else {
+    console.log('[login.js] ⚠️ No email available to check');
+  }
+  
+  // Also check UID document as backup
+  try {
+    const uidDoc = await Promise.race([
+      window.firebaseDb.collection('users').doc(user.uid).get(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+    ]);
+    
+    if (uidDoc.exists) {
+      const uidRole = String(uidDoc.data().role || 'user').toLowerCase().trim();
+      console.log('[login.js] 🔍 UID doc role:', uidRole);
+      
+      if (uidRole === 'practitioner' || uidRole === 'admin') {
+        finalRole = uidRole;
+        console.log('[login.js] ✅ Using UID doc role:', finalRole);
+      }
+    }
+  } catch (uidError) {
+    console.warn('[login.js] UID check error:', uidError.message);
+  }
+  
+  // Route based on final role
+  console.log('[login.js] ========================================');
+  console.log('[login.js] FINAL ROLE FOR ROUTING:', finalRole);
+  console.log('[login.js] ========================================');
+  
+  if (finalRole === 'practitioner') {
+    console.log('[login.js] ✅✅✅✅✅ ROUTING TO PRACTITIONER DASHBOARD');
+    safeRedirect('/practitioner-dashboard.html');
+    return;
+  }
+  
+  if (finalRole === 'admin') {
+    console.log('[login.js] ✅✅✅✅✅ ROUTING TO ADMIN DASHBOARD');
+    safeRedirect('/admin-dashboard.html');
+    return;
+  }
+  
+  // Regular users
+  const practitionerId = userData?.practitionerId || userData?.connectedPractitioner || null;
+  if (practitionerId) {
+    console.log('[login.js] ✅ User has practitioner - routing to user dashboard');
+    safeRedirect('/user-dashboard.html');
+    return;
+  }
+  
+  // Default: onboarding (only for regular users)
+  console.log('[login.js] ✅ Routing to client onboarding (regular user)');
+  safeRedirect('/client-onboarding.html');
+}
+
 function safeRedirect(url) {
   if (isRedirecting) {
     console.warn('[login.js] Already redirecting, ignoring duplicate redirect to:', url);
@@ -386,7 +512,7 @@ function safeRedirect(url) {
   }
   
   isRedirecting = true;
-  console.log('[login.js] Safe redirect to:', url);
+  console.log('[login.js] ✅✅✅ REDIRECTING TO:', url);
   
   // Set a timeout to reset the flag in case redirect fails
   redirectTimeout = setTimeout(() => {
@@ -394,8 +520,10 @@ function safeRedirect(url) {
     console.warn('[login.js] Redirect timeout - resetting redirect flag');
   }, 5000);
   
-  // Perform redirect
-  window.location.href = url;
+  // Perform redirect with cache bust - use replace to avoid back button
+  const cacheBust = '?v=' + Date.now();
+  const finalUrl = url.includes('?') ? url + '&v=' + Date.now() : url + cacheBust;
+  window.location.replace(finalUrl);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -903,30 +1031,61 @@ document.addEventListener('DOMContentLoaded', function() {
       );
       
       let token = null;
-      try {
-        // Wait for both in parallel
-        const [userDoc, fetchedToken] = await Promise.all([
-          Promise.race([userDocPromise, userDocTimeoutPromise]),
-          Promise.race([tokenPromise, tokenTimeoutPromise])
-        ]);
-        
-        // Store token immediately
-        token = fetchedToken;
+      let userDoc = null;
+      
+      console.log('[login.js] 🔍 Starting Step 2 - fetching token and user document...');
+      
+      // Get token (non-blocking)
+      tokenPromise.then(t => {
+        token = t;
         localStorage.setItem('token', token);
+        console.log('[login.js] ✅ Token retrieved');
+      }).catch(err => {
+        console.warn('[login.js] ⚠️ Token retrieval failed:', err);
+      });
+      
+      // Get user document with timeout - don't let it hang
+      try {
+        userDoc = await Promise.race([
+          userDocPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+        ]);
+        console.log('[login.js] ✅ User document retrieved, exists:', userDoc.exists);
+      } catch (docError) {
+        console.warn('[login.js] ⚠️ User document query timed out or failed:', docError.message);
+        userDoc = { exists: false };
+      }
+      
+      // Get token if not already set
+      if (!token) {
+        try {
+          token = await Promise.race([tokenPromise, new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))]);
+          localStorage.setItem('token', token);
+          console.log('[login.js] ✅ Token retrieved (delayed)');
+        } catch (err) {
+          console.warn('[login.js] ⚠️ Token not available, continuing anyway');
+        }
+      }
+      
+      const step2Time = Date.now() - step2StartTime;
+      console.log(`[login.js] ✅ Step 2: Completed (took ${step2Time}ms)`);
+      
+      try {
         
-        const step2Time = Date.now() - step2StartTime;
-        console.log(`[login.js] ✅ Step 2: User document and token fetched in parallel (took ${step2Time}ms)`);
-        
-        if (userDoc.exists) {
+        if (userDoc && userDoc.exists) {
           userData = userDoc.data();
           const existingRole = userData.role;
-          console.log('[login.js] User document found, role:', existingRole);
+          console.log('[login.js] User document found, role:', existingRole, 'type:', typeof existingRole);
+          
+          // Normalize role for comparison (handle case sensitivity and whitespace)
+          const normalizedExistingRole = String(existingRole || '').toLowerCase().trim();
+          console.log('[login.js] Normalized existing role:', normalizedExistingRole);
           
           // Use existing role if it's already set correctly
-          if (existingRole === 'practitioner' || existingRole === 'admin') {
-            role = existingRole;
-            console.log('[login.js] Using existing role:', role);
-          } else if (existingRole && existingRole !== 'user') {
+          if (normalizedExistingRole === 'practitioner' || normalizedExistingRole === 'admin') {
+            role = normalizedExistingRole;
+            console.log('[login.js] ✅ Using existing role:', role);
+          } else if (existingRole && normalizedExistingRole !== 'user' && normalizedExistingRole !== '') {
             // Invalid role - correct it (non-blocking, don't wait)
             console.log('[login.js] Correcting invalid role:', existingRole);
             window.firebaseDb.collection('users').doc(user.uid).update({ role: 'user' }).catch(err => {
@@ -935,24 +1094,279 @@ document.addEventListener('DOMContentLoaded', function() {
             userData.role = 'user';
             role = 'user';
           } else {
-            // Role is 'user' or undefined - check for approved practitioner application
-            // Make this completely non-blocking - run in background
+            // Role is 'user' or undefined - check for practitioner document by email FIRST
             const normalizedEmail = user.email.toLowerCase().trim();
+            console.log('[login.js] ⚠️ UID document has role "user" - checking users collection by email...');
             
-            // Check practitioner application in background (don't wait)
-            Promise.race([
-              window.firebaseDb.collection('practitionerApplications')
+            try {
+              // CRITICAL: Check users collection by email - NO ROLE FILTER (get all docs by email)
+              console.log('[login.js] 🔍🔍🔍 Checking ALL documents by email (no role filter)...');
+              const emailUserCheck = await Promise.race([
+                window.firebaseDb.collection('users')
+                  .where('email', '==', normalizedEmail)
+                  .get(), // Get ALL documents, not just practitioner
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+              ]);
+              
+              console.log('[login.js] 🔍 Found', emailUserCheck.size, 'total document(s) by email');
+              
+              if (!emailUserCheck.empty) {
+                // Check ALL documents found by email
+                for (const emailDoc of emailUserCheck.docs) {
+                  const emailData = emailDoc.data();
+                  const emailRole = String(emailData.role || 'user').toLowerCase().trim();
+                  console.log('[login.js] 🔍 Email doc ID:', emailDoc.id, 'Role:', emailRole);
+                  
+                  if (emailRole === 'practitioner' || emailRole === 'admin') {
+                    console.log('[login.js] ✅✅✅ FOUND', emailRole.toUpperCase(), 'DOCUMENT BY EMAIL - ID:', emailDoc.id);
+                    console.log('[login.js] 🔍 Email document data:', JSON.stringify(emailData, null, 2));
+                    
+                    // Migrate to UID-based document
+                    await window.firebaseDb.collection('users').doc(user.uid).set(emailData, { merge: true });
+                    
+                    // Delete old document if it's not the UID
+                    if (emailDoc.id !== user.uid) {
+                      await emailDoc.ref.delete();
+                      console.log('[login.js] ✅ Deleted old document:', emailDoc.id);
+                    }
+                    
+                    role = emailRole;
+                    userData = emailData;
+                    console.log('[login.js] ✅✅✅ MIGRATED AND SET ROLE TO:', role);
+                    break; // Found practitioner/admin, stop checking
+                  }
+                }
+                
+                // If we didn't find practitioner/admin in email docs, continue to application check
+                if (role !== 'practitioner' && role !== 'admin') {
+                  console.log('[login.js] ⚠️ No practitioner/admin found in email documents, checking applications...');
+                  
+                  // Check practitioner applications
+                  const practitionerAppSnapshot = await Promise.race([
+                    window.firebaseDb.collection('practitionerApplications')
+                      .where('email', '==', normalizedEmail)
+                      .where('status', '==', 'approved')
+                      .limit(1)
+                      .get(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+                  ]);
+                
+                  if (!practitionerAppSnapshot.empty) {
+                    const foundApprovedApp = practitionerAppSnapshot.docs[0].data();
+                    console.log('[login.js] ✅ Found approved practitioner application - updating role immediately');
+                  
+                    const updateData = {
+                      role: 'practitioner',
+                      practitionerStatus: 'approved',
+                      practitionerCode: foundApprovedApp.practitionerCode || null,
+                      firstName: foundApprovedApp.firstName || null,
+                      lastName: foundApprovedApp.lastName || null,
+                      name: `${foundApprovedApp.firstName || ''} ${foundApprovedApp.lastName || ''}`.trim() || null,
+                      email: user.email,
+                      phone: foundApprovedApp.phone || null,
+                      practiceName: foundApprovedApp.practiceName || null,
+                      practiceNumber: foundApprovedApp.practiceNumber || null,
+                      sarsNumber: foundApprovedApp.sarsNumber || null,
+                      yearsExperience: foundApprovedApp.yearsExperience || null,
+                      qualifications: foundApprovedApp.qualifications || null,
+                      specializations: foundApprovedApp.specializations || [],
+                      bio: foundApprovedApp.bio || null
+                    };
+                    
+                    // Remove null values
+                    Object.keys(updateData).forEach(key => {
+                      if (updateData[key] === null) delete updateData[key];
+                    });
+                    
+                    // Update immediately and wait for it
+                    await window.firebaseDb.collection('users').doc(user.uid).set(updateData, { merge: true });
+                    console.log('[login.js] ✅ Updated user document with practitioner role');
+                    
+                    // Update role for routing
+                    role = 'practitioner';
+                    userData = { ...userData, ...updateData };
+                  } else {
+                    // No practitioner application found - continue with 'user' role
+                    role = 'user';
+                  }
+                }
+              } else {
+                // No documents found by email - check practitioner applications
+                console.log('[login.js] No documents found by email - checking applications...');
+                
+                const practitionerAppSnapshot = await Promise.race([
+                  window.firebaseDb.collection('practitionerApplications')
+                    .where('email', '==', normalizedEmail)
+                    .where('status', '==', 'approved')
+                    .limit(1)
+                    .get(),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+                ]);
+              
+                if (!practitionerAppSnapshot.empty) {
+                  const foundApprovedApp = practitionerAppSnapshot.docs[0].data();
+                  console.log('[login.js] ✅ Found approved practitioner application - updating role immediately');
+                
+                  const updateData = {
+                    role: 'practitioner',
+                    practitionerStatus: 'approved',
+                    practitionerCode: foundApprovedApp.practitionerCode || null,
+                    firstName: foundApprovedApp.firstName || null,
+                    lastName: foundApprovedApp.lastName || null,
+                    name: `${foundApprovedApp.firstName || ''} ${foundApprovedApp.lastName || ''}`.trim() || null,
+                    email: user.email,
+                    phone: foundApprovedApp.phone || null,
+                    practiceName: foundApprovedApp.practiceName || null,
+                    practiceNumber: foundApprovedApp.practiceNumber || null,
+                    sarsNumber: foundApprovedApp.sarsNumber || null,
+                    yearsExperience: foundApprovedApp.yearsExperience || null,
+                    qualifications: foundApprovedApp.qualifications || null,
+                    specializations: foundApprovedApp.specializations || [],
+                    bio: foundApprovedApp.bio || null
+                  };
+                  
+                  // Remove null values
+                  Object.keys(updateData).forEach(key => {
+                    if (updateData[key] === null) delete updateData[key];
+                  });
+                  
+                  // Update immediately and wait for it
+                  await window.firebaseDb.collection('users').doc(user.uid).set(updateData, { merge: true });
+                  console.log('[login.js] ✅ Updated user document with practitioner role');
+                  
+                  // Update role for routing
+                  role = 'practitioner';
+                  userData = { ...userData, ...updateData };
+                } else {
+                  // No practitioner application found - continue with 'user' role
+                  role = 'user';
+                }
+              }
+            } catch (appCheckError) {
+              console.warn('[login.js] Application check failed:', appCheckError.message);
+              role = 'user';
+            }
+          }
+          console.log('[login.js] Final role after all checks:', role, 'type:', typeof role);
+          console.log('[login.js] Final userData:', JSON.stringify(userData, null, 2));
+          
+          // CRITICAL: One more check - if role is still 'user', check practitioner applications one more time
+          if (role === 'user' || !role || role === '') {
+            console.log('[login.js] ⚠️ Role is still user/empty - doing final practitioner check');
+            const finalEmail = user.email?.toLowerCase().trim();
+            if (finalEmail) {
+              try {
+                const finalCheck = await Promise.race([
+                  window.firebaseDb.collection('practitionerApplications')
+                    .where('email', '==', finalEmail)
+                    .where('status', '==', 'approved')
+                    .limit(1)
+                    .get(),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1500))
+                ]);
+                
+                if (!finalCheck.empty) {
+                  const appData = finalCheck.docs[0].data();
+                  console.log('[login.js] ✅✅✅ FINAL CHECK - FOUND APPROVED PRACTITIONER APPLICATION');
+                  
+                  const finalUpdateData = {
+                    role: 'practitioner',
+                    practitionerStatus: 'approved',
+                    practitionerCode: appData.practitionerCode || null,
+                    firstName: appData.firstName || null,
+                    lastName: appData.lastName || null,
+                    name: `${appData.firstName || ''} ${appData.lastName || ''}`.trim() || null,
+                    email: user.email,
+                    phone: appData.phone || null,
+                    practiceName: appData.practiceName || null,
+                    practiceNumber: appData.practiceNumber || null,
+                    sarsNumber: appData.sarsNumber || null,
+                    yearsExperience: appData.yearsExperience || null,
+                    qualifications: appData.qualifications || null,
+                    specializations: appData.specializations || [],
+                    bio: appData.bio || null
+                  };
+                  
+                  Object.keys(finalUpdateData).forEach(key => {
+                    if (finalUpdateData[key] === null) delete finalUpdateData[key];
+                  });
+                  
+                  await window.firebaseDb.collection('users').doc(user.uid).set(finalUpdateData, { merge: true });
+                  console.log('[login.js] ✅✅✅ UPDATED USER DOCUMENT WITH PRACTITIONER ROLE');
+                  
+                  role = 'practitioner';
+                  userData = { ...userData, ...finalUpdateData };
+                  console.log('[login.js] ✅✅✅ ROLE SET TO PRACTITIONER - WILL ROUTE CORRECTLY');
+                }
+              } catch (finalCheckError) {
+                console.warn('[login.js] Final check failed:', finalCheckError);
+              }
+            }
+          }
+        }
+        // If userDoc does NOT exist in Firestore for this UID
+        if (!userDoc || !userDoc.exists) {
+          // User exists in Auth but not in Firestore - check for practitioner application first
+          console.log('[login.js] User document not found in Firestore - checking for practitioner application');
+          
+          // Check for approved practitioner application before creating default user document
+          const normalizedEmail = user.email.toLowerCase().trim();
+          console.log('[login.js] 🔍 No UID doc - checking by email and applications...');
+          
+          // FIRST: Check users collection by email (might have practitioner doc with different ID)
+          try {
+            const emailUserCheck = await Promise.race([
+              window.firebaseDb.collection('users')
                 .where('email', '==', normalizedEmail)
-                .where('status', '==', 'approved')
-                .limit(1)
-                .get(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1500))
-            ]).then(practitionerAppSnapshot => {
+                .get(), // Get ALL documents
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+            ]);
+            
+            console.log('[login.js] 🔍 Found', emailUserCheck.size, 'user document(s) by email');
+            
+            if (!emailUserCheck.empty) {
+              for (const emailDoc of emailUserCheck.docs) {
+                const emailData = emailDoc.data();
+                const emailRole = String(emailData.role || 'user').toLowerCase().trim();
+                console.log('[login.js] 🔍 Email doc ID:', emailDoc.id, 'Role:', emailRole);
+                
+                if (emailRole === 'practitioner' || emailRole === 'admin') {
+                  console.log('[login.js] ✅✅✅ FOUND', emailRole.toUpperCase(), 'BY EMAIL (no UID doc) - ID:', emailDoc.id);
+                  
+                  // Migrate to UID
+                  await window.firebaseDb.collection('users').doc(user.uid).set(emailData, { merge: true });
+                  if (emailDoc.id !== user.uid) {
+                    await emailDoc.ref.delete();
+                  }
+                  
+                  role = emailRole;
+                  userData = emailData;
+                  console.log('[login.js] ✅✅✅ MIGRATED AND SET ROLE TO:', role);
+                  break;
+                }
+              }
+            }
+          } catch (emailError) {
+            console.warn('[login.js] Email check error (no UID doc):', emailError);
+          }
+          
+          // If still not found, check applications
+          if (role !== 'practitioner' && role !== 'admin') {
+            try {
+              const practitionerAppSnapshot = await Promise.race([
+                window.firebaseDb.collection('practitionerApplications')
+                  .where('email', '==', normalizedEmail)
+                  .where('status', '==', 'approved')
+                  .limit(1)
+                  .get(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+              ]);
+            
               if (!practitionerAppSnapshot.empty) {
                 const foundApprovedApp = practitionerAppSnapshot.docs[0].data();
-                console.log('[login.js] ✅ Found approved practitioner application - updating role (background)');
+                console.log('[login.js] ✅ Found approved practitioner application - creating practitioner document');
                 
-                const updateData = {
+                const practitionerData = {
                   role: 'practitioner',
                   practitionerStatus: 'approved',
                   practitionerCode: foundApprovedApp.practitionerCode || null,
@@ -967,88 +1381,78 @@ document.addEventListener('DOMContentLoaded', function() {
                   yearsExperience: foundApprovedApp.yearsExperience || null,
                   qualifications: foundApprovedApp.qualifications || null,
                   specializations: foundApprovedApp.specializations || [],
-                  bio: foundApprovedApp.bio || null
+                  bio: foundApprovedApp.bio || null,
+                  createdAt: new Date().toISOString()
                 };
                 
                 // Remove null values
-                Object.keys(updateData).forEach(key => {
-                  if (updateData[key] === null) delete updateData[key];
+                Object.keys(practitionerData).forEach(key => {
+                  if (practitionerData[key] === null) delete practitionerData[key];
                 });
                 
-                // Update in background
-                window.firebaseDb.collection('users').doc(user.uid).set(updateData, { merge: true }).catch(err => {
-                  console.error('[login.js] Failed to update practitioner role:', err);
-                });
+                await window.firebaseDb.collection('users').doc(user.uid).set(practitionerData);
+                console.log('[login.js] ✅ Created practitioner document');
+                
+                userData = practitionerData;
+                role = 'practitioner';
+              } else {
+                // Check for pending document
+                const emailBasedId = 'pending_' + normalizedEmail.replace(/[^a-zA-Z0-9]/g, '_');
+                const pendingDoc = await window.firebaseDb.collection('users').doc(emailBasedId).get();
+                
+                if (pendingDoc.exists && pendingDoc.data().role === 'practitioner') {
+                  const pendingData = pendingDoc.data();
+                  await window.firebaseDb.collection('users').doc(user.uid).set(pendingData, { merge: true });
+                  await window.firebaseDb.collection('users').doc(emailBasedId).delete();
+                  userData = pendingData;
+                  role = 'practitioner';
+                  console.log('[login.js] ✅ Migrated pending practitioner document');
+                } else {
+                  // No practitioner found - create default user document
+                  console.log('[login.js] No practitioner found - creating default user document');
+                  
+                  const defaultUserData = {
+                    email: user.email,
+                    role: 'user',
+                    createdAt: new Date().toISOString()
+                  };
+                  
+                  // Create document without waiting (non-blocking)
+                  window.firebaseDb.collection('users').doc(user.uid).set(defaultUserData).then(() => {
+                    console.log('[login.js] ✅ Created user document');
+                  }).catch(createError => {
+                    console.error('[login.js] Failed to create user document:', createError);
+                  });
+                  
+                  userData = defaultUserData;
+                  role = 'user';
+                }
               }
-            }).catch(appCheckError => {
-              // Silently fail - this is non-critical
-              console.warn('[login.js] Practitioner application check failed (non-blocking):', appCheckError.message);
-            });
-            
-            // Continue with 'user' role - don't wait for practitioner check
-            role = 'user';
+            } catch (noDocError) {
+              console.warn('[login.js] Error checking for practitioner application:', noDocError);
+              // Fallback to creating default user document
+              const defaultUserData = {
+                email: user.email,
+                role: 'user',
+                createdAt: new Date().toISOString()
+              };
+              
+              window.firebaseDb.collection('users').doc(user.uid).set(defaultUserData).catch(createError => {
+                console.error('[login.js] Failed to create user document:', createError);
+              });
+              
+              userData = defaultUserData;
+              role = 'user';
+            }
           }
-          console.log('[login.js] Final role:', role);
-        } else {
-          // User exists in Auth but not in Firestore - create default document (non-blocking)
-          console.log('[login.js] User document not found - creating default document');
-          
-          const defaultUserData = {
-            email: user.email,
-            role: 'user',
-            createdAt: new Date().toISOString()
-          };
-          
-          // Create document without waiting (non-blocking)
-          // Wrap in try-catch to prevent errors from blocking login
-          window.firebaseDb.collection('users').doc(user.uid).set(defaultUserData).then(() => {
-            console.log('[login.js] ✅ Created user document');
-          }).catch(createError => {
-            console.error('[login.js] Failed to create user document:', createError);
-            // Don't throw - allow login to continue even if document creation fails
-            // The document can be created later when needed
-          });
-          
-          userData = defaultUserData;
-          role = 'user';
         }
       } catch (firestoreError) {
-        console.error('[login.js] Error reading user document or token:', firestoreError);
-        console.error('[login.js] Firestore error code:', firestoreError.code);
-        console.error('[login.js] Firestore error message:', firestoreError.message);
-        
-        // Check if it's a database space/quota error
-        if (firestoreError.message && (
-          firestoreError.message.includes('not enough space') ||
-          firestoreError.message.includes('PutOrAdd') ||
-          firestoreError.message.includes('resource-exhausted') ||
-          firestoreError.code === 'resource-exhausted'
-        )) {
-          console.warn('[login.js] Database quota/space error detected - continuing with minimal data');
-          // Continue with minimal user data - don't block login
-          userData = {
-            email: user.email,
-            role: 'user'
-          };
+        console.error('[login.js] Error in Step 2 processing:', firestoreError);
+        // Continue with defaults - routing function will check by email
+        if (!userData || Object.keys(userData).length === 0) {
+          userData = { email: user.email, role: 'user' };
         }
-        
-        // Try to get token separately if it failed in parallel
-        if (!token) {
-          try {
-            console.log('[login.js] Attempting to get token separately...');
-            token = await Promise.race([
-              user.getIdToken(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Token generation timeout')), 5000))
-            ]);
-            localStorage.setItem('token', token);
-            console.log('[login.js] ✅ Token retrieved separately');
-          } catch (tokenError) {
-            console.error('[login.js] Failed to get token:', tokenError);
-            // Continue without token - dashboard can regenerate it
-          }
-        }
-        // Continue with default role 'user'
-        role = 'user';
+        role = role || 'user';
       }
 
       // Ensure token is stored (should be done above, but double-check)
@@ -1056,10 +1460,72 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('token', token);
       }
       
+      // CRITICAL FINAL CHECK: Before storing and routing, verify role one more time
+      // This catches cases where role wasn't set correctly during the checks above
+      if (role !== 'practitioner' && role !== 'admin') {
+        console.log('[login.js] ⚠️⚠️⚠️ FINAL VERIFICATION - Role is not practitioner/admin, doing absolute final check');
+        try {
+          // Check user document one more time
+          const finalUserDoc = await Promise.race([
+            window.firebaseDb.collection('users').doc(user.uid).get(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+          ]);
+          
+          if (finalUserDoc.exists) {
+            const finalUserData = finalUserDoc.data();
+            const finalRole = (finalUserData.role || 'user').toLowerCase().trim();
+            console.log('[login.js] 🔍 Final verification - role from document:', finalRole);
+            
+            if (finalRole === 'practitioner' || finalRole === 'admin') {
+              console.log('[login.js] ✅✅✅ FINAL VERIFICATION FOUND CORRECT ROLE:', finalRole);
+              role = finalRole;
+              userData = { ...userData, ...finalUserData };
+            }
+          }
+          
+          // If still not found, check by email
+          if (role !== 'practitioner' && role !== 'admin') {
+            const finalEmail = user.email?.toLowerCase().trim();
+            if (finalEmail) {
+              const finalEmailCheck = await Promise.race([
+                window.firebaseDb.collection('users')
+                  .where('email', '==', finalEmail)
+                  .where('role', 'in', ['practitioner', 'admin'])
+                  .limit(1)
+                  .get(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
+              ]);
+              
+              if (!finalEmailCheck.empty) {
+                const finalEmailDoc = finalEmailCheck.docs[0];
+                const finalEmailData = finalEmailDoc.data();
+                const finalEmailRole = (finalEmailData.role || 'user').toLowerCase().trim();
+                console.log('[login.js] ✅✅✅ FINAL EMAIL CHECK FOUND ROLE:', finalEmailRole);
+                
+                // Migrate to UID
+                await window.firebaseDb.collection('users').doc(user.uid).set(finalEmailData, { merge: true });
+                if (finalEmailDoc.id !== user.uid) {
+                  await finalEmailDoc.ref.delete();
+                }
+                
+                role = finalEmailRole;
+                userData = { ...userData, ...finalEmailData };
+              }
+            }
+          }
+        } catch (finalVerificationError) {
+          console.warn('[login.js] Final verification failed:', finalVerificationError);
+        }
+      }
+      
       // Store user data
       localStorage.setItem('firebaseUser', JSON.stringify({ uid: user.uid, email: user.email, ...userData, role: role }));
 
-      console.log('[login.js] Login successful - UID:', user.uid, 'Role:', role);
+      console.log('[login.js] ========================================');
+      console.log('[login.js] Login successful - UID:', user.uid);
+      console.log('[login.js] Final Role variable:', role, 'type:', typeof role);
+      console.log('[login.js] Final Role from userData:', userData?.role);
+      console.log('[login.js] ========================================');
       
       // Clear timeout since login succeeded
       if (loginTimeout) {
@@ -1067,42 +1533,24 @@ document.addEventListener('DOMContentLoaded', function() {
         loginTimeout = null;
       }
       
-      // Route user immediately - no delay
-      console.log('[login.js] Step 3: Routing user with role:', role);
-      setLoginLoading(true, 'Welcome to ClearTrack!', 'Redirecting to your dashboard');
+      // DIAGNOSTIC: Log everything about the user before routing
+      console.log('[login.js] ========================================');
+      console.log('[login.js] 🔍 DIAGNOSTIC INFO BEFORE ROUTING');
+      console.log('[login.js] User UID:', user.uid);
+      console.log('[login.js] User Email:', user.email);
+      console.log('[login.js] Role variable:', role, 'type:', typeof role);
+      console.log('[login.js] UserData:', JSON.stringify(userData, null, 2));
+      console.log('[login.js] ========================================');
       
-      if (role === 'practitioner') {
-        console.log('[login.js] Routing to practitioner dashboard');
-        safeRedirect('/practitioner-dashboard.html');
-      } else if (role === 'admin') {
-        console.log('[login.js] Routing to admin dashboard');
-        safeRedirect('/admin-dashboard.html');
-      } else {
-        // For regular users, route immediately using userData we already have
-        const practitionerId = userData?.practitionerId || userData?.connectedPractitioner || null;
-        
-        // Fast path: if we already know practitioner status, route immediately
-        if (practitionerId) {
-          console.log('[login.js] Practitioner found in userData - routing to user dashboard');
-          safeRedirect('/user-dashboard.html');
-        } else {
-          // No practitioner - check for pending invite quickly, then route
-          const pendingInviteId = sessionStorage.getItem('pendingInviteId');
-          if (pendingInviteId) {
-            // Process invite in background, don't wait
-            processPendingInvite(user.uid).then(inviteResult => {
-              if (inviteResult.success) {
-                console.log('[login.js] ✅ Auto-connected via invite (background)');
-              }
-            }).catch(err => {
-              console.warn('[login.js] Invite processing failed (non-blocking):', err);
-            });
-          }
-          
-          // Route to onboarding immediately - don't wait for Firestore query
-          console.log('[login.js] No practitioner found - routing to onboarding');
-          safeRedirect('/client-onboarding.html');
-        }
+      // CRITICAL: Always route - routing function will check by email if needed
+      console.log('[login.js] 🚀 Calling routeUserAfterLogin with role:', role);
+      try {
+        await routeUserAfterLogin(user, role, userData);
+      } catch (routingError) {
+        console.error('[login.js] Routing error:', routingError);
+        console.error('[login.js] Routing error stack:', routingError.stack);
+        // Fallback: redirect to onboarding
+        safeRedirect('/client-onboarding.html');
       }
 
     } catch (error) {
