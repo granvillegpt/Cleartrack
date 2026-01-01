@@ -65,6 +65,14 @@ document.addEventListener('DOMContentLoaded', function() {
   let authProcessed = false;
   let authUnsubscribe = null;
   
+  // CT-AUTH-REDIRECT-STABILISATION: Auth state handling moved to auth-redirect-controller.js
+  // This file now only handles access control for already-loaded pages
+  // Check redirect gate - if redirect already handled, skip auth checks
+  if (window.__redirectHandled) {
+    console.log('[dashboard-auth] Redirect already handled, skipping auth checks');
+    return;
+  }
+
   // Observe authentication state - only listen once
   authUnsubscribe = window.firebaseAuth.onAuthStateChanged(async function(user) {
     // Prevent multiple simultaneous auth checks

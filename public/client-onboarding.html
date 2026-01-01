@@ -1620,6 +1620,7 @@
     <!-- My Firebase wiring -->
     <script src="firebase-config.js"></script>
     <script src="firebase-init.js"></script>
+    <script src="js/auth-redirect-controller.js"></script>
     <script src="firebase-api.js"></script>
     <script src="js/client-linking.js"></script>
     <!-- Loading Screen Utility -->
@@ -1650,207 +1651,18 @@
         }, 500);
         setTimeout(() => clearInterval(checkWhenReady), 10000);
         
-        (function checkRoleAfterFirebase() {
-            console.log('[onboarding] 🔥 checkRoleAfterFirebase() executing');
-            
-            if (!window.firebaseAuth || !window.firebaseDb) {
-                console.log('[onboarding] ⏳ Firebase not ready in body script');
-                setTimeout(checkRoleAfterFirebase, 300);
-                return;
-            }
-            
-            const user = window.firebaseAuth.currentUser;
-            if (!user) {
-                console.log('[onboarding] ⚠️ No user in body script');
-                return;
-            }
-            
-            console.log('[onboarding] ✅✅✅ USER FOUND IN BODY SCRIPT:', user.uid, user.email);
-            
-            window.firebaseDb.collection('users').doc(user.uid).get()
-                .then(doc => {
-                    console.log('[onboarding] 🔍 Body script - Doc exists:', doc.exists);
-                    if (doc.exists) {
-                        const role = String(doc.data().role || 'user').toLowerCase().trim();
-                        console.log('[onboarding] 🔍 Body script - Role:', role);
-                        
-                        if (role === 'practitioner') {
-                            console.log('[onboarding] ✅✅✅ BODY SCRIPT - REDIRECTING PRACTITIONER');
-                            window.location.replace('/practitioner-dashboard.html');
-                        } else if (role === 'admin') {
-                            console.log('[onboarding] ✅✅✅ BODY SCRIPT - REDIRECTING ADMIN');
-                            window.location.replace('/admin-dashboard.html');
-                        }
-                    }
-                })
-                .catch(err => console.error('[onboarding] Body script error:', err));
-        })();
+        // CT-AUTH-REDIRECT-STABILISATION: Redirect logic removed from body script
+        // All redirects are handled by auth-redirect-controller.js
         
-        // Also run the old script
+        // CT-AUTH-REDIRECT-STABILISATION: Redirect logic removed
+        // Onboarding page assumes user is already authenticated and authorized
+        // All redirects are handled by auth-redirect-controller.js
+        // This page ONLY renders onboarding UI when loaded
         (function() {
-            console.log('[onboarding] ⚡⚡⚡ SCRIPT BLOCK EXECUTING NOW ⚡⚡⚡');
-            
-            async function redirectPractitioners() {
-                console.log('[onboarding] 🔍 redirectPractitioners() called');
-                
-                if (!window.firebaseAuth) {
-                    console.log('[onboarding] ⏳ firebaseAuth not ready');
-                    return;
-                }
-                
-                if (!window.firebaseDb) {
-                    console.log('[onboarding] ⏳ firebaseDb not ready');
-                    return;
-                }
-                
-                const user = window.firebaseAuth.currentUser;
-                if (!user) {
-                    console.log('[onboarding] ⚠️ No user logged in');
-                    return;
-                }
-                
-                console.log('[onboarding] ✅ User found - UID:', user.uid, 'Email:', user.email);
-                
-                try {
-                    let userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
-                    console.log('[onboarding] 🔍 User document exists:', userDoc.exists);
-                    
-                    if (!userDoc.exists) {
-                        console.log('[onboarding] ⚠️ User document not found - creating profile');
-                        const profile = await window.ensureUserProfileExists(user.uid, user.email);
-                        if (profile) {
-                            // Re-fetch after creation
-                            userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
-                            console.log('[onboarding] ✅ Profile created, re-fetched document');
-                        } else {
-                            // Profile creation failed - check for practitioner applications before showing onboarding
-                            console.log('[onboarding] ⚠️ Profile creation failed, checking applications');
-                            const email = user.email?.toLowerCase().trim();
-                            if (email) {
-                                const apps = await window.firebaseDb.collection('practitionerApplications')
-                                    .where('email', '==', email)
-                                    .where('status', '==', 'approved')
-                                    .limit(1)
-                                    .get();
-                                
-                                console.log('[onboarding] 🔍 Applications found:', apps.size);
-                                if (!apps.empty) {
-                                    console.log('[onboarding] ✅✅✅ APPROVED APP FOUND - REDIRECTING');
-                                    window.location.replace('/practitioner-dashboard.html');
-                                    return;
-                                }
-                            }
-                            // Show onboarding even if profile creation failed
-                            console.log('[onboarding] ✅ Showing onboarding despite profile creation failure');
-                            if (window.showOnboardingContent) {
-                                window.showOnboardingContent();
-                            }
-                            return;
-                        }
-                    }
-                    
-                    if (userDoc.exists) {
-                        const data = userDoc.data();
-                        const role = String(data.role || 'user').toLowerCase().trim();
-                        console.log('[onboarding] 🔍 Role from document:', role, 'Raw:', data.role);
-                        
-                        if (role === 'practitioner') {
-                            console.log('[onboarding] ✅✅✅ PRACTITIONER DETECTED - REDIRECTING NOW');
-                            window.location.replace('/practitioner-dashboard.html');
-                            return;
-                        }
-                        if (role === 'admin') {
-                            console.log('[onboarding] ✅✅✅ ADMIN DETECTED - REDIRECTING NOW');
-                            window.location.replace('/admin-dashboard.html');
-                            return;
-                        }
-                    } else {
-                        console.log('[onboarding] ⚠️ User document still not found after creation attempt, checking applications');
-                        const email = user.email?.toLowerCase().trim();
-                        if (email) {
-                            const apps = await window.firebaseDb.collection('practitionerApplications')
-                                .where('email', '==', email)
-                                .where('status', '==', 'approved')
-                                .limit(1)
-                                .get();
-                            
-                            console.log('[onboarding] 🔍 Applications found:', apps.size);
-                            if (!apps.empty) {
-                                console.log('[onboarding] ✅✅✅ APPROVED APP FOUND - REDIRECTING');
-                                window.location.replace('/practitioner-dashboard.html');
-                                return;
-                            }
-                        }
-                    }
-                    console.log('[onboarding] ✅ User is regular user - staying on page');
-                    // Ensure onboarding content is shown
-                    if (window.showOnboardingContent) {
-                        window.showOnboardingContent();
-                    }
-                } catch (err) {
-                    console.error('[onboarding] ❌ Error in redirectPractitioners:', err);
-                    // Show onboarding even on error
-                    if (window.showOnboardingContent) {
-                        window.showOnboardingContent();
-                    }
-                }
+            // Show onboarding content on page load
+            if (window.showOnboardingContent) {
+                window.showOnboardingContent();
             }
-            
-            // Start checking immediately
-            function startChecks() {
-                console.log('[onboarding] 🔄 startChecks() called');
-                if (window.firebaseAuth && window.firebaseDb) {
-                    console.log('[onboarding] ✅ Firebase ready - running check');
-                    redirectPractitioners();
-                } else {
-                    console.log('[onboarding] ⏳ Waiting for Firebase...');
-                    setTimeout(startChecks, 200);
-                }
-            }
-            
-            // Run immediately
-            startChecks();
-            
-            // Also check on auth state change
-            if (window.firebaseAuth) {
-                console.log('[onboarding] ✅ Setting up auth state listener');
-                window.firebaseAuth.onAuthStateChanged((user) => {
-                    console.log('[onboarding] 🔍 Auth state changed, user:', user ? user.uid : 'null');
-                    if (user) {
-                        setTimeout(redirectPractitioners, 500);
-                    }
-                });
-            } else {
-                const waitForAuth = setInterval(() => {
-                    if (window.firebaseAuth) {
-                        clearInterval(waitForAuth);
-                        window.firebaseAuth.onAuthStateChanged((user) => {
-                            if (user) {
-                                setTimeout(redirectPractitioners, 500);
-                            }
-                        });
-                    }
-                }, 100);
-                setTimeout(() => clearInterval(waitForAuth), 5000);
-            }
-            
-            // Backup checks - run multiple times
-            setTimeout(() => {
-                console.log('[onboarding] 🔄 Backup check 1s');
-                redirectPractitioners();
-            }, 1000);
-            setTimeout(() => {
-                console.log('[onboarding] 🔄 Backup check 2s');
-                redirectPractitioners();
-            }, 2000);
-            setTimeout(() => {
-                console.log('[onboarding] 🔄 Backup check 3s');
-                redirectPractitioners();
-            }, 3000);
-            setTimeout(() => {
-                console.log('[onboarding] 🔄 Backup check 5s');
-                redirectPractitioners();
-            }, 5000);
         })();
         
         // Setup handlers
