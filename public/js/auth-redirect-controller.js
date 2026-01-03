@@ -62,62 +62,41 @@
   }
 
   /**
-   * CT-AUTH-REDIRECT-STABILISATION: Determine redirect destination based on role
+   * Normalize legacy role "user" to "client" for routing/guard comparisons
    */
-  function getRedirectDestination(role, onboardingComplete = false) {
+  function normalizeRole(role) {
+    if (role === 'user') return 'client';
+    return role;
+  }
+
+  /**
+   * CT-AUTH-REDIRECT-STABILISATION: Determine redirect destination based on role
+   * PHASE3D: Parameter renamed from onboardingComplete to profileReady for clarity
+   */
+  function getRedirectDestination(role, profileReady = false) {
     if (role === 'practitioner') {
       return '/practitioner-dashboard.html';
     }
     if (role === 'admin') {
       return '/admin-dashboard.html';
     }
-    if (role === 'user') {
-      if (onboardingComplete) {
-        return '/user-dashboard.html';
-      } else {
-        return '/client-onboarding.html';
-      }
+    if (normalizeRole(role) === 'client') {
+      // PHASE3D: Always route to user dashboard (wizard handles incomplete profiles)
+      return '/user-dashboard.html';
     }
     // Default fallback
-    return '/client-onboarding.html';
+    return '/user-dashboard.html';
   }
 
   /**
-   * CT-AUTH-REDIRECT-STABILISATION: Execute redirect ONCE
+   * CT-AUTH-REDIRECT-STABILISATION: DISABLED - Redirects handled by firebase-init.js
+   * This function now only validates role, never redirects
    */
   function executeRedirect(destination) {
-    // Check redirect gate
-    if (window.__redirectHandled) {
-      console.log('[auth-redirect] Redirect already handled, ignoring:', destination);
-      return;
-    }
-
-    if (redirectInProgress) {
-      console.log('[auth-redirect] Redirect already in progress, ignoring:', destination);
-      return;
-    }
-
-    // Skip if already on destination page
-    const currentPath = window.location.pathname;
-    if (currentPath.includes(destination.replace('.html', '').replace('/', ''))) {
-      console.log('[auth-redirect] Already on destination page:', destination);
-      window.__redirectHandled = true;
-      return;
-    }
-
-    redirectInProgress = true;
-    window.__redirectHandled = true;
-
-    console.log('[auth-redirect] ✅✅✅ REDIRECTING TO:', destination);
-    
-    // Unsubscribe from auth state to prevent re-triggering
-    if (authUnsubscribe) {
-      authUnsubscribe();
-      authUnsubscribe = null;
-    }
-
-    // Execute redirect
-    window.location.replace(destination + '?v=' + Date.now());
+    // DISABLED - firebase-init.js is the sole redirect authority
+    console.log('[auth-redirect] Redirect request ignored (handled by firebase-init.js):', destination);
+    // DO NOT redirect - firebase-init.js handles all redirects
+    return;
   }
 
   /**
@@ -154,11 +133,10 @@
         return;
       }
 
-      // User not logged in - redirect to login
+      // User not logged in - firebase-init.js handles redirect to login
       if (!user) {
-        if (!window.location.pathname.includes('login.html')) {
-          executeRedirect('/login.html');
-        }
+        console.log('[auth-redirect] No user logged in (redirect handled by firebase-init.js)');
+        // DO NOT redirect - firebase-init.js handles this
         return;
       }
 
@@ -169,44 +147,54 @@
         }
 
         userRoleResolved = true;
-        const role = await resolveUserRole(user.uid);
+        let role = await resolveUserRole(user.uid);
+        // Normalize role: "user" → "client" (in memory only)
+        if (role === 'user') {
+          role = 'client';
+        }
         console.log('[auth-redirect] User role resolved:', role);
 
-        // Check onboarding status for users
-        let onboardingComplete = false;
-        if (role === 'user') {
-          try {
-            const userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
-            if (userDoc.exists) {
-              const data = userDoc.data();
-              onboardingComplete = data.onboardingComplete === true || data.onboardingStep >= 5;
-            }
-          } catch (err) {
-            console.warn('[auth-redirect] Error checking onboarding status:', err);
+        // PHASE3D: Check profile readiness instead of onboarding status
+        let profileReady = false;
+        try {
+          const userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+          if (userDoc.exists) {
+            const data = userDoc.data();
+            // Use isProfileReady helper if available, otherwise fallback to basic check
+            profileReady = window.isProfileReady ? window.isProfileReady(data) : Boolean(data && data.role);
+            console.log('[PHASE3D] [auth-redirect] Profile readiness check:', { role, profileReady, migrationComplete: data.migrationComplete });
           }
+        } catch (err) {
+          console.warn('[PHASE3D] [auth-redirect] Error checking profile readiness:', err);
         }
 
-        const destination = getRedirectDestination(role, onboardingComplete);
+        // DISABLED - firebase-init.js handles all redirects
+        // Only validate role here, never redirect
         const currentPath = window.location.pathname;
-
-        // Only redirect if not already on correct page
+        const destination = getRedirectDestination(role, profileReady);
+        
+        // Skip redirect enforcement if user not yet hydrated
+        if (!window.currentUser) {
+          console.log("[auth-redirect] Skipped redirect — user not hydrated yet");
+          return;
+        }
+        
+        // PHASE3D: Role validation only - show error if on wrong page, but don't redirect
+        // Note: role is already normalized above, so use it directly
         if (role === 'practitioner' && !currentPath.includes('practitioner-dashboard')) {
-          executeRedirect(destination);
+          console.warn('[PHASE3D] [auth-redirect] Role mismatch: practitioner on wrong page (redirect handled by firebase-init.js)');
         } else if (role === 'admin' && !currentPath.includes('admin-dashboard')) {
-          executeRedirect(destination);
-        } else if (role === 'user') {
-          if (onboardingComplete && !currentPath.includes('user-dashboard')) {
-            executeRedirect(destination);
-          } else if (!onboardingComplete && !currentPath.includes('client-onboarding')) {
-            executeRedirect(destination);
+          console.warn('[PHASE3D] [auth-redirect] Role mismatch: admin on wrong page (redirect handled by firebase-init.js)');
+        } else if (role === 'client') {
+          // PHASE3D: Clients should always be on user-dashboard (wizard handles incomplete profiles)
+          if (!currentPath.includes('user-dashboard')) {
+            console.warn('[PHASE3D] [auth-redirect] Role mismatch: client on wrong page (redirect handled by firebase-init.js)');
           }
         }
+        // DO NOT call executeRedirect - firebase-init.js handles redirects
       } catch (error) {
         console.error('[auth-redirect] Error in auth state handler:', error);
-        // On error, redirect to login
-        if (!window.location.pathname.includes('login.html')) {
-          executeRedirect('/login.html');
-        }
+        // DO NOT redirect on error - firebase-init.js handles redirects
       }
     });
   }

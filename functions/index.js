@@ -1614,3 +1614,245 @@ Format your response in clear sections with headings.`;
   }
 });
 
+/**
+ * PHASE3C: Cloud Function: submitClientForTaxYear
+ * 
+ * Server-side authority for client submission.
+ * Atomically creates submission snapshot, audit log, and updates client document.
+ * 
+ * Why server-side:
+ * - Ensures tamper-proof submissions
+ * - Guarantees atomic writes (all or nothing)
+ * - Consistent regardless of client state
+ * - Future-proof for automation
+ * 
+ * @param {string} clientId - Client user ID
+ * @param {string} practitionerId - Practitioner user ID (caller)
+ * @param {Object} taxYear - Tax year object with start and end dates
+ * @param {string} taxYear.start - Start date (YYYY-MM-DD)
+ * @param {string} taxYear.end - End date (YYYY-MM-DD)
+ */
+exports.submitClientForTaxYear = functions.https.onCall(async (data, context) => {
+  try {
+    // Verify practitioner
+    const { uid: practitionerId, userData: practitionerData } = await verifyPractitioner(context);
+    
+    // Validate input
+    const { clientId, taxYear } = data;
+    if (!clientId || typeof clientId !== 'string') {
+      throw new functions.https.HttpsError('invalid-argument', 'clientId is required');
+    }
+    if (!taxYear || !taxYear.start || !taxYear.end) {
+      throw new functions.https.HttpsError('invalid-argument', 'taxYear with start and end is required');
+    }
+    
+    // Verify client exists and is linked to this practitioner
+    const clientDoc = await db.collection('users').doc(clientId).get();
+    if (!clientDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Client not found');
+    }
+    
+    const clientData = clientDoc.data();
+    if (clientData.connectedPractitioner !== practitionerId && clientData.practitionerId !== practitionerId) {
+      throw new functions.https.HttpsError('permission-denied', 'Client is not linked to this practitioner');
+    }
+    
+    // Check if already submitted
+    if (clientData.submissionStatus === 'submitted') {
+      throw new functions.https.HttpsError('failed-precondition', 'Client has already been submitted for this tax year');
+    }
+    
+    // Fetch vehicles from subcollection
+    const vehiclesSnapshot = await db.collection('users').doc(clientId)
+      .collection('vehicles')
+      .get();
+    const vehicles = vehiclesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    // Fetch expenses from subcollection
+    const expensesSnapshot = await db.collection('users').doc(clientId)
+      .collection('expenses')
+      .get();
+    const expenses = expensesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    // Filter trips (expenses with date and vehicleId)
+    const trips = expenses.filter(exp => exp.date && exp.vehicleId);
+    
+    // PHASE3C: Replicate prepareSARSExportData logic server-side
+    // Calculate vehicle date ranges for tax year
+    const taxYearStart = new Date(taxYear.start);
+    const taxYearEnd = new Date(taxYear.end);
+    const today = admin.firestore.Timestamp.now().toDate();
+    
+    const vehicleRanges = [];
+    for (const vehicle of vehicles) {
+      // Handle Firestore Timestamp objects
+      let vehicleStart = new Date('1900-01-01');
+      if (vehicle.startedAt) {
+        if (vehicle.startedAt.toDate) {
+          vehicleStart = vehicle.startedAt.toDate();
+        } else if (vehicle.startedAt instanceof admin.firestore.Timestamp) {
+          vehicleStart = vehicle.startedAt.toDate();
+        } else {
+          vehicleStart = new Date(vehicle.startedAt);
+        }
+      }
+      
+      let vehicleEnd = new Date('9999-12-31');
+      if (vehicle.endedAt) {
+        if (vehicle.endedAt.toDate) {
+          vehicleEnd = vehicle.endedAt.toDate();
+        } else if (vehicle.endedAt instanceof admin.firestore.Timestamp) {
+          vehicleEnd = vehicle.endedAt.toDate();
+        } else {
+          vehicleEnd = new Date(vehicle.endedAt);
+        }
+      }
+      
+      // Check if vehicle intersects with tax year
+      if (vehicleStart <= taxYearEnd && vehicleEnd >= taxYearStart) {
+        const effectiveStart = vehicleStart > taxYearStart ? vehicleStart : taxYearStart;
+        const effectiveEnd = vehicleEnd < taxYearEnd ? vehicleEnd : taxYearEnd;
+        
+        vehicleRanges.push({
+          vehicleId: vehicle.id,
+          regNumber: vehicle.regNumber || vehicle.registration || 'Unknown',
+          startDate: effectiveStart.toISOString().split('T')[0],
+          endDate: effectiveEnd.toISOString().split('T')[0],
+          openingKm: vehicle.openingKm || 0,
+          closingKm: vehicle.closingKm || null
+        });
+      }
+    }
+    
+    // Organize trips by vehicle and calculate totals
+    const tripsByVehicle = {};
+    for (const trip of trips) {
+      const vehicleId = trip.vehicleId || null;
+      if (!vehicleId) continue;
+      if (!tripsByVehicle[vehicleId]) {
+        tripsByVehicle[vehicleId] = [];
+      }
+      tripsByVehicle[vehicleId].push(trip);
+    }
+    
+    const totals = {
+      totalTrips: 0,
+      totalDistance: 0,
+      totalBusinessDistance: 0
+    };
+    
+    const vehiclesWithTrips = [];
+    for (const vehicleRange of vehicleRanges) {
+      const vehicleTrips = tripsByVehicle[vehicleRange.vehicleId] || [];
+      const vehicleStart = new Date(vehicleRange.startDate);
+      const vehicleEnd = new Date(vehicleRange.endDate);
+      const validTrips = vehicleTrips.filter(trip => {
+        const tripDate = new Date(trip.date);
+        return tripDate >= vehicleStart && tripDate <= vehicleEnd;
+      });
+      
+      const vehicleDistance = validTrips.reduce((sum, trip) => sum + (trip.distance || 0), 0);
+      const vehicleBusinessDistance = validTrips.reduce((sum, trip) => {
+        const businessUse = trip.businessUse || 100;
+        return sum + ((trip.distance || 0) * (businessUse / 100));
+      }, 0);
+      
+      vehiclesWithTrips.push({
+        vehicleId: vehicleRange.vehicleId,
+        regNumber: vehicleRange.regNumber,
+        startDate: vehicleRange.startDate,
+        endDate: vehicleRange.endDate,
+        openingKm: vehicleRange.openingKm,
+        closingKm: vehicleRange.closingKm,
+        trips: validTrips,
+        totals: {
+          tripCount: validTrips.length,
+          totalDistance: vehicleDistance,
+          businessDistance: vehicleBusinessDistance
+        }
+      });
+      
+      totals.totalTrips += validTrips.length;
+      totals.totalDistance += vehicleDistance;
+      totals.totalBusinessDistance += vehicleBusinessDistance;
+    }
+    
+    // PHASE3C: Use Firestore transaction for atomic writes
+    // Why atomic: Ensures snapshot, audit log, and client update all succeed or all fail
+    const result = await db.runTransaction(async (transaction) => {
+      const clientRef = db.collection('users').doc(clientId);
+      const clientDoc = await transaction.get(clientRef);
+      
+      // Double-check not already submitted (within transaction)
+      if (clientDoc.data().submissionStatus === 'submitted') {
+        // Throw regular error - transaction will abort, then we'll throw HttpsError outside
+        throw new Error('Client has already been submitted');
+      }
+      
+      // Create submission snapshot
+      const snapshotRef = db.collection('submissionSnapshots').doc();
+      const snapshotData = {
+        clientId: clientId,
+        practitionerId: practitionerId,
+        taxYear: { ...taxYear },
+        vehicles: JSON.parse(JSON.stringify(vehicles)),
+        trips: JSON.parse(JSON.stringify(trips)),
+        totals: JSON.parse(JSON.stringify(totals)),
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+      transaction.set(snapshotRef, snapshotData);
+      
+      // Create audit log entry
+      const auditRef = db.collection('auditLogs').doc();
+      const taxYearLabel = `${taxYear.start.split('-')[0]}-${taxYear.end.split('-')[0]}`;
+      const auditData = {
+        type: 'SUBMISSION',
+        clientId: clientId,
+        practitionerId: practitionerId,
+        taxYear: taxYearLabel,
+        vehicleCount: vehicles.length,
+        source: 'cloud-function',
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      };
+      transaction.set(auditRef, auditData);
+      
+      // Update client document
+      transaction.update(clientRef, {
+        submissionStatus: 'submitted',
+        submissionDate: admin.firestore.FieldValue.serverTimestamp(),
+        submissionSnapshotId: snapshotRef.id
+      });
+      
+      return {
+        snapshotId: snapshotRef.id,
+        auditId: auditRef.id
+      };
+    });
+    
+    console.log('[PHASE3C] Submission completed atomically:', result);
+    
+    return {
+      success: true,
+      snapshotId: result.snapshotId,
+      auditId: result.auditId,
+      message: 'Client submitted successfully'
+    };
+  } catch (error) {
+    console.error('[PHASE3C] submitClientForTaxYear error:', error);
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    // Handle transaction abort errors
+    if (error.message && error.message.includes('already been submitted')) {
+      throw new functions.https.HttpsError('failed-precondition', error.message);
+    }
+    throw new functions.https.HttpsError('internal', `Failed to submit client: ${error.message || 'Unknown error'}`);
+  }
+});
+

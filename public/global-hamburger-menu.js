@@ -32,7 +32,7 @@
         const overlay = document.getElementById(`overlay-style${style.slice(-1)}`);
         
         if (!navElement) {
-            console.warn(`Global hamburger menu: nav-style${style.slice(-1)} not found`);
+            // Silently return - nav element not found
             isToggling = false;
             return;
         }
@@ -133,13 +133,21 @@
 
     // Wait for DOM to be ready
     function initGlobalHamburgerMenu() {
+        // Hard-disable on all pages except index.html - exit immediately
+        const pathname = window.location.pathname;
+        const isIndexPage = pathname === '/' || pathname === '/index.html' || pathname.endsWith('/index.html');
+        
+        if (!isIndexPage) {
+            return; // Exit immediately - no logging, no DOM access
+        }
+        
         // Find the hamburger menu toggle button
         const menuToggle = document.getElementById('menuToggle');
         const nav = document.getElementById('nav-style6');
 
         if (!menuToggle || !nav) {
-            console.warn('Global hamburger menu: Required elements not found (menuToggle or nav-style6)');
-            // Don't return - still set up event listeners
+            // Silently return - elements not found on index.html
+            return;
         }
 
         // Backward compatibility wrapper

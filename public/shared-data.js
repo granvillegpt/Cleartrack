@@ -537,6 +537,8 @@ var CleartrackDataManager = class CleartrackDataManager {
                 data.users[userId].expenses = [];
             }
             
+            // CT-PHASE3-MULTI-VEHICLE-SARS: Vehicle assignment handled by firestore-data.js
+            // This localStorage fallback preserves vehicleId if already assigned
             const expense = {
                 id: 'exp_' + Date.now(),
                 ...expenseData,

@@ -1,6 +1,24 @@
 /**
  * Firebase Initialization for Frontend
  * 
+ * PRODUCTION ARCHITECTURE LOCK:
+ * =============================
+ * This app uses EXACTLY ONE Firebase project for ALL runtime services:
+ *   Project ID: cleartrack-1f6c6
+ *   Services: Auth, Firestore, Functions, AI/Gemini, Storage
+ * 
+ * A separate project (cleartrack-hosting) is used ONLY for hosting deployment.
+ * cleartrack-hosting MUST NEVER be initialized in code - it is deployment-only.
+ * 
+ * ALL Firebase initialization MUST use window.firebaseConfig from firebase-config.js.
+ * This ensures we always connect to cleartrack-1f6c6.
+ * 
+ * DO NOT:
+ * - Initialize additional Firebase projects
+ * - Hardcode project IDs or configs
+ * - Create named/secondary apps for different projects
+ * - Reference cleartrack-hosting in code
+ * 
  * This file initializes Firebase services for use in the browser.
  * Requires firebase-config.js to be loaded first to provide window.firebaseConfig.
  * 
@@ -23,11 +41,18 @@
   }
   
   // Initialize Firebase app - reuse existing app if available
+  // ARCHITECTURE: This MUST use window.firebaseConfig (cleartrack-1f6c6)
+  // DO NOT initialize cleartrack-hosting or any other project here
   let app;
   if (firebase.apps.length > 0) {
     app = firebase.apps[0];
     console.log('Reusing existing Firebase app instance');
   } else {
+    // Guard: Ensure we're using the correct config (cleartrack-1f6c6)
+    if (!window.firebaseConfig || window.firebaseConfig.projectId !== 'cleartrack-1f6c6') {
+      console.error('[ARCHITECTURE] Firebase config must use project cleartrack-1f6c6');
+      return;
+    }
     app = firebase.initializeApp(window.firebaseConfig);
     console.log('Initialized new Firebase app instance');
   }
@@ -48,21 +73,48 @@
     db: !!window.firebaseDb
   });
   
+  // Initialize Firestore data layer if available
+  if (typeof window.initFirestoreData === 'function') {
+    window.initFirestoreData();
+    console.log('[firebase-init] Firestore data layer initialized');
+  }
+  
+  // PHASE3D: Profile readiness helper function
+  // Checks if user has role and migration is complete (or not explicitly false)
+  // Practitioner linking is handled separately by the wizard
+  function isProfileReady(user) {
+    return Boolean(user && user.role && user.migrationComplete !== false);
+  }
+  
+  // Expose globally for cross-file access
+  window.isProfileReady = isProfileReady;
+  
   // CT-AUTH-REDIRECT-STABILISATION: SINGLE SOURCE OF TRUTH for redirects
-  // Global redirect guard flag
+  // Global redirect guard flag (in-memory, resets on page load)
   if (typeof window.__CLEARTRACK_REDIRECTED__ === 'undefined') {
     window.__CLEARTRACK_REDIRECTED__ = false;
   }
 
-  // Single redirect function - runs ONCE per auth session
+  // Single redirect function - runs ONCE per session
   async function performRoleBasedRedirect() {
-    // Check redirect guard
+
+    // Check sessionStorage guard first (always read dynamically)
+    if (sessionStorage.getItem('ct_redirect_done') === 'true') {
+      console.log('[firebase-init] Redirect already done this session, skipping');
+      return;
+    }
+
+    // Check in-memory guard
     if (window.__CLEARTRACK_REDIRECTED__) {
       return;
     }
 
-    // Skip on login page
-    if (window.location.pathname.includes('login.html')) {
+    // Skip on login page and public pages
+    const pathname = window.location.pathname;
+    if (pathname.includes('login.html') || 
+        pathname.includes('index.html') ||
+        pathname === '/' || 
+        pathname === '') {
       return;
     }
 
@@ -76,30 +128,87 @@
     }
 
     try {
-      // Use UID document ONLY - no email queries
-      const userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+      const uid = user.uid;
+      const email = user.email;
+      let redirectTarget = null;
+      let userDoc = null;
+      let userData = null;
+
+      // USER DOCUMENT RESOLUTION: UID first, email fallback
+      // ALWAYS resolve Firestore user by Auth UID first
+      userDoc = await window.firebaseDb.collection('users').doc(uid).get();
       
-      if (!userDoc.exists) {
-        return; // No document = no redirect
+      if (userDoc.exists) {
+        userData = userDoc.data();
+      } else if (email) {
+        // Use email lookup ONLY as fallback
+        const emailQuery = await window.firebaseDb.collection('users')
+          .where('email', '==', email)
+          .limit(1)
+          .get();
+        
+        if (!emailQuery.empty) {
+          // If multiple email matches exist, ignore them if UID doc exists (already checked above)
+          userDoc = emailQuery.docs[0];
+          userData = userDoc.data();
+        }
+      }
+      
+      if (!userData) {
+        // No user document = unlinked client → user dashboard (wizard handles onboarding)
+        if (!pathname.includes('user-dashboard')) {
+          redirectTarget = '/user-dashboard.html';
+          console.log("[route] role: client (no doc) -> /user-dashboard.html");
+        }
+      } else {
+        // Normalize roles: "user" → "client"
+        let role = userData.role || null;
+        if (role === 'user') {
+          role = 'client';
+        }
+        
+        // PHASE3D: Use isProfileReady instead of onboardingComplete
+        const profileReady = window.isProfileReady ? window.isProfileReady(userData) : Boolean(userData && userData.role);
+        console.log("[PHASE3D] Profile readiness check:", { role, profileReady, migrationComplete: userData.migrationComplete });
+        
+        // ROLE RESOLUTION RULES
+        if (role === 'admin') {
+          // Admin → admin dashboard
+          if (!pathname.includes('admin-dashboard')) {
+            redirectTarget = '/admin-dashboard.html';
+            console.log("[PHASE3D] [route] role: admin -> /admin-dashboard.html");
+          }
+        } else if (role === 'practitioner') {
+          // Practitioner → practitioner dashboard
+          if (!pathname.includes('practitioner-dashboard')) {
+            redirectTarget = '/practitioner-dashboard.html';
+            console.log("[PHASE3D] [route] role: practitioner -> /practitioner-dashboard.html");
+          }
+        } else if (role === 'client') {
+          // Client: always route to user dashboard (wizard handles incomplete profiles)
+          if (!pathname.includes('user-dashboard')) {
+            redirectTarget = '/user-dashboard.html';
+            console.log("[PHASE3D] [route] role: client -> /user-dashboard.html (wizard handles profile completion)");
+          }
+        } else {
+          // Unknown role or no role = default to user dashboard (wizard handles onboarding)
+          if (!pathname.includes('user-dashboard')) {
+            redirectTarget = '/user-dashboard.html';
+            console.log("[PHASE3D] [route] role: unknown -> /user-dashboard.html");
+          }
+        }
       }
 
-      const data = userDoc.data();
-      const role = String(data.role || '').toLowerCase().trim();
-
-      // Set redirect flag BEFORE redirecting
-      window.__CLEARTRACK_REDIRECTED__ = true;
-
-      if (role === 'practitioner') {
-        window.location.replace('/practitioner-dashboard.html?v=' + Date.now());
-        return;
+      // Perform exactly ONE redirect at the end if needed
+      if (redirectTarget) {
+        window.__CLEARTRACK_REDIRECTED__ = true;
+        sessionStorage.setItem('ct_redirect_done', 'true');
+        window.location.replace(redirectTarget + '?v=' + Date.now());
+      } else {
+        // Already on correct page - set guards to prevent future redirects
+        window.__CLEARTRACK_REDIRECTED__ = true;
+        sessionStorage.setItem('ct_redirect_done', 'true');
       }
-
-      if (role === 'admin') {
-        window.location.replace('/admin-dashboard.html?v=' + Date.now());
-        return;
-      }
-
-      // role === 'user' - DO NOT redirect, stay on current page
     } catch (error) {
       console.error('[firebase-init] Redirect error:', error);
     }
@@ -110,7 +219,7 @@
   if (window.firebaseAuth && !authListenerInitialized) {
     authListenerInitialized = true;
     window.firebaseAuth.onAuthStateChanged(function(user) {
-      if (user && !window.__CLEARTRACK_REDIRECTED__) {
+      if (user && sessionStorage.getItem('ct_redirect_done') !== 'true' && !window.__CLEARTRACK_REDIRECTED__) {
         performRoleBasedRedirect();
       }
     });

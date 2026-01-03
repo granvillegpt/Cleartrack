@@ -525,12 +525,17 @@ window.cleartrackApi.listenToSupportMessages = firebaseApi.listenToSupportMessag
       return;
     }
 
+    // ARCHITECTURE: This MUST use window.firebaseConfig (cleartrack-1f6c6)
+    // Reuse existing app if available, otherwise initialize with cleartrack-1f6c6 config
+    // DO NOT initialize cleartrack-hosting or any other project here
     var app =
       window.firebaseApp ||
       (window.firebase && window.firebase.apps && window.firebase.apps.length
         ? window.firebase.app()
-        : (window.firebase && window.firebase.initializeApp
-            ? window.firebase.initializeApp(window.firebaseConfig)
+        : (window.firebase && window.firebase.initializeApp && window.firebaseConfig
+            ? (window.firebaseConfig.projectId === 'cleartrack-1f6c6'
+                ? window.firebase.initializeApp(window.firebaseConfig)
+                : (console.error('[ARCHITECTURE] firebase-api: config must use project cleartrack-1f6c6'), null))
             : null));
 
     if (!app) {

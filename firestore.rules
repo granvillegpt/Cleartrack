@@ -4,18 +4,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ============================================
-    // PRODUCTION MODE: UNRESTRICTED ACCESS
+    // PRODUCTION MODE: UNRESTRICTED ACCESS (DISABLED)
     // ============================================
-    // This configuration allows unrestricted access to all collections
-    // during the production/development phase to enable:
-    // - Unrestricted app modifications and updates
-    // - Full access to all modules, functionalities, and tab components
-    // - No security review process required
-    // 
-    // NOTE: These rules can be tightened later when security review is needed.
-    // For now, all authenticated users have full read/write access.
+    // This configuration has been disabled in favor of security rules.
+    // Security rules are now active to enforce wizard, escalation, and admin resolution.
     // ============================================
-    
+    /*
     // Allow all authenticated users full access to all collections
     match /{document=**} {
       allow read, write: if request.auth != null;
@@ -30,12 +24,12 @@ service cloud.firestore {
     match /practitionerInvites/{inviteId} {
       allow read, write: if true;
     }
+    */
     
     // ============================================
-    // FUTURE SECURITY RULES (COMMENTED OUT)
-    // Uncomment and use these when security review is required
+    // SECURITY RULES - ACTIVE
+    // Enforces wizard, escalation, and admin resolution server-side
     // ============================================
-    /*
     function isSignedIn() {
       return request.auth != null;
     }
@@ -58,6 +52,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    // Helper function to check if a field is restricted for user writes
+    function isRestrictedConnectionField(fieldName) {
+      return fieldName in ['connectionStatus', 'connectionResolved', 
+                           'adminResolvedBy', 'adminResolvedAt', 
+                           'adminResolutionNote', 'connectionEscalatedToAdmin'];
+    }
+
     // USERS
     match /users/{uid} {
       // Read: user can read own doc, admin can read all
@@ -69,12 +70,39 @@ service cloud.firestore {
         (isOwner(uid) && 
          (!('role' in request.resource.data) || request.resource.data.role == 'user'));
 
-      // Update: admin can edit any user doc, user can edit their own doc EXCEPT the role field
+      // Update: 
+      // - Admin can write anything
+      // - User can update own profile EXCEPT restricted connection/admin fields
+      // - Practitioner can write connectedPractitioner and practitionerId ONLY
       allow update: if
-        isAdmin() ||
+        isAdmin() || // Admin can write anything
         (
-          isOwner(uid) &&
+          isOwner(uid) && // User updating own profile
+          // Check that no restricted fields are being set to restricted values
+          !('connectionStatus' in request.resource.data.diff(resource.data).changedKeys() && 
+            (request.resource.data.connectionStatus == 'approved' || 
+             request.resource.data.connectionStatus == 'escalated')) &&
+          !('connectionResolved' in request.resource.data.diff(resource.data).changedKeys() && 
+            request.resource.data.connectionResolved == true) &&
+          !('adminResolvedBy' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('adminResolvedAt' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('adminResolutionNote' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('connectionEscalatedToAdmin' in request.resource.data.diff(resource.data).changedKeys()) &&
+          // Also preserve existing role restriction
           (!resource.exists || !('role' in request.resource.data.diff(resource.data).changedKeys()))
+        ) ||
+        (
+          // Practitioner can only write connectedPractitioner and practitionerId
+          isSignedIn() && 
+          userRole(request.auth.uid) == "practitioner" &&
+          // Check that no restricted fields are being changed
+          !('connectionStatus' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('connectionResolved' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('adminResolvedBy' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('adminResolvedAt' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('adminResolutionNote' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('connectionEscalatedToAdmin' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('role' in request.resource.data.diff(resource.data).changedKeys())
         );
 
       // Delete: only admin
@@ -152,6 +180,7 @@ service cloud.firestore {
     }
 
     // Connection requests - users can create, practitioners can read/update their requests
+    // Users CANNOT update their own requests (cannot self-approve)
     match /connectionRequests/{requestId} {
       allow create: if isSignedIn() && (
         isAdmin() ||
@@ -163,9 +192,21 @@ service cloud.firestore {
         (resource.data.practitionerId == request.auth.uid)
       );
       allow update: if isSignedIn() && (
-        isAdmin() ||
-        (resource.data.practitionerId == request.auth.uid)
+        isAdmin() || // Admin can do everything
+        (
+          // Practitioner can only update status field to approved/rejected
+          userRole(request.auth.uid) == "practitioner" &&
+          resource.data.practitionerId == request.auth.uid &&
+          // Status must be approved or rejected (or unchanged)
+          (request.resource.data.status == 'approved' || 
+           request.resource.data.status == 'rejected' ||
+           request.resource.data.status == resource.data.status) &&
+          // Check that no disallowed fields are being changed (allow status, updatedAt, rejectedAt, approvedAt, rejectionNumber, rejectedBy)
+          !('userId' in request.resource.data.diff(resource.data).changedKeys()) &&
+          !('practitionerId' in request.resource.data.diff(resource.data).changedKeys())
+        )
       );
+      // Users cannot update their own requests
     }
 
     // Tax returns - practitioners can read/write their tax returns, users can read their own
@@ -225,6 +266,5 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
-    */
   }
 }

@@ -219,3 +219,5 @@ if (typeof window !== 'undefined') {
     window.formatISODate = formatISODate;
 }
 
+window.expandRoutes = expandRoutes;
+

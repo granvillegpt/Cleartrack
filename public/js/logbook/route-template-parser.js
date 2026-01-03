@@ -41,6 +41,45 @@ function findColumnIndex(headerRow, columnName) {
 }
 
 /**
+ * Detects the actual header row by scanning the first rows for required column names
+ * @param {Array} jsonData - 2D array of worksheet data
+ * @param {string[]} requiredColumns - Array of required column names
+ * @returns {number} Index of the row that contains the most required columns
+ */
+function detectHeaderRow(jsonData, requiredColumns) {
+    const maxRowsToScan = Math.min(10, jsonData.length);
+    let bestRowIndex = 0;
+    let bestMatchCount = 0;
+
+    for (let rowIdx = 0; rowIdx < maxRowsToScan; rowIdx++) {
+        const row = jsonData[rowIdx];
+        if (!row || row.length === 0) {
+            continue;
+        }
+
+        // Count how many required columns are found in this row
+        let matchCount = 0;
+        for (const columnName of requiredColumns) {
+            const normalizedName = columnName.toLowerCase().trim();
+            for (let i = 0; i < row.length; i++) {
+                if (row[i] && row[i].toString().toLowerCase().trim() === normalizedName) {
+                    matchCount++;
+                    break; // Found this column, move to next
+                }
+            }
+        }
+
+        // If this row has more matches than the current best, update
+        if (matchCount > bestMatchCount) {
+            bestMatchCount = matchCount;
+            bestRowIndex = rowIdx;
+        }
+    }
+
+    return bestRowIndex;
+}
+
+/**
  * Converts Excel cell value to boolean
  * Handles various checkbox representations: true, 1, "TRUE", "1", "x", "X", etc.
  * @param {*} value - Cell value
@@ -150,8 +189,20 @@ async function parseRouteTemplate(fileInput) {
         throw new Error('Empty Excel file or no data rows found');
     }
 
-    // First row is headers
-    const headerRow = jsonData[0];
+    // Detect the actual header row by scanning for required columns
+    const requiredColumns = ['Customer', 'Address', 'Suburb', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Week'];
+    const headerRowIndex = detectHeaderRow(jsonData, requiredColumns);
+    console.log(`[Logbook Parser] Detected header row at index: ${headerRowIndex}`);
+    
+    const headerRow = jsonData[headerRowIndex];
+    console.log(
+        '[Logbook Parser] RAW HEADER ROW:',
+        headerRow
+    );
+    console.log(
+        '[Logbook Parser] NORMALIZED HEADERS:',
+        headerRow.map(h => String(h))
+    );
     if (!headerRow || headerRow.length === 0) {
         throw new Error('Excel file has no header row');
     }
@@ -185,9 +236,9 @@ async function parseRouteTemplate(fileInput) {
         throw new Error(`Missing required column(s): ${missingColumns.join(', ')}`);
     }
 
-    // Parse data rows
+    // Parse data rows (start from row after header row)
     const routes = [];
-    for (let rowIdx = 1; rowIdx < jsonData.length; rowIdx++) {
+    for (let rowIdx = headerRowIndex + 1; rowIdx < jsonData.length; rowIdx++) {
         const row = jsonData[rowIdx];
         if (!row || row.length === 0) {
             continue; // Skip empty rows

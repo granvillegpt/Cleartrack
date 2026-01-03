@@ -5,8 +5,7 @@
  * During migration, it uses Firestore as primary with localStorage fallback.
  */
 
-// Prevent duplicate declarations
-if (typeof FirestoreDataManager === 'undefined') {
+// FirestoreDataManager class definition
 class FirestoreDataManager {
     constructor() {
         this.db = null;
@@ -435,6 +434,7 @@ class FirestoreDataManager {
         try {
             const vehData = {
                 ...vehicleData,
+                vehicleStatus: vehicleData.vehicleStatus || 'active', // Default to active if not specified
                 addedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
@@ -480,6 +480,33 @@ class FirestoreDataManager {
         }
 
         try {
+            // CT-PHASE3-MULTI-VEHICLE-SARS: Assign vehicle to travel expenses based on date
+            // Only assign vehicle if expense is travel-related and has a date
+            if (expenseData.category === 'TRAVEL' && expenseData.date && !expenseData.vehicleId) {
+                try {
+                    if (window.vehicleLifecycleService && typeof window.vehicleLifecycleService.assignTripToVehicle === 'function') {
+                        // Validate trip date against employment end date
+                        await window.vehicleLifecycleService.validateTripDateAgainstEmployment(userId, expenseData.date);
+                        
+                        // Assign vehicle based on trip date
+                        const vehicleId = await window.vehicleLifecycleService.assignTripToVehicle(userId, expenseData.date);
+                        if (vehicleId) {
+                            expenseData.vehicleId = vehicleId;
+                        } else {
+                            // No active vehicle on this date - warn but allow (historical trips may not have vehicles)
+                            console.warn(`[expense-service] No active vehicle found for trip date ${expenseData.date}`);
+                        }
+                    }
+                } catch (error) {
+                    // If vehicle assignment fails, throw error (employment end validation)
+                    if (error.message && error.message.includes('employment end date')) {
+                        throw error;
+                    }
+                    // Other vehicle assignment errors are warnings only
+                    console.warn('[expense-service] Vehicle assignment failed:', error.message);
+                }
+            }
+
             const expData = {
                 ...expenseData,
                 recordedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -941,6 +968,65 @@ class FirestoreDataManager {
         }
     }
 
+    // PHASE3B: Audit log helper
+    async logAuditEvent({ type, clientId, practitionerId, taxYear, vehicleCount, source }) {
+        console.log('[PHASE3B-AUDIT] Logging audit event:', { type, clientId, practitionerId, taxYear, vehicleCount, source });
+        
+        if (!this.isAuthenticated() || !this.db) {
+            console.warn('[PHASE3B-AUDIT] Firestore not available, skipping audit log');
+            return null;
+        }
+        
+        try {
+            const auditData = {
+                type: type,
+                clientId: clientId || null,
+                practitionerId: practitionerId || null,
+                taxYear: taxYear || null,
+                vehicleCount: vehicleCount || 0,
+                source: source || 'unknown',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            const docRef = await this.db.collection('auditLogs').add(auditData);
+            console.log('[PHASE3B-AUDIT] Audit event logged:', docRef.id);
+            return docRef.id;
+        } catch (error) {
+            console.error('[PHASE3B-AUDIT] Error logging audit event:', error);
+            return null;
+        }
+    }
+
+    // PHASE3B: Submission snapshot helper
+    async createSubmissionSnapshot({ clientId, practitionerId, taxYear, vehicles, trips, totals }) {
+        console.log('[PHASE3B-SNAPSHOT] Creating submission snapshot for client:', clientId);
+        
+        if (!this.isAuthenticated() || !this.db) {
+            console.warn('[PHASE3B-SNAPSHOT] Firestore not available, skipping snapshot');
+            return null;
+        }
+        
+        try {
+            // Deep copy to prevent reference issues
+            const snapshotData = {
+                clientId: clientId,
+                practitionerId: practitionerId || null,
+                taxYear: taxYear ? { ...taxYear } : null,
+                vehicles: vehicles ? JSON.parse(JSON.stringify(vehicles)) : [],
+                trips: trips ? JSON.parse(JSON.stringify(trips)) : [],
+                totals: totals ? JSON.parse(JSON.stringify(totals)) : {},
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            const docRef = await this.db.collection('submissionSnapshots').add(snapshotData);
+            console.log('[PHASE3B-SNAPSHOT] Snapshot created:', docRef.id);
+            return docRef.id;
+        } catch (error) {
+            console.error('[PHASE3B-SNAPSHOT] Error creating snapshot:', error);
+            return null;
+        }
+    }
+
     // Clean up listeners
     cleanup() {
         Object.values(this.listeners).forEach(unsubscribe => unsubscribe());
@@ -948,8 +1034,59 @@ class FirestoreDataManager {
     }
 }
 
-// Create global instance (only if not already created)
-if (!window.firestoreData) {
-    window.firestoreData = new FirestoreDataManager();
-}
+// Safe deferred initializer - call explicitly when Firebase is ready
+window.initFirestoreData = function () {
+    if (!window.firestoreData && typeof FirestoreDataManager === 'function') {
+        window.firestoreData = new FirestoreDataManager();
+        console.log('[firestore-data] instance created');
+    }
+};
 
+// PHASE3B: Expose audit log function via window
+window.logAuditEvent = async function(params) {
+    if (window.firestoreData && window.firestoreData.logAuditEvent) {
+        return await window.firestoreData.logAuditEvent(params);
+    } else if (window.firebaseDb) {
+        // Fallback direct Firestore call
+        try {
+            const auditData = {
+                ...params,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            const docRef = await window.firebaseDb.collection('auditLogs').add(auditData);
+            console.log('[PHASE3B-AUDIT] Audit event logged (fallback):', docRef.id);
+            return docRef.id;
+        } catch (error) {
+            console.error('[PHASE3B-AUDIT] Error logging audit event (fallback):', error);
+            return null;
+        }
+    }
+};
+
+// PHASE3B: Expose submission snapshot function via window
+window.createSubmissionSnapshot = async function(params) {
+    if (window.firestoreData && window.firestoreData.createSubmissionSnapshot) {
+        return await window.firestoreData.createSubmissionSnapshot(params);
+    } else if (window.firebaseDb) {
+        // Fallback direct Firestore call
+        try {
+            const snapshotData = {
+                clientId: params.clientId,
+                practitionerId: params.practitionerId || null,
+                taxYear: params.taxYear ? { ...params.taxYear } : null,
+                vehicles: params.vehicles ? JSON.parse(JSON.stringify(params.vehicles)) : [],
+                trips: params.trips ? JSON.parse(JSON.stringify(params.trips)) : [],
+                totals: params.totals ? JSON.parse(JSON.stringify(params.totals)) : {},
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            const docRef = await window.firebaseDb.collection('submissionSnapshots').add(snapshotData);
+            console.log('[PHASE3B-SNAPSHOT] Snapshot created (fallback):', docRef.id);
+            return docRef.id;
+        } catch (error) {
+            console.error('[PHASE3B-SNAPSHOT] Error creating snapshot (fallback):', error);
+            return null;
+        }
+    }
+};
+
+console.log("[firestore-data] loaded OK");

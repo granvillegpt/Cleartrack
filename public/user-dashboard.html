@@ -89,10 +89,14 @@
     
     <!-- CRITICAL: Define handleNavClick in head so it's available immediately -->
     <script>
-        // Navigation handler removed - using global-hamburger-menu.js
+        // WIZARD: Wizard is now controlled by shouldShowWizard() function
+        // Temporary manual override via URL parameter (for testing only)
+        if (window.location.search.includes('wizard=1')) {
+            window.CT_ONBOARDING_WIZARD_ENABLED = true;
+            console.log('[WIZARD] enabled via URL parameter ?wizard=1');
+        }
       
       // Style 6 Mobile Menu Functions - EXACT FROM REFERENCE
-      // Hamburger menu functions removed - now using global-hamburger-menu.js
     </script>
     
     <link rel="stylesheet" href="global-styles.css">
@@ -108,7 +112,6 @@
             window.showLoadingScreen('Loading ClearTrack...', 'Please wait');
         }
     </script>
-    <script src="global-hamburger-menu.js"></script>
     <script src="modal-system.js"></script>
     <script src="unified-section-handler.js"></script>
     <!-- Testing Script (remove in production) -->
@@ -1892,18 +1895,8 @@
                 <div class="logo">
                     <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
                 </div>
-                <button class="menu-toggle-style6" id="menuToggle" onclick="toggleMenu('style6')" aria-label="Toggle navigation menu">☰</button>
-                <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn">Logout</button>
+                <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn" data-ct-logout>Logout</button>
             </div>
-            <nav class="nav-style6" id="nav-style6">
-                <a href="#" class="nav-link active" onclick="handleNavClick('dashboard', event)">Dashboard</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('documents', event)">Documents</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('vehicles', event)">Vehicles</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('expenses', event)">Expenses</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('messages', event)">Messages</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('connect', event)">Connect</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('profile', event)">Profile</a>
-            </nav>
         </header>
         
         <main class="main">
@@ -2752,6 +2745,657 @@
         let vehicles = [];
         let expenses = [];
         
+        // WIZARD: Determine if wizard should be shown
+        function shouldShowWizard(currentUser, connectionState) {
+            if (!currentUser) {
+                console.log('[WIZARD] shouldShowWizard: false (no user)');
+                return false;
+            }
+            
+            // Check if connection status banner exists
+            const banner = document.getElementById('ct-connection-status-banner');
+            if (banner) {
+                console.log('[WIZARD] shouldShowWizard: false (connection banner exists)');
+                return false;
+            }
+            
+            // Check if escalated to admin
+            if (currentUser.connectionEscalatedToAdmin === true) {
+                console.log('[WIZARD] shouldShowWizard: false (escalated to admin)');
+                return false;
+            }
+            
+            // Check if user has valid role
+            const validRoles = ['sales_rep', 'employee', 'contractor', 'business_owner'];
+            const hasRole = currentUser.role && validRoles.includes(currentUser.role);
+            
+            // Check if connected to practitioner
+            const hasPractitioner = currentUser.connectedPractitioner || 
+                                    currentUser.practitionerId ||
+                                    connectionState?.status === 'active';
+            
+            // Show wizard if: no role OR (no practitioner AND no banner)
+            const shouldShow = !hasRole || (!hasPractitioner && !banner);
+            console.log('[WIZARD] shouldShowWizard:', { shouldShow, hasRole, hasPractitioner, role: currentUser.role });
+            return shouldShow;
+        }
+        
+        // WIZARD: Global state to prevent duplicate initialization
+        let wizardInitialized = false;
+        
+        // OnboardingWizard - real onboarding wizard implementation
+        function OnboardingWizard(user) {
+            // Prevent duplicate initialization
+            if (wizardInitialized) {
+                return;
+            }
+            
+            // Check if wizard should be shown
+            if (!shouldShowWizard(user, null)) {
+                // Remove any existing wizard modal
+                const existingModal = document.getElementById('ct-wizard-modal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
+                return;
+            }
+            
+            // Check if modal already exists
+            let wizardModal = document.getElementById('ct-wizard-modal');
+            if (wizardModal) {
+                console.log('[WIZARD] Wizard modal already exists');
+                return;
+            }
+            
+            console.log('[WIZARD] Opening wizard modal');
+            wizardInitialized = true;
+            
+            // Get user UID
+            let uid = null;
+            if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                uid = window.firebaseAuth.currentUser.uid;
+            } else if (user && (user.id || user.uid)) {
+                uid = user.id || user.uid;
+            }
+            
+            if (!uid) {
+                console.log('[WIZARD] Cannot open wizard - no UID');
+                return;
+            }
+            
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'ct-wizard-overlay';
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+            
+            // Create modal container
+            wizardModal = document.createElement('div');
+            wizardModal.id = 'ct-wizard-modal';
+            wizardModal.style.cssText = 'background: white; border-radius: 8px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);';
+            
+            // Determine current step
+            let currentStep = 1;
+            const validRoles = ['sales_rep', 'employee', 'contractor', 'business_owner'];
+            if (user && user.role && validRoles.includes(user.role)) {
+                currentStep = 2; // Role already selected, go to step 2
+            }
+            
+            // Step 1: Role Selection
+            function renderStep1() {
+                wizardModal.innerHTML = `
+                    <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Welcome to ClearTrack</h2>
+                    <p style="margin-bottom: 20px; color: #475569;">Let's get you set up. First, please select your role:</p>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="wizard-role" value="sales_rep" style="margin-right: 12px;">
+                            <span>Sales Representative / Commission Earner</span>
+                        </label>
+                        <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="wizard-role" value="employee" style="margin-right: 12px;">
+                            <span>Employee with Travel Allowance</span>
+                        </label>
+                        <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="wizard-role" value="contractor" style="margin-right: 12px;">
+                            <span>Independent Contractor</span>
+                        </label>
+                        <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="wizard-role" value="business_owner" style="margin-right: 12px;">
+                            <span>Business Owner</span>
+                        </label>
+                    </div>
+                    <button id="wizard-step1-continue" style="background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%;" disabled>Continue</button>
+                `;
+                
+                // Add hover effects to labels
+                const labels = wizardModal.querySelectorAll('label');
+                labels.forEach(label => {
+                    label.addEventListener('mouseenter', () => {
+                        if (!label.querySelector('input').checked) {
+                            label.style.borderColor = '#0b7285';
+                            label.style.background = '#f0f9ff';
+                        }
+                    });
+                    label.addEventListener('mouseleave', () => {
+                        if (!label.querySelector('input').checked) {
+                            label.style.borderColor = '#e2e8f0';
+                            label.style.background = 'white';
+                        }
+                    });
+                });
+                
+                // Handle role selection
+                const radioInputs = wizardModal.querySelectorAll('input[name="wizard-role"]');
+                const continueBtn = wizardModal.querySelector('#wizard-step1-continue');
+                
+                radioInputs.forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        continueBtn.disabled = false;
+                        continueBtn.style.background = '#0b7285';
+                        // Update label styles
+                        labels.forEach(l => {
+                            const input = l.querySelector('input');
+                            if (input.checked) {
+                                l.style.borderColor = '#0b7285';
+                                l.style.background = '#f0f9ff';
+                            } else {
+                                l.style.borderColor = '#e2e8f0';
+                                l.style.background = 'white';
+                            }
+                        });
+                    });
+                });
+                
+                // Handle continue button
+                continueBtn.addEventListener('click', async () => {
+                    const selectedRole = wizardModal.querySelector('input[name="wizard-role"]:checked')?.value;
+                    if (!selectedRole) return;
+                    
+                    try {
+                        console.log('[WIZARD] Role selected:', selectedRole);
+                        
+                        // Save to Firestore with schema-aligned fields
+                        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                        await window.firebaseDb.collection('users').doc(uid).update({
+                            role: selectedRole,
+                            migrationComplete: true,
+                            connectionStatus: 'none',
+                            connectionResolved: false
+                        });
+                        
+                        // Update window.currentUser
+                        if (window.currentUser) {
+                            window.currentUser.role = selectedRole;
+                        }
+                        
+                        console.log('[WIZARD] Role saved:', selectedRole);
+                        
+                        // Advance to Step 2
+                        currentStep = 2;
+                        renderStep2();
+                    } catch (error) {
+                        console.error('[WIZARD] Error saving role:', error);
+                        alert('Error saving role. Please try again.');
+                    }
+                });
+            }
+            
+            // Step 2: Practitioner Code Question
+            function renderStep2() {
+                wizardModal.innerHTML = `
+                    <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Connect with Your Practitioner</h2>
+                    <p style="margin-bottom: 20px; color: #475569;">Do you have a practitioner code?</p>
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                        <button id="wizard-step2-yes" style="flex: 1; background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Yes, I have a code</button>
+                        <button id="wizard-step2-no" style="flex: 1; background: #e2e8f0; color: #475569; border: 2px solid #e2e8f0; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">No, I need help finding one</button>
+                    </div>
+                `;
+                
+                // Handle Yes button
+                wizardModal.querySelector('#wizard-step2-yes').addEventListener('click', () => {
+                    renderStep2a();
+                });
+                
+                // Handle No button
+                wizardModal.querySelector('#wizard-step2-no').addEventListener('click', () => {
+                    renderStep2b();
+                });
+            }
+            
+            // Step 2a: Code Input
+            function renderStep2a() {
+                wizardModal.innerHTML = `
+                    <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Enter Practitioner Code</h2>
+                    <p style="margin-bottom: 20px; color: #475569;">Enter the code provided by your tax practitioner:</p>
+                    <input type="text" id="wizard-practitioner-code" placeholder="Enter code" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; margin-bottom: 20px; text-transform: uppercase;" maxlength="10">
+                    <div style="display: flex; gap: 12px;">
+                        <button id="wizard-step2a-back" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Back</button>
+                        <button id="wizard-step2a-submit" style="flex: 1; background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Submit</button>
+                    </div>
+                `;
+                
+                // Auto-uppercase input
+                const codeInput = wizardModal.querySelector('#wizard-practitioner-code');
+                codeInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                });
+                
+                // Handle back button
+                wizardModal.querySelector('#wizard-step2a-back').addEventListener('click', () => {
+                    renderStep2();
+                });
+                
+                // Handle submit button
+                wizardModal.querySelector('#wizard-step2a-submit').addEventListener('click', async () => {
+                    const code = codeInput.value.trim().toUpperCase();
+                    if (!code) {
+                        alert('Please enter a practitioner code');
+                        return;
+                    }
+                    
+                    try {
+                        console.log('[WIZARD] Code submitted:', code);
+                        
+                        // Check if escalated - prevent new requests
+                        const userDoc = await window.firebaseDb.collection('users').doc(uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            if (userData.connectionEscalatedToAdmin === true) {
+                                throw new Error('Your account has been escalated to admin. Please contact support.');
+                            }
+                        }
+                        
+                        // Use client-linking module to connect
+                        if (window.CTClientLinking && window.CTClientLinking.connectWithPractitionerCode) {
+                            await window.CTClientLinking.connectWithPractitionerCode(code);
+                            // Update user doc connectionStatus to pending
+                            await window.firebaseDb.collection('users').doc(uid).update({
+                                connectionStatus: 'pending'
+                            });
+                            console.log('[WIZARD] Connected via practitioner code');
+                        } else {
+                            // Fallback: create connection request using firestoreData
+                            const practitionersSnapshot = await window.firebaseDb.collection('practitioners')
+                                .where('practitionerCode', '==', code)
+                                .limit(1)
+                                .get();
+                            
+                            if (practitionersSnapshot.empty) {
+                                throw new Error('Invalid practitioner code');
+                            }
+                            
+                            const practitionerId = practitionersSnapshot.docs[0].id;
+                            
+                            // Create connection request
+                            if (window.firestoreData && window.firestoreData.sendConnectionRequest) {
+                                await window.firestoreData.sendConnectionRequest(uid, practitionerId);
+                            } else {
+                                // Direct Firestore write with schema-aligned fields
+                                const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                                await window.firebaseDb.collection('connectionRequests').add({
+                                    userId: uid,
+                                    practitionerId: practitionerId,
+                                    status: 'pending',
+                                    source: 'wizard_code',
+                                    createdAt: serverTimestamp,
+                                    updatedAt: serverTimestamp
+                                });
+                            }
+                            
+                            // Update user doc with connectionStatus
+                            await window.firebaseDb.collection('users').doc(uid).update({
+                                connectionStatus: 'pending'
+                            });
+                            
+                            console.log('[WIZARD] Connection request created');
+                        }
+                        
+                        // Close wizard and show banner
+                        closeWizard();
+                        updateConnectionStatusBanner();
+                    } catch (error) {
+                        console.error('[WIZARD] Error submitting code:', error);
+                        alert(error.message || 'Error submitting code. Please try again.');
+                    }
+                });
+            }
+            
+            // Step 2b: Questionnaire
+            function renderStep2b() {
+                wizardModal.innerHTML = `
+                    <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Help Us Find Your Practitioner</h2>
+                    <p style="margin-bottom: 20px; color: #475569;">Please provide some information so we can match you with a practitioner:</p>
+                    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1f2933;">Business Type</label>
+                            <select id="wizard-business-type" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px;">
+                                <option value="">Select...</option>
+                                <option value="individual">Individual</option>
+                                <option value="sole_proprietor">Sole Proprietor</option>
+                                <option value="partnership">Partnership</option>
+                                <option value="company">Company</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1f2933;">Service Needs</label>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <label style="display: flex; align-items: center;">
+                                    <input type="checkbox" value="tax_preparation" style="margin-right: 8px;">
+                                    <span>Tax Preparation</span>
+                                </label>
+                                <label style="display: flex; align-items: center;">
+                                    <input type="checkbox" value="tax_planning" style="margin-right: 8px;">
+                                    <span>Tax Planning</span>
+                                </label>
+                                <label style="display: flex; align-items: center;">
+                                    <input type="checkbox" value="bookkeeping" style="margin-right: 8px;">
+                                    <span>Bookkeeping</span>
+                                </label>
+                                <label style="display: flex; align-items: center;">
+                                    <input type="checkbox" value="audit_support" style="margin-right: 8px;">
+                                    <span>Audit Support</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1f2933;">Additional Message (Optional)</label>
+                            <textarea id="wizard-message" placeholder="Any additional information..." style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; min-height: 80px; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button id="wizard-step2b-back" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Back</button>
+                        <button id="wizard-step2b-submit" style="flex: 1; background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Submit</button>
+                    </div>
+                `;
+                
+                // Handle back button
+                wizardModal.querySelector('#wizard-step2b-back').addEventListener('click', () => {
+                    renderStep2();
+                });
+                
+                // Handle submit button
+                wizardModal.querySelector('#wizard-step2b-submit').addEventListener('click', async () => {
+                    const businessType = wizardModal.querySelector('#wizard-business-type').value;
+                    const needs = Array.from(wizardModal.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                    const message = wizardModal.querySelector('#wizard-message').value.trim();
+                    
+                    if (!businessType) {
+                        alert('Please select a business type');
+                        return;
+                    }
+                    
+                    try {
+                        console.log('[WIZARD] Questionnaire submitted');
+                        
+                        // Check if escalated - prevent new requests
+                        const userDoc = await window.firebaseDb.collection('users').doc(uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            if (userData.connectionEscalatedToAdmin === true) {
+                                throw new Error('Your account has been escalated to admin. Please contact support.');
+                            }
+                        }
+                        
+                        // Save matching profile to Firestore
+                        const matchingProfile = {
+                            businessType: businessType,
+                            needs: needs,
+                            message: message || null,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        await window.firebaseDb.collection('users').doc(uid).update({
+                            matchingProfile: matchingProfile
+                        });
+                        
+                        console.log('[WIZARD] Questionnaire saved');
+                        
+                        // Optionally create client request for auto-matching
+                        if (window.CTClientLinking && window.CTClientLinking.createClientRequest && needs.length > 0) {
+                            try {
+                                await window.CTClientLinking.createClientRequest(needs, message);
+                                // Update user doc with connectionStatus: pending
+                                await window.firebaseDb.collection('users').doc(uid).update({
+                                    connectionStatus: 'pending'
+                                });
+                                console.log('[WIZARD] Client request created for auto-matching');
+                            } catch (reqError) {
+                                console.warn('[WIZARD] Could not create client request:', reqError);
+                            }
+                        }
+                        
+                        // Close wizard and show banner
+                        closeWizard();
+                        updateConnectionStatusBanner();
+                    } catch (error) {
+                        console.error('[WIZARD] Error saving questionnaire:', error);
+                        alert('Error saving information. Please try again.');
+                    }
+                });
+            }
+            
+            // Close wizard function
+            function closeWizard() {
+                if (overlay && overlay.parentNode) {
+                    overlay.remove();
+                }
+                wizardInitialized = false;
+                console.log('[WIZARD] Wizard closed');
+            }
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeWizard();
+                }
+            });
+            
+            // Render initial step
+            overlay.appendChild(wizardModal);
+            document.body.appendChild(overlay);
+            
+            if (currentStep === 1) {
+                renderStep1();
+            } else {
+                renderStep2();
+            }
+        }
+        
+        // WIZARD: Set up Firestore listener for connection status changes
+        let connectionStatusUnsubscribe = null;
+        
+        function setupConnectionStatusListener(uid) {
+            if (!uid || !window.firebaseDb) {
+                return;
+            }
+            
+            // Unsubscribe from previous listener if exists
+            if (connectionStatusUnsubscribe) {
+                connectionStatusUnsubscribe();
+                connectionStatusUnsubscribe = null;
+            }
+            
+            // Listen to user document changes
+            const userRef = window.firebaseDb.collection('users').doc(uid);
+            connectionStatusUnsubscribe = userRef.onSnapshot(async (doc) => {
+                if (!doc.exists) {
+                    return;
+                }
+                
+                const userData = doc.data();
+                
+                // Update banner
+                updateConnectionStatusBanner();
+            }, (error) => {
+                console.error('[WIZARD] Error in connection status listener:', error);
+            });
+            
+            // Also listen to connectionRequests for rejections
+            const connectionRequestsQuery = window.firebaseDb.collection('connectionRequests')
+                .where('userId', '==', uid)
+                .where('status', '==', 'rejected');
+            
+            connectionRequestsQuery.onSnapshot(async (snapshot) => {
+                // Check for new rejections
+                snapshot.docChanges().forEach(async (change) => {
+                    if (change.type === 'added' || (change.type === 'modified' && change.doc.data().status === 'rejected')) {
+                        const requestData = change.doc.data();
+                        // Only process if this rejection hasn't been counted yet (schema: rejectionNumber)
+                        if (!requestData.rejectionNumber || requestData.rejectionNumber === 0) {
+                            await handleRejection(uid);
+                        }
+                    }
+                });
+                
+                // Update banner after processing rejections
+                updateConnectionStatusBanner();
+            }, (error) => {
+                console.error('[WIZARD] Error in connection requests listener:', error);
+            });
+            
+            console.log('[WIZARD] Connection status listener set up');
+        }
+        
+        // WIZARD: Handle rejection and increment count
+        let processedRejections = new Set();
+        
+        async function handleRejection(uid) {
+            try {
+                // Get current user document
+                const userDoc = await window.firebaseDb.collection('users').doc(uid).get();
+                if (!userDoc.exists) {
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                const currentRejectionCount = userData.rejectionCount || 0;
+                const newRejectionCount = currentRejectionCount + 1;
+                
+                // Create unique key for this rejection count to prevent duplicate processing
+                const rejectionKey = `${uid}_${newRejectionCount}`;
+                if (processedRejections.has(rejectionKey)) {
+                    console.log('[WIZARD] Rejection already processed:', newRejectionCount);
+                    return;
+                }
+                
+                const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                const updateData = {
+                    rejectionCount: newRejectionCount,
+                    lastRejectedAt: serverTimestamp
+                };
+                
+                // If 3rd rejection, escalate to admin
+                if (newRejectionCount >= 3) {
+                    updateData.connectionStatus = 'escalated';
+                    updateData.connectionEscalatedToAdmin = true;
+                    updateData.connectionResolved = true;
+                    console.log('[WIZARD] 3rd rejection - escalating to admin');
+                } else {
+                    updateData.connectionStatus = 'rejected';
+                }
+                
+                // Update user document
+                await window.firebaseDb.collection('users').doc(uid).update(updateData);
+                
+                // Mark as processed
+                processedRejections.add(rejectionKey);
+                
+                // Also update the most recent rejected connection request document
+                const connectionRequests = await window.firebaseDb.collection('connectionRequests')
+                    .where('userId', '==', uid)
+                    .where('status', '==', 'rejected')
+                    .orderBy('createdAt', 'desc')
+                    .limit(1)
+                    .get();
+                
+                if (!connectionRequests.empty) {
+                    const requestDoc = connectionRequests.docs[0];
+                    const requestData = requestDoc.data();
+                    const requestRef = requestDoc.ref;
+                    await requestRef.update({
+                        rejectionNumber: newRejectionCount,
+                        rejectedAt: serverTimestamp,
+                        rejectedBy: requestData.practitionerId || null,
+                        updatedAt: serverTimestamp
+                    });
+                }
+                
+                console.log('[WIZARD] Rejection handled - count:', newRejectionCount);
+            } catch (error) {
+                console.error('[WIZARD] Error handling rejection:', error);
+            }
+        }
+        
+        // WIZARD: Connection status banner function
+        async function updateConnectionStatusBanner() {
+            if (!window.currentUser || !window.firebaseAuth || !window.firebaseDb) {
+                return;
+            }
+            
+            const uid = window.firebaseAuth.currentUser?.uid || window.currentUser.id || window.currentUser.uid;
+            if (!uid) {
+                return;
+            }
+            
+            try {
+                // Get user document to check connection status
+                const userDoc = await window.firebaseDb.collection('users').doc(uid).get();
+                if (!userDoc.exists) {
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                const connectionStatus = userData.connectionStatus;
+                const rejectionCount = userData.rejectionCount || 0;
+                
+                // Determine banner status based on connectionStatus enum (schema-aligned)
+                let bannerText = '';
+                let bannerColor = '#fef3c7';
+                let textColor = '#92400e';
+                
+                if (connectionStatus === 'escalated') {
+                    bannerText = 'Escalated to admin';
+                    bannerColor = '#fee2e2';
+                    textColor = '#991b1b';
+                } else if (connectionStatus === 'rejected') {
+                    bannerText = `Rejected #${rejectionCount}`;
+                    bannerColor = '#fee2e2';
+                    textColor = '#991b1b';
+                } else if (connectionStatus === 'pending') {
+                    bannerText = 'Pending approval';
+                    bannerColor = '#fef3c7';
+                    textColor = '#92400e';
+                } else if (connectionStatus === 'approved' || userData.connectedPractitioner || userData.practitionerId) {
+                    // Connected - no banner needed
+                    return;
+                } else {
+                    // No connection status or status is 'none' - no banner
+                    return;
+                }
+                
+                // Get or create banner element
+                let banner = document.getElementById('ct-connection-status-banner');
+                const mainElement = document.querySelector('main.main') || document.querySelector('#client-dashboard-main');
+                
+                if (!banner && mainElement) {
+                    banner = document.createElement('div');
+                    banner.id = 'ct-connection-status-banner';
+                    banner.style.cssText = `background-color: ${bannerColor}; padding: 16px; margin: 0 0 16px 0; color: ${textColor}; font-size: 14px; border-left: 3px solid ${textColor}; border-radius: 4px;`;
+                    mainElement.insertBefore(banner, mainElement.firstChild);
+                }
+                
+                if (banner) {
+                    banner.textContent = bannerText;
+                    banner.style.backgroundColor = bannerColor;
+                    banner.style.color = textColor;
+                    banner.style.borderLeftColor = textColor;
+                }
+                
+                console.log('[WIZARD] Banner updated:', bannerText);
+            } catch (error) {
+                console.error('[WIZARD] Error updating connection banner:', error);
+            }
+        }
+        
         // Initialize application
         document.addEventListener('DOMContentLoaded', function() {
             // Splash screen already shown in head - no need to show again
@@ -2832,8 +3476,8 @@
                 }
             })();
             
-            // Onboarding is now handled on separate page (client-onboarding.html)
-            // No handlers needed here - users without practitioner are redirected
+            // PHASE3D: Onboarding is now handled by wizard within this dashboard
+            // Users without practitioner see the wizard panel automatically
             
             // Close modals when clicking outside
             document.addEventListener('click', function(event) {
@@ -3116,49 +3760,32 @@
                     const firebaseUser = window.firebaseAuth.currentUser;
                     if (!firebaseUser) {
                         console.log('🔍 DEBUG: No Firebase user logged in, checking auth state...');
-                        // Wait for auth state to be determined - return a promise
+                        // Wait for auth state to be determined - Firebase Auth is the ONLY source of truth
                         return new Promise((resolve, reject) => {
-                            const timeout = setTimeout(() => {
-                                unsubscribe();
-                                console.warn('Auth state check timed out, falling back to local storage');
-                                loadUserFromLocalStorage();
-                                resolve();
-                            }, 3000); // 3 second timeout (reduced from 5)
-                            
                             const unsubscribe = window.firebaseAuth.onAuthStateChanged(async (user) => {
-                                clearTimeout(timeout);
                                 unsubscribe(); // Only listen once
-                                try {
-                                    if (user) {
-                                        await withTimeout(
-                                            loadUserFromFirestore(user.uid),
-                                            5000, // Reduced from 10 seconds to 5 seconds
-                                            'Loading user profile timed out'
-                                        );
-                                    } else {
-                                        loadUserFromLocalStorage();
-                                    }
-                                    resolve();
-                                } catch (error) {
-                                    console.error('Error in auth state change handler:', error);
+                                if (user) {
+                                    // Firebase user exists - Firestore is source of truth
+                                    console.log("[auth] Firebase user resolved — Firestore is source of truth");
+                                    await loadUserFromFirestore(user.uid);
+                                } else {
+                                    // No Firebase user - use localStorage fallback
+                                    console.log("[auth] No Firebase user — localStorage fallback used");
                                     loadUserFromLocalStorage();
-                                    resolve();
                                 }
+                                resolve();
                             });
                         });
                     }
                     
-                    // Load user profile from Firestore with timeout
-                    await withTimeout(
-                        loadUserFromFirestore(firebaseUser.uid),
-                        5000, // Reduced from 10 seconds to 5 seconds
-                        'Loading user profile timed out'
-                    );
+                    // Firebase user exists directly - Firestore is source of truth
+                    console.log("[auth] Firebase user resolved — Firestore is source of truth");
+                    await loadUserFromFirestore(firebaseUser.uid);
                 },
-                'Error initializing user. Using local storage.',
+                'Error initializing user.',
                 (error) => {
                     console.error('Error in initializeUser:', error);
-                    loadUserFromLocalStorage();
+                    // Do NOT fall back to localStorage - Firebase Auth must resolve first
                 }
             );
         }
@@ -3206,8 +3833,12 @@
                         taxNumber: currentUser.taxNumber || firestoreProfile.taxNumber || '',
                         address: currentUser.address || firestoreProfile.address || '',
                         profileImage: currentUser.profileImage || firestoreProfile.profileImage || '',
+                        // WIZARD: Include role and migrationComplete from Firestore
+                        role: firestoreProfile.role || currentUser.role || null,
+                        migrationComplete: firestoreProfile.migrationComplete !== undefined ? firestoreProfile.migrationComplete : (currentUser.migrationComplete !== undefined ? currentUser.migrationComplete : true),
                         // Preserve connection if it exists
                         connectedPractitioner: currentUser.connectedPractitioner || firestoreProfile.connectedPractitioner || null,
+                        practitionerId: firestoreProfile.practitionerId || currentUser.practitionerId || null,
                         // Preserve submission status
                         submitted: currentUser.submitted || firestoreProfile.submitted || false,
                         submissionStatus: currentUser.submissionStatus || firestoreProfile.submissionStatus || null,
@@ -3227,7 +3858,8 @@
                     }
                 } else {
                     // Create new user in local storage with Firebase UID as ID
-                    currentUser = cleartrackData.createUserWithId(uid, {
+                    currentUser = {
+                        id: uid,
                         firstName: firestoreProfile.firstName || '',
                         lastName: firestoreProfile.lastName || '',
                         email: firestoreProfile.email || '',
@@ -3237,11 +3869,23 @@
                         taxNumber: firestoreProfile.taxNumber || '',
                         address: firestoreProfile.address || '',
                         profileImage: firestoreProfile.profileImage || '',
+                        // WIZARD: Include role and migrationComplete from Firestore
+                        role: firestoreProfile.role || null,
+                        migrationComplete: firestoreProfile.migrationComplete !== undefined ? firestoreProfile.migrationComplete : true,
                         connectedPractitioner: firestoreProfile.connectedPractitioner || null,
+                        practitionerId: firestoreProfile.practitionerId || null,
                         submitted: firestoreProfile.submitted || false,
                         submissionStatus: firestoreProfile.submissionStatus || null,
-                        submissionDate: firestoreProfile.submissionDate || null
-                    });
+                        submissionDate: firestoreProfile.submissionDate || null,
+                        createdAt: new Date().toISOString(),
+                        documents: [],
+                        vehicles: [],
+                        expenses: []
+                    };
+                    
+                    // Add to local storage
+                    data.users[uid] = currentUser;
+                    cleartrackData.setData(data);
                     
                     // Apply submission lock if submitted
                     applySubmissionLock();
@@ -3258,6 +3902,31 @@
                 
                 window.currentUser = currentUser;
                 console.log('🔍 DEBUG: Current user set from Firestore:', currentUser);
+                console.log("[user] Firestore user loaded successfully");
+                
+                // PHASE3D: Check profile readiness and auto-show wizard if not ready
+                const profileReady = window.isProfileReady ? window.isProfileReady(currentUser) : Boolean(currentUser && currentUser.role);
+                console.log("[PHASE3D] Profile readiness check:", { profileReady, role: currentUser.role, migrationComplete: currentUser.migrationComplete });
+                
+                if (!profileReady) {
+                    console.log("[PHASE3D] Profile not ready - enabling wizard for incomplete profile");
+                    window.CT_ONBOARDING_WIZARD_ENABLED = true;
+                } else {
+                    // Ensure wizard is disabled for ready profiles
+                    window.CT_ONBOARDING_WIZARD_ENABLED = false;
+                }
+                
+                // Start message polling now that user is hydrated
+                if (typeof window.startMessagePolling === 'function') {
+                    window.startMessagePolling();
+                }
+                
+                // Invoke onboarding wizard (will show if profile not ready)
+                OnboardingWizard(currentUser);
+                
+                // WIZARD: Set up connection status listener and update banner
+                setupConnectionStatusListener(uid);
+                updateConnectionStatusBanner();
                 
                 // Apply submission lock if submitted
                 applySubmissionLock();
@@ -3300,7 +3969,9 @@
                     const practitionerId = userData.practitionerId || userData.connectedPractitioner || null;
                     
                     // If practitioner was just linked, reload to show dashboard
-                    if (practitionerId && userData.role === 'client') {
+                    // Normalize role: "user" → "client" (in memory only)
+                    const normalizedRole = userData.role === 'user' ? 'client' : userData.role;
+                    if (practitionerId && normalizedRole === 'client') {
                         // Practitioner was linked - reload to show dashboard
                         window.location.reload();
                     }
@@ -3321,14 +3992,17 @@
                 return;
             }
             
-            const role = userDoc.role;
+            // Normalize role: "user" → "client" (in memory only)
+            const role = userDoc.role === 'user' ? 'client' : userDoc.role;
             const practitionerId = userDoc.practitionerId || userDoc.connectedPractitioner || null;
             
             // Only apply gating for clients
             if (role === 'client') {
                 if (!practitionerId) {
-                    // No practitioner - redirect to onboarding page
-                    window.location.href = '/client-onboarding.html';
+                    // No practitioner - stay on user dashboard (wizard handles onboarding)
+                    console.log("[route] client (no practitioner) -> staying on user-dashboard.html");
+                    // Show dashboard - wizard will handle onboarding
+                    if (dashboardMain) dashboardMain.style.display = '';
                     return;
                 } else {
                     // Has practitioner - show dashboard
@@ -3564,11 +4238,36 @@
                 currentUser = data.users[userIds[0]];
                 window.currentUser = currentUser;
                 console.log('🔍 DEBUG: Current user set from local storage:', currentUser);
+                
+                // PHASE3D: Check profile readiness and auto-show wizard if not ready
+                const profileReady = window.isProfileReady ? window.isProfileReady(currentUser) : Boolean(currentUser && currentUser.role);
+                console.log("[PHASE3D] Profile readiness check (localStorage):", { profileReady, role: currentUser.role, migrationComplete: currentUser.migrationComplete });
+                
+                if (!profileReady) {
+                    console.log("[PHASE3D] Profile not ready - enabling wizard for incomplete profile");
+                    window.CT_ONBOARDING_WIZARD_ENABLED = true;
+                } else {
+                    // Ensure wizard is disabled for ready profiles
+                    window.CT_ONBOARDING_WIZARD_ENABLED = false;
+                }
+                
+                // Invoke onboarding wizard (will show if profile not ready)
+                OnboardingWizard(currentUser);
+                
+                // WIZARD: Set up connection status listener and update banner
+                const uid = window.currentUser?.id || window.currentUser?.uid;
+                if (uid) {
+                    setupConnectionStatusListener(uid);
+                    updateConnectionStatusBanner();
+                }
+                
                 updateUserInterface();
                 
                 // For local storage fallback, try to gate access if we have role info
                 if (currentUser && currentUser.role) {
-                    gateClientAccess({ role: currentUser.role, practitionerId: currentUser.connectedPractitioner || null });
+                    // Normalize role: "user" → "client" (in memory only)
+                    const normalizedRole = currentUser.role === 'user' ? 'client' : currentUser.role;
+                    gateClientAccess({ role: normalizedRole, practitionerId: currentUser.connectedPractitioner || null });
                 } else {
                     // Default to showing dashboard for fallback
                     const dashboardMain = document.getElementById('client-dashboard-main');
@@ -3589,8 +4288,8 @@
                 console.log('🔍 DEBUG: New user created:', currentUser);
                 updateUserInterface();
                 
-                // Default to redirecting to onboarding for new users (they won't have practitioner yet)
-                window.location.href = '/client-onboarding.html';
+                // Stay on user dashboard - wizard handles onboarding for new users
+                console.log("[route] new user -> staying on user-dashboard.html");
             }
         }
         
@@ -3659,36 +4358,99 @@
             document.getElementById('expenseDate').value = today;
         }
         
-        // Show section
-        // Use unified section handler - override local if needed for dashboard-specific logic
-        const existingShowSectionFunc = window.showSection;
-        function showSection(sectionName) {
-            // Call unified handler first
-            if (existingShowSectionFunc && typeof existingShowSectionFunc === 'function') {
-                existingShowSectionFunc(sectionName, {
-                    updateNav: true,
-                    loadData: true
-                });
-            } else {
-                // Fallback to basic implementation
-                document.querySelectorAll('.section').forEach(section => {
-                    section.classList.add('hidden');
-                });
-                const targetSection = document.getElementById(sectionName);
-                if (targetSection) {
-                    targetSection.classList.remove('hidden');
+        // Show section - stable implementation without recursion
+        // Store unified handler reference safely (before any overwrites)
+        const unifiedShowSection = (function() {
+            // Capture the unified handler if it exists (from unified-section-handler.js)
+            const handler = window.showSection;
+            // Check if it's the unified handler (has options parameter support)
+            if (typeof handler === 'function' && handler.length === 2) {
+                return handler;
+            }
+            return null;
+        })();
+        
+        // DOM manipulation logic (separate function to prevent name collisions)
+        function ctShowSectionDom(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show target section
+            const targetSection = document.getElementById(sectionName);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+            
+            // Update nav links active state
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-section') === sectionName || 
+                    link.getAttribute('href') === `#${sectionName}` ||
+                    link.textContent.trim().toLowerCase() === sectionName.toLowerCase()) {
+                    link.classList.add('active');
                 }
+            });
+            
+            // Update bottom nav active state
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                const itemSection = item.getAttribute('data-section');
+                if (itemSection === sectionName) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Hamburger menu removed - using bottom navigation only
+            
+            // Load section-specific data
+            if (sectionName === 'dashboard' && typeof updateDashboard === 'function') {
+                updateDashboard();
+            } else if (sectionName === 'messages' && typeof loadMessages === 'function') {
+                loadMessages();
             }
             
             // After showing a section, re-apply lock check
             applySubmissionLock();
+            
+            // AI assistant specific logic
+            if (sectionName === 'ai-assistant') {
+                setTimeout(function() {
+                    if (typeof populateDocumentSelect === 'function') {
+                        populateDocumentSelect();
+                    }
+                }, 100);
+            }
         }
-        // Make it global
-        window.showSection = showSection;
         
-        // Navigation handler removed - using global-hamburger-menu.js
+        // Stable wrapper function (single entry point, no recursion)
+        function ctShowSection(sectionName) {
+            // Use unified handler if available (call directly, not via window.showSection)
+            if (unifiedShowSection && typeof unifiedShowSection === 'function') {
+                unifiedShowSection(sectionName, {
+                    updateNav: true,
+                    loadData: true
+                });
+                // Still apply lock check and AI logic after unified handler
+                applySubmissionLock();
+                if (sectionName === 'ai-assistant') {
+                    setTimeout(function() {
+                        if (typeof populateDocumentSelect === 'function') {
+                            populateDocumentSelect();
+                        }
+                    }, 100);
+                }
+                return;
+            }
+            
+            // Fallback to DOM logic
+            ctShowSectionDom(sectionName);
+        }
         
-        // Hamburger menu event handlers removed - now using global-hamburger-menu.js
+        // Set as global (ONCE, stable entry point)
+        window.showSection = ctShowSection;
         
         // Dashboard tile click functions
         function openDocumentsSection() {
@@ -4449,7 +5211,7 @@
             const newForm = vehicleForm.cloneNode(true);
             vehicleForm.parentNode.replaceChild(newForm, vehicleForm);
             
-            newForm.addEventListener('submit', function(e) {
+            newForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             if (!currentUser) {
@@ -4480,6 +5242,42 @@
                 return;
             }
             
+            // Role-based validation: Sales Rep can only have one active vehicle
+            if (currentUser.role === 'sales_rep' && !editingVehicleId) {
+                // Check for existing active vehicles
+                let hasActiveVehicle = false;
+                
+                // Check Firestore first
+                if (window.firebaseDb && window.firebaseAuth && window.firebaseAuth.currentUser) {
+                    try {
+                        const activeVehiclesSnapshot = await window.firebaseDb.collection('users')
+                            .doc(window.firebaseAuth.currentUser.uid)
+                            .collection('vehicles')
+                            .where('vehicleStatus', '==', 'active')
+                            .get();
+                        
+                        if (!activeVehiclesSnapshot.empty) {
+                            hasActiveVehicle = true;
+                        }
+                    } catch (error) {
+                        console.warn('[Vehicle Lifecycle] Error checking Firestore for active vehicles:', error);
+                        // Fallback to localStorage check
+                    }
+                }
+                
+                // Fallback to localStorage check
+                if (!hasActiveVehicle) {
+                    const existingVehicles = cleartrackData.getUserVehicles(currentUser.id);
+                    hasActiveVehicle = existingVehicles.some(v => v.vehicleStatus === 'active');
+                }
+                
+                if (hasActiveVehicle) {
+                    alert('You already have an active vehicle. Please close it by editing the vehicle and setting a closing mileage before adding a new one.');
+                    hideVehicleModal();
+                    return;
+                }
+            }
+            
             const documentFile = vehicleDocumentFile || documentUploadInput.files[0];
             const acquisitionType = purchasedCheckbox.checked ? 'purchased' : 'leased';
             
@@ -4495,13 +5293,39 @@
                 notes: document.getElementById('vehicleNotes').value,
                 acquisitionType: acquisitionType,
                 documentUploaded: true,
-                documentFileName: documentFile.name
+                documentFileName: documentFile.name,
+                vehicleStatus: 'active' // Default to active on creation
             };
             
             if (editingVehicleId) {
                 // Update existing vehicle
                 const vehicleIndex = vehicles.findIndex(v => v.id === editingVehicleId);
                 if (vehicleIndex !== -1) {
+                    const existingVehicle = vehicles[vehicleIndex];
+                    const currentStatus = existingVehicle.vehicleStatus || 'active';
+                    const closingMileage = vehicleData.closingMileage || 0;
+                    const openingMileage = vehicleData.openingMileage || existingVehicle.openingMileage || 0;
+                    
+                    // If closing mileage is provided and vehicle is active, close it
+                    if (closingMileage > 0 && currentStatus === 'active') {
+                        // Validate closing mileage > opening mileage
+                        if (closingMileage <= openingMileage) {
+                            alert('Closing mileage must be greater than opening mileage.');
+                            return;
+                        }
+                        
+                        // Set vehicle status to closed and add closedAt timestamp
+                        vehicleData.vehicleStatus = 'closed';
+                        vehicleData.closedAt = new Date().toISOString();
+                    } else if (closingMileage === 0 && currentStatus === 'closed') {
+                        // If closing mileage is removed and vehicle was closed, reactivate it
+                        vehicleData.vehicleStatus = 'active';
+                        vehicleData.closedAt = null;
+                    } else {
+                        // Preserve existing status if not changing
+                        vehicleData.vehicleStatus = existingVehicle.vehicleStatus || 'active';
+                    }
+                    
                     // Update vehicle in array
                     vehicles[vehicleIndex] = {
                         ...vehicles[vehicleIndex],
@@ -4521,6 +5345,32 @@
                         }
                     }
                     
+                    // Update in Firestore if available
+                    if (window.firebaseDb && window.firebaseAuth && window.firebaseAuth.currentUser) {
+                        try {
+                            const vehicleRef = window.firebaseDb.collection('users')
+                                .doc(window.firebaseAuth.currentUser.uid)
+                                .collection('vehicles')
+                                .doc(editingVehicleId);
+                            
+                            const updateData = {
+                                ...vehicleData
+                            };
+                            
+                            // Convert closedAt to serverTimestamp if using Firestore
+                            if (updateData.closedAt && typeof firebase !== 'undefined' && firebase.firestore) {
+                                if (currentStatus === 'active' && closingMileage > 0) {
+                                    updateData.closedAt = firebase.firestore.FieldValue.serverTimestamp();
+                                }
+                            }
+                            
+                            await vehicleRef.update(updateData);
+                        } catch (error) {
+                            console.warn('[Vehicle Lifecycle] Error updating vehicle in Firestore:', error);
+                            // Continue with localStorage update even if Firestore fails
+                        }
+                    }
+                    
                     // Refresh display
                     loadUserData();
                     updateDashboard();
@@ -4532,8 +5382,19 @@
                     alert('Vehicle not found. Please try again.');
                 }
             } else {
-                // Add new vehicle
-                const newVehicle = cleartrackData.addVehicle(currentUser.id, vehicleData);
+                // Add new vehicle - use Firestore if available, fallback to localStorage
+                let newVehicle;
+                if (window.firestoreData && typeof window.firestoreData.addVehicle === 'function') {
+                    try {
+                        newVehicle = await window.firestoreData.addVehicle(currentUser.id, vehicleData);
+                    } catch (error) {
+                        console.error('[Vehicle Lifecycle] Error adding vehicle to Firestore:', error);
+                        // Fallback to localStorage
+                        newVehicle = cleartrackData.addVehicle(currentUser.id, vehicleData);
+                    }
+                } else {
+                    newVehicle = cleartrackData.addVehicle(currentUser.id, vehicleData);
+                }
                 
                 if (newVehicle) {
                     // Reset acquisition type selection after successful add
@@ -5141,13 +6002,7 @@
             }
             
             // Close mobile nav if it's open
-            const mainNav = document.getElementById('nav-style6');
-            const menuToggle = document.getElementById('menuToggle');
-            if (mainNav && menuToggle) {
-                mainNav.classList.remove('active');
-                menuToggle.classList.remove('active');
-                menuToggle.setAttribute('aria-expanded', 'false');
-            }
+            // Hamburger menu removed - using bottom navigation only
             
             try {
                 // Check if Firebase Auth is available
@@ -7765,30 +8620,97 @@
     
     <!-- Simple polling for real-time updates -->
     <script>
-        // Simple polling every 1 second - bulletproof method
+        // Controlled polling - only when messages section is active and user is hydrated
+        let messagePollingInterval = null;
         let pollCount = 0;
-        setInterval(function() {
-            pollCount++;
-            console.log('🔄 Polling attempt #' + pollCount);
-            
-            if (window.currentUser && window.loadMessages) {
-                console.log('✅ User and loadMessages function available');
-                const messagesSection = document.getElementById('messages');
-                console.log('📱 Messages section found:', !!messagesSection);
-                console.log('📱 Messages section hidden:', messagesSection && messagesSection.classList.contains('hidden'));
-                
-                if (messagesSection && !messagesSection.classList.contains('hidden')) {
-                    console.log('🔄 Calling loadMessages...');
-                    window.loadMessages();
-                } else {
-                    console.log('❌ Messages section not active');
-                }
-            } else {
-                console.log('❌ Missing user or loadMessages function');
-                console.log('User:', !!window.currentUser);
-                console.log('loadMessages:', !!window.loadMessages);
+        
+        function startMessagePolling() {
+            // Stop any existing polling
+            if (messagePollingInterval) {
+                clearInterval(messagePollingInterval);
+                messagePollingInterval = null;
             }
-        }, 1000); // Check every 1 second
+            
+            // Only start polling if all conditions are met
+            function checkAndPoll() {
+                // Condition 1: User exists and has id/uid
+                const userExists = window.currentUser && (window.currentUser.id || window.currentUser.uid);
+                if (!userExists) {
+                    return; // Don't poll, don't log
+                }
+                
+                // Condition 2: loadMessages is a function
+                if (typeof window.loadMessages !== 'function') {
+                    return; // Don't poll, don't log
+                }
+                
+                // Condition 3: Messages section exists
+                const messagesSection = document.getElementById('messages');
+                if (!messagesSection) {
+                    return; // Don't poll, don't log
+                }
+                
+                // Condition 4: Messages section is ACTIVE and VISIBLE
+                const isHidden = messagesSection.classList.contains('hidden') || 
+                                messagesSection.hasAttribute('hidden') ||
+                                window.getComputedStyle(messagesSection).display === 'none';
+                
+                // Check if it's the active section (no other section is visible)
+                const allSections = document.querySelectorAll('.section');
+                let hasVisibleSection = false;
+                let messagesIsVisible = false;
+                allSections.forEach(section => {
+                    const sectionHidden = section.classList.contains('hidden') || 
+                                        section.hasAttribute('hidden') ||
+                                        window.getComputedStyle(section).display === 'none';
+                    if (!sectionHidden) {
+                        hasVisibleSection = true;
+                        if (section.id === 'messages') {
+                            messagesIsVisible = true;
+                        }
+                    }
+                });
+                
+                // Only poll if messages section is visible and active
+                if (!isHidden && messagesIsVisible) {
+                    pollCount++;
+                    console.log('🔄 Polling attempt #' + pollCount);
+                    window.loadMessages();
+                }
+                // If not active/visible, silently skip (no logging)
+            }
+            
+            // Start polling interval
+            messagePollingInterval = setInterval(checkAndPoll, 1000);
+        }
+        
+        function stopMessagePolling() {
+            if (messagePollingInterval) {
+                clearInterval(messagePollingInterval);
+                messagePollingInterval = null;
+            }
+        }
+        
+        // Expose functions globally
+        window.startMessagePolling = startMessagePolling;
+        window.stopMessagePolling = stopMessagePolling;
+        
+        // Start polling only after user is hydrated from Firestore
+        // This will be called after window.currentUser is set in loadUserFromFirestore
+        // Monitor for user hydration as fallback
+        const checkUserHydration = setInterval(function() {
+            if (window.currentUser && (window.currentUser.id || window.currentUser.uid)) {
+                clearInterval(checkUserHydration);
+                if (typeof window.startMessagePolling === 'function') {
+                    window.startMessagePolling();
+                }
+            }
+        }, 500);
+        
+        // Stop hydration check after 30 seconds (fallback)
+        setTimeout(function() {
+            clearInterval(checkUserHydration);
+        }, 30000);
         
         // Vehicle Acquisition Type Logic
         
@@ -7964,6 +8886,9 @@
                 const waitForFirebase = () => {
                     if (window.firebaseConfig) {
                         try {
+                            // ARCHITECTURE: This MUST use window.firebaseConfig (cleartrack-1f6c6)
+                            // DO NOT initialize cleartrack-hosting or any other project here
+                            // Reuse existing modular app if available to prevent duplicate initialization
                             console.log('🔧 Initializing modular Firebase app for AI...');
                             let modularApp;
                             try {
@@ -7971,6 +8896,11 @@
                                 if (existingApps.length > 0) {
                                     modularApp = existingApps[0];
                                 } else {
+                                    // Guard: Ensure we're using the correct config (cleartrack-1f6c6)
+                                    if (!window.firebaseConfig || window.firebaseConfig.projectId !== 'cleartrack-1f6c6') {
+                                        console.error('[ARCHITECTURE] AI init: config must use project cleartrack-1f6c6');
+                                        return;
+                                    }
                                     modularApp = initializeApp(window.firebaseConfig);
                                 }
                             } catch (e) {
@@ -8351,27 +9281,8 @@
         })();
 
         // Sync bottom nav with section changes
-        window.addEventListener('load', function() {
-            // Override showSection to sync bottom nav
-            const originalShowSection = window.showSection;
-            if (originalShowSection) {
-                window.showSection = function(sectionName) {
-                    // Call original function
-                    originalShowSection(sectionName);
-                    
-                    // Sync bottom nav active state
-                    const mainSections = ['dashboard', 'documents', 'vehicles', 'expenses'];
-                    document.querySelectorAll('.bottom-nav-item').forEach(item => {
-                        const itemSection = item.getAttribute('data-section');
-                        if (itemSection === sectionName) {
-                            item.classList.add('active');
-                        } else if (mainSections.includes(itemSection)) {
-                            item.classList.remove('active');
-                        }
-                    });
-                };
-            }
-        });
+        // Bottom nav sync is now handled in ctShowSection (stable implementation)
+        // Removed wrapper to prevent recursion
         
         // Initialize Firebase AI Logic
         let aiModel = null;
@@ -8440,6 +9351,22 @@
         function tryInitializeAI(retryCount = 0) {
             if (aiModel) {
                 return; // Already initialized
+            }
+            
+            // Guard: Check if AI section exists and is visible
+            const aiSection = document.getElementById('ai-assistant');
+            if (aiSection) {
+                const isHidden = aiSection.classList.contains('hidden') || 
+                                aiSection.hasAttribute('hidden') ||
+                                window.getComputedStyle(aiSection).display === 'none';
+                if (isHidden) {
+                    return; // Don't retry if section is hidden
+                }
+            } else {
+                // Section doesn't exist yet, allow retry but with limit
+                if (retryCount >= 5) {
+                    return; // Stop retrying if section doesn't exist after 5 attempts
+                }
             }
             
             if (retryCount >= MAX_AI_INIT_ATTEMPTS) {
@@ -8698,16 +9625,8 @@ Provide a helpful, accurate answer about South African tax matters.`;
         window.askTaxQuestion = askTaxQuestion;
         window.populateDocumentSelect = populateDocumentSelect;
         
-        // Populate document select when AI section is shown
-        const existingShowSection = window.showSection;
-        if (existingShowSection && typeof existingShowSection === 'function') {
-            window.showSection = function(sectionName) {
-                existingShowSection(sectionName);
-                if (sectionName === 'ai-assistant') {
-                    setTimeout(populateDocumentSelect, 100);
-                }
-            };
-        }
+        // AI assistant logic is now handled in ctShowSection (stable implementation)
+        // Removed wrapper to prevent recursion
     </script>
 
     <!-- Manual Update Check Function -->

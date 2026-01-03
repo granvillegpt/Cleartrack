@@ -14,8 +14,13 @@
     return;
   }
 
-  // Initialize Firebase Functions
-  const functions = firebase.functions();
+  // Check if Firebase Functions is available (optional - will use Firestore fallback if not)
+  const functionsAvailable = typeof firebase !== 'undefined' && typeof firebase.functions === 'function';
+  const functions = functionsAvailable ? firebase.functions() : null;
+  
+  if (!functionsAvailable) {
+    console.warn('[client-linking] Firebase Functions not available — will use Firestore fallback methods');
+  }
 
   /**
    * Create a client invite (practitioner only)
@@ -25,6 +30,9 @@
    * @returns {Promise<Object>} Invite details with inviteId, code, expiresAt
    */
   async function createClientInvite(mobile, clientName, note) {
+    if (!functions) {
+      throw new Error('Firebase Functions is not available. Client invite creation requires Firebase Functions SDK.');
+    }
     try {
       const createInvite = functions.httpsCallable('createClientInvite');
       const result = await createInvite({
@@ -54,6 +62,9 @@
    * @returns {Promise<Object>} Practitioner ID and invite ID
    */
   async function verifyClientInvite(mobile, code) {
+    if (!functions) {
+      throw new Error('Firebase Functions is not available. Invite verification requires Firebase Functions SDK.');
+    }
     try {
       const verifyInvite = functions.httpsCallable('verifyClientInvite');
       const result = await verifyInvite({
@@ -74,6 +85,11 @@
    * @returns {Promise<Object>} Request ID and assigned practitioner ID
    */
   async function createClientRequest(needs, message) {
+    // If Functions not available, use Firestore fallback directly
+    if (!functions) {
+      return await createClientRequestFallback(needs, message);
+    }
+    
     // Try Cloud Function first
     try {
       const createRequest = functions.httpsCallable('createClientRequest');
@@ -242,6 +258,11 @@
    * @returns {Promise<Object>} Updated status and assigned practitioner ID
    */
   async function respondToClientRequest(requestId, action) {
+    // If Functions not available, use Firestore fallback directly
+    if (!functions) {
+      return await respondToClientRequestFallback(requestId, action);
+    }
+    
     // Try Cloud Function first
     try {
       const respondRequest = functions.httpsCallable('respondToClientRequest');
@@ -486,12 +507,86 @@
     }
   }
 
+  /**
+   * Connect client to practitioner using a practitioner code
+   * @param {string} code - Practitioner code
+   * @returns {Promise<void>} Resolves on success
+   */
+  async function connectWithPractitionerCode(code) {
+    // Require Firebase Auth and Firestore
+    if (!window.firebaseDb || !window.firebaseAuth) {
+      throw new Error('Firebase is not initialized. Please refresh the page.');
+    }
+
+    // Require authenticated user
+    const user = window.firebaseAuth.currentUser;
+    if (!user) {
+      throw new Error('You must be logged in to connect with a practitioner code.');
+    }
+
+    const clientUid = user.uid;
+
+    // Normalize the code
+    const normalizedCode = code.trim().toUpperCase();
+    
+    if (!normalizedCode) {
+      throw new Error('Practitioner code cannot be empty.');
+    }
+
+    // Query practitioners collection for matching code
+    const practitionersSnapshot = await window.firebaseDb.collection('practitioners')
+      .where('practitionerCode', '==', normalizedCode)
+      .limit(1)
+      .get();
+
+    if (practitionersSnapshot.empty) {
+      throw new Error('Invalid practitioner code');
+    }
+
+    // Get the practitioner ID
+    const practitionerId = practitionersSnapshot.docs[0].id;
+
+    // Load current user document
+    const userRef = window.firebaseDb.collection('users').doc(clientUid);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      throw new Error('User document not found. Please refresh the page.');
+    }
+
+    const userData = userDoc.data();
+
+    // Check if already connected
+    if (userData.practitionerLink && userData.practitionerLink.status === 'active') {
+      throw new Error('You are already connected to a practitioner');
+    }
+
+    // Get server timestamp
+    const now = window.firebase.firestore ? 
+                window.firebase.firestore.FieldValue.serverTimestamp() : 
+                new Date();
+
+    // Update user document with practitioner link
+    await userRef.set({
+      practitionerLink: {
+        practitionerId,
+        practitionerCode: normalizedCode,
+        status: 'active',
+        connectedAt: now,
+        connectedVia: 'code'
+      }
+    }, { merge: true });
+
+    console.log('✅ Client connected to practitioner via code:', normalizedCode);
+  }
+
   // Expose on global namespace
   window.CTClientLinking = {
     createClientInvite,
     verifyClientInvite,
     createClientRequest,
-    respondToClientRequest
+    respondToClientRequest,
+    connectWithPractitionerCode
   };
 
   console.log('CTClientLinking module loaded');

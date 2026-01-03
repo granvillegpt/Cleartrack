@@ -64,8 +64,9 @@ self.addEventListener('install', event => {
       });
     })
   );
-  // Force activation immediately to use new cache version
-  self.skipWaiting();
+  // DO NOT force activation - let it activate on next page load
+  // self.skipWaiting(); // Disabled to prevent auto-reload loops
+  // Service worker will activate naturally on next navigation
 });
 
 // Fetch event - Stale-while-revalidate for HTML to prevent flickering
@@ -79,22 +80,7 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // CRITICAL: client-onboarding.html must NEVER be cached - always fetch fresh
-  // This ensures practitioner redirects work immediately
-  if (url.pathname.includes('client-onboarding.html')) {
-    event.respondWith(
-      fetch(request, { 
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        }
-      }).catch(() => {
-        return new Response('Page unavailable', { status: 503 });
-      })
-    );
-    return;
-  }
+  // PHASE3D: client-onboarding.html has been removed - page no longer exists
   
   // For HTML files (especially dashboards with AI), ALWAYS fetch fresh from network - never use cache
   // This prevents showing old cached versions that don't have AI SDK initialization
@@ -350,9 +336,10 @@ self.addEventListener('message', event => {
     );
   }
   
-  // Add handler for skipWaiting
+  // Add handler for skipWaiting - DISABLED to prevent auto-reload loops
+  // Service worker will activate naturally on next navigation
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[sw] Received SKIP_WAITING message, activating immediately');
-    self.skipWaiting();
+    console.log('[sw] Received SKIP_WAITING message, but auto-activation disabled (no reload)');
+    // self.skipWaiting(); // Disabled to prevent auto-reload loops
   }
 });

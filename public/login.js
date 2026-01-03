@@ -321,10 +321,10 @@ async function routeUser(role, userId, userData = null) {
       }
     }
     
-    // Route based on practitioner status
+    // PHASE3D: Route based on practitioner status - always route to user dashboard (wizard handles onboarding)
     if (!practitionerId) {
-      console.log('[routeUser] No practitioner found - routing to onboarding');
-      safeRedirect('/client-onboarding.html');
+      console.log('[PHASE3D] [routeUser] No practitioner found - routing to user dashboard (wizard handles onboarding)');
+      safeRedirect('/user-dashboard.html');
       return;
     } else {
       console.log('[routeUser] Practitioner found - routing to user dashboard');
@@ -495,9 +495,10 @@ async function routeUserAfterLogin(user, role, userData) {
     return;
   }
   
-  // Default: onboarding (only for regular users)
-  console.log('[login.js] ✅ Routing to client onboarding (regular user)');
-  safeRedirect('/client-onboarding.html');
+  // PHASE3D: Default: route to user dashboard (wizard handles onboarding)
+  console.log('[PHASE3D] [login.js] ✅ Routing to user dashboard (wizard handles onboarding)');
+  console.log('[PHASE3D] Client onboarding page fully removed — wizard-only flow enforced');
+  safeRedirect('/user-dashboard.html');
 }
 
 function safeRedirect(url) {
@@ -1549,8 +1550,8 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (routingError) {
         console.error('[login.js] Routing error:', routingError);
         console.error('[login.js] Routing error stack:', routingError.stack);
-        // Fallback: redirect to onboarding
-        safeRedirect('/client-onboarding.html');
+        // PHASE3D: Fallback: redirect to user dashboard (wizard handles onboarding)
+        safeRedirect('/user-dashboard.html');
       }
 
     } catch (error) {

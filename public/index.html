@@ -85,16 +85,6 @@
         })();
     </script>
     
-    <script>
-        // Redirect root/index.html to login.html (both production and staging)
-        (function() {
-            var path = window.location.pathname;
-            if (path === "/" || path === "/index.html") {
-                window.location.replace("/login.html");
-            }
-        })();
-    </script>
-    
     <!-- Service Worker Registration - Only on app.cleartrack.co.za -->
     <script>
         if (window.location.hostname === 'app.cleartrack.co.za') {
@@ -1150,7 +1140,7 @@
                 <a href="#who-for">Who it's for</a>
                 <a href="/practitioner-application.html">For Practitioners</a>
                 <a href="/contact.html">Contact</a>
-                <a href="https://app.cleartrack.co.za/login.html" class="nav-cta-btn">Get started</a>
+                <a href="/login.html" class="nav-cta-btn">Log in</a>
             </nav>
         </div>
     </header>
@@ -1163,8 +1153,8 @@
                 <p>Built in South Africa, for South Africans 🇿🇦</p>
                 
                 <div class="hero-actions">
-                    <a href="https://app.cleartrack.co.za/login.html" class="btn-primary">Get started with ClearTrack</a>
-                    <a href="#features" class="btn-secondary">See what ClearTrack can do</a>
+                    <a href="/login.html" class="btn-primary">Log in</a>
+                    <a href="/login.html" class="btn-secondary">Create account</a>
                 </div>
                 
                 <p class="hero-disclaimer">

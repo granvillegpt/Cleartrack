@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-      
     <script>
         // === GLOBAL RUNTIME SAFETY OVERRIDE ===
         // This MUST run before any other script
@@ -17,6 +16,12 @@
         
         window.populateSavedLogbooksSelect = populateSavedLogbooksSelect;
         window.handleSavedLogbookSelect = handleSavedLogbookSelect;
+    </script>
+    
+    <script>
+        // DEBUG flag for conditional logging
+        const DEBUG = false;
+        window.CT_DEBUG = window.CT_DEBUG || false;
     </script>
       
 
@@ -43,12 +48,6 @@
             window.showLoadingScreen('Loading ClearTrack...', 'Please wait');
         }
     </script>
-    <!-- Hamburger menu disabled for practitioner dashboard - using bottom nav only -->
-    <script>
-        // Prevent global-hamburger-menu from initializing on practitioner dashboard
-        window.skipGlobalHamburgerMenu = true;
-    </script>
-    <script src="global-hamburger-menu.js"></script>
     <script src="modal-system.js"></script>
     <script src="unified-section-handler.js"></script>
     <!-- Testing Script (remove in production) -->
@@ -58,6 +57,8 @@
     <!-- jsPDF and html2canvas for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- JSZip for ZIP file generation (Phase 3A) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Inline styles removed - now using dashboard-styles.css as single source of truth -->
     <style>
         /* Dashboard-specific styles only - main styles in dashboard-styles.css */
@@ -3761,28 +3762,8 @@
                 <div class="logo">
                     <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
                 </div>
-                <button
-                    id="ctMenuToggle"
-                    class="menu-toggle-style6"
-                    type="button"
-                    aria-label="Toggle navigation menu"
-                    aria-expanded="false"
-                    onclick="toggleMenu('style6')">
-                    ☰
-                </button>
                 <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn" data-ct-logout>Logout</button>
             </div>
-            <nav class="nav-style6" id="ctMainNav">
-                <a href="#" class="nav-link active" onclick="handleNavClick('dashboard', event)">Dashboard</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('clients', event)">Clients</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('messages', event)">Messages</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('requests', event)">Requests</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('tax-returns', event)">Submissions</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('invoices', event)">Invoices</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('ai-assistant', event)">AI Assistant</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('profile', event)">Profile</a>
-                <a href="#" class="nav-link" onclick="handleNavClick('support', event)">Support<span id="supportUnreadBadge" style="display: none; margin-left: 0.5rem; background: #dc2626; color: white; padding: 0.125rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">0</span></a>
-            </nav>
         </header>
         
         <main class="main">
@@ -3822,7 +3803,7 @@
                     </div>
                     <div class="card-body">
                         <p style="margin-bottom: 1rem; color: #6b7280;">Generate SARS-compliant annual logbook packs for clients</p>
-                        <button class="btn btn-primary" onclick="showSection('ai-assistant')">Open SARS Pack Generator</button>
+                        <button class="btn btn-primary" onclick="generateAnnualSARSPack()">Generate Annual SARS Pack</button>
                     </div>
                 </div>
                 
@@ -5146,7 +5127,6 @@
                 const funcName = event.error.message.match(/^(\w+) is not defined/)?.[1];
                 if (funcName) {
                     console.warn('[stability] ReferenceError caught:', funcName, 'at', event.filename, ':', event.lineno);
-                    fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'practitioner-dashboard.html:5251',message:'ReferenceError caught',data:{functionName:funcName,errorMessage:event.error.message,source:event.filename,line:event.lineno},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
                 }
             }
         }, true);
@@ -5295,8 +5275,16 @@
                 const maxAttempts = 20; // 4 seconds max (20 * 200ms)
                 const checkPractitioner = setInterval(() => {
                     attempts++;
+                    
+                    // Guard: Early exit if dashboard section doesn't exist
+                    const dashboardSection = document.getElementById('dashboard');
+                    if (!dashboardSection && attempts > 10) {
+                        clearInterval(checkPractitioner);
+                        return;
+                    }
+                    
                     const practitionerReady = window.practitioner && window.practitioner.id;
-                    const dashboardReady = document.getElementById('dashboard') !== null;
+                    const dashboardReady = dashboardSection !== null;
                     const interfaceReady = document.getElementById('mobilePractitionerName') !== null || document.querySelector('.practitioner-code') !== null;
                     
                     if ((practitionerReady && dashboardReady && interfaceReady) || attempts >= maxAttempts) {
@@ -5436,45 +5424,72 @@
         
         // Initialize practitioner from Firebase Auth and Firestore
         async function initializePractitioner() {
-            console.log('🔍 DEBUG: initializePractitioner() called');
+            // Guard: only run once
+            if (window.__practitionerInitialized) {
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: initializePractitioner() already initialized, skipping');
+                return;
+            }
+            window.__practitionerInitialized = true;
+            
+            if (window.CT_DEBUG) console.log('🔍 DEBUG: initializePractitioner() called');
             
             // Ensure data storage is properly initialized
             if (!cleartrackData.getData()) {
-                console.log('🔍 DEBUG: Initializing data storage');
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: Initializing data storage');
                 cleartrackData.initializeData();
             }
             
-            // Check if Firebase Auth is available
+            // Helper function to proceed with initialization after auth is ready
+            async function proceedWithInit() {
+                const firebaseUser = window.firebaseAuth.currentUser;
+                if (!firebaseUser) {
+                    // Wait ONCE for auth state
+                    if (window.CT_DEBUG) console.log('🔍 DEBUG: No Firebase user logged in, waiting for auth state...');
+                    let authResolved = false;
+                    const unsubscribe = window.firebaseAuth.onAuthStateChanged(async (user) => {
+                        if (authResolved) return; // Only process once
+                        authResolved = true;
+                        unsubscribe(); // Unsubscribe immediately
+                        
+                        if (user) {
+                            console.log('[practitioner] Auth resolved, proceeding with dashboard init');
+                            await loadPractitionerFromFirestore(user.uid);
+                        } else {
+                            // No user - fallback to local storage (no redirect)
+                            loadPractitionerFromLocalStorage();
+                        }
+                    });
+                    return;
+                }
+                
+                // User exists - proceed immediately
+                console.log('[practitioner] Auth resolved, proceeding with dashboard init');
+                await loadPractitionerFromFirestore(firebaseUser.uid);
+            }
+            
+            // Wait for Firebase Auth to be ready (passive wait, no redirects)
             if (!window.firebaseAuth) {
-                console.error('🔍 DEBUG: Firebase Auth not available');
-                // Fallback to local storage
-                loadPractitionerFromLocalStorage();
-                return;
-            }
-            
-            // Get current Firebase user
-            const firebaseUser = window.firebaseAuth.currentUser;
-            if (!firebaseUser) {
-                console.log('🔍 DEBUG: No Firebase user logged in, checking auth state...');
-                // Wait for auth state to be determined
-                window.firebaseAuth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        await loadPractitionerFromFirestore(user.uid);
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: Firebase Auth not ready, waiting...');
+                // Wait ONCE for auth to be available
+                const waitForAuth = () => {
+                    if (window.firebaseAuth) {
+                        proceedWithInit();
                     } else {
-                        loadPractitionerFromLocalStorage();
+                        setTimeout(waitForAuth, 100);
                     }
-                });
+                };
+                waitForAuth();
                 return;
             }
             
-            // Load practitioner profile from Firestore
-            await loadPractitionerFromFirestore(firebaseUser.uid);
+            // Auth is ready - proceed
+            await proceedWithInit();
         }
         
         // Load practitioner profile from Firestore and sync with local storage
         async function loadPractitionerFromFirestore(uid) {
             try {
-                console.log('🔍 DEBUG: Loading practitioner from Firestore, UID:', uid);
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: Loading practitioner from Firestore, UID:', uid);
                 
                 // Load profile from Firestore
                 let firestoreProfile = null;
@@ -5485,42 +5500,27 @@
                 }
                 
                 if (!firestoreProfile) {
-                    console.warn('🔍 DEBUG: No Firestore profile found, creating new practitioner');
+                    if (window.CT_DEBUG) console.warn('🔍 DEBUG: No Firestore profile found, creating new practitioner');
                     // Create new practitioner in Firestore
                     await createPractitionerInFirestore(uid);
                     return;
                 }
                 
-                console.log('🔍 DEBUG: Firestore profile loaded:', firestoreProfile);
+                console.log('[practitioner] Firestore profile loaded');
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: Firestore profile loaded:', firestoreProfile);
                 
                 // Check if practitioner is suspended or fraud-tagged
                 if (firestoreProfile.practitionerStatus === 'suspended') {
-                    console.warn('🔍 DEBUG: Practitioner account is suspended');
+                    if (window.CT_DEBUG) console.warn('🔍 DEBUG: Practitioner account is suspended');
                     alert('Your practitioner account has been suspended. Please contact support for assistance.');
-                    if (window.firebaseAuth) {
-                        window.firebaseAuth.signOut().then(() => {
-                            window.location.href = '/login.html';
-                        }).catch(() => {
-                            window.location.href = '/login.html';
-                        });
-                    } else {
-                        window.location.href = '/login.html';
-                    }
+                    // Do not redirect - let central auth handler manage routing
                     return;
                 }
                 
                 if (firestoreProfile.fraudTagged === true || firestoreProfile.practitionerStatus === 'fraud') {
-                    console.warn('🔍 DEBUG: Practitioner account is fraud-tagged');
+                    if (window.CT_DEBUG) console.warn('🔍 DEBUG: Practitioner account is fraud-tagged');
                     alert('Your practitioner account has been flagged. Please contact support for assistance.');
-                    if (window.firebaseAuth) {
-                        window.firebaseAuth.signOut().then(() => {
-                            window.location.href = '/login.html';
-                        }).catch(() => {
-                            window.location.href = '/login.html';
-                        });
-                    } else {
-                        window.location.href = '/login.html';
-                    }
+                    // Do not redirect - let central auth handler manage routing
                     return;
                 }
                 
@@ -5586,14 +5586,14 @@
                         await window.firebaseApi.saveData('users', uid, {
                             practitionerCode: practitioner.practitionerCode
                         });
-                        console.log('🔍 DEBUG: Practitioner code saved to Firestore');
+                        if (window.CT_DEBUG) console.log('🔍 DEBUG: Practitioner code saved to Firestore');
                     } catch (error) {
                         console.error('🔍 DEBUG: Error saving practitioner code to Firestore:', error);
                     }
                 }
                 
                 window.practitioner = practitioner;
-                console.log('🔍 DEBUG: Current practitioner set from Firestore:', practitioner);
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: Current practitioner set from Firestore:', practitioner);
                 
                 // Update interface
                 updatePractitionerInterface();
@@ -5619,7 +5619,7 @@
                     if (dashboardReady && practitionerReady) {
                         // Dashboard is ready, but let the main hideSplashAfterInit handle it
                         // to ensure everything is loaded
-                        console.log('🔍 DEBUG: Practitioner and dashboard ready, waiting for full initialization...');
+                        if (window.CT_DEBUG) console.log('🔍 DEBUG: Practitioner and dashboard ready, waiting for full initialization...');
                     }
                 }, 100);
                 
@@ -5634,7 +5634,7 @@
                 // Still set up status listener even if loading from local storage
                 const firebaseUser = window.firebaseAuth ? window.firebaseAuth.currentUser : null;
                 if (firebaseUser && firebaseUser.uid) {
-                    console.log('🔍 DEBUG: Setting up status listener after local storage fallback');
+                    if (window.CT_DEBUG) console.log('🔍 DEBUG: Setting up status listener after local storage fallback');
                     setupPractitionerStatusListener(firebaseUser.uid);
                 }
             }
@@ -5643,11 +5643,11 @@
         // Set up real-time Firestore listener to detect status changes
         function setupPractitionerStatusListener(uid) {
             if (!window.firebaseDb || !uid) {
-                console.warn('🔍 DEBUG: Cannot set up status listener - Firebase DB or UID not available');
+                if (window.CT_DEBUG) console.warn('🔍 DEBUG: Cannot set up status listener - Firebase DB or UID not available');
                 return;
             }
             
-            console.log('🔍 DEBUG: Setting up real-time status listener for practitioner UID:', uid);
+            if (window.CT_DEBUG) console.log('🔍 DEBUG: Setting up real-time status listener for practitioner UID:', uid);
             
             // Get user email for fallback checking
             const currentUser = window.firebaseAuth ? window.firebaseAuth.currentUser : null;
@@ -5663,11 +5663,11 @@
                 const currentStatus = userData.practitionerStatus;
                 const isFraudTagged = userData.fraudTagged === true;
                 
-                console.log(`🔍 DEBUG: Status listener (${source}) - Current status:`, currentStatus, 'Fraud tagged:', isFraudTagged);
+                if (window.CT_DEBUG) console.log(`🔍 DEBUG: Status listener (${source}) - Current status:`, currentStatus, 'Fraud tagged:', isFraudTagged);
                 
                 // Check if practitioner was suspended
                 if (currentStatus === 'suspended') {
-                    console.warn('🔍 DEBUG: Practitioner status changed to SUSPENDED - blocking access');
+                    if (window.CT_DEBUG) console.warn('🔍 DEBUG: Practitioner status changed to SUSPENDED - blocking access');
                     alert('Your practitioner account has been suspended. Please contact support for assistance.');
                     
                     // Stop any listeners
@@ -5693,7 +5693,7 @@
                 
                 // Check if practitioner was fraud-tagged
                 if (isFraudTagged || currentStatus === 'fraud') {
-                    console.warn('🔍 DEBUG: Practitioner status changed to FRAUD - blocking access');
+                    if (window.CT_DEBUG) console.warn('🔍 DEBUG: Practitioner status changed to FRAUD - blocking access');
                     alert('Your practitioner account has been flagged. Please contact support for assistance.');
                     
                     // Stop any listeners
@@ -5723,7 +5723,7 @@
             // Set up listener to watch for status changes on UID-based document
             const unsubscribe = userRef.onSnapshot((doc) => {
                 if (!doc.exists) {
-                    console.warn('🔍 DEBUG: UID-based user document does not exist, will check by email if available');
+                    if (window.CT_DEBUG) console.warn('🔍 DEBUG: UID-based user document does not exist, will check by email if available');
                     return;
                 }
                 
@@ -5736,7 +5736,7 @@
             // Also set up listener by email if email is available (for email-based documents)
             let unsubscribeByEmail = null;
             if (userEmail) {
-                console.log('🔍 DEBUG: Also setting up email-based status listener for:', userEmail);
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: Also setting up email-based status listener for:', userEmail);
                 
                 // Query by email and set up listener on the first matching document
                 const emailQuery = window.firebaseDb.collection('users')
@@ -5748,7 +5748,7 @@
                         snapshot.docs.forEach(doc => {
                             // Only process if it's a different document than the UID one
                             if (doc.id !== uid) {
-                                console.log('🔍 DEBUG: Found email-based document:', doc.id, 'different from UID:', uid);
+                                if (window.CT_DEBUG) console.log('🔍 DEBUG: Found email-based document:', doc.id, 'different from UID:', uid);
                                 const userData = doc.data();
                                 if (checkAndBlockIfSuspended(userData, 'email-based document')) {
                                     return; // Already blocked
@@ -5771,7 +5771,7 @@
         // Create new practitioner in Firestore
         async function createPractitionerInFirestore(uid) {
             try {
-                console.log('🔍 DEBUG: Creating new practitioner in Firestore');
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: Creating new practitioner in Firestore');
                 
                 // Generate practitioner code
                 const practitionerCode = cleartrackData.generatePractitionerCode();
@@ -5803,7 +5803,7 @@
                 // Save to Firestore
                 if (window.firebaseApi && window.firebaseApi.saveData) {
                     await window.firebaseApi.saveData('users', uid, practitionerData);
-                    console.log('🔍 DEBUG: New practitioner created in Firestore');
+                    if (window.CT_DEBUG) console.log('🔍 DEBUG: New practitioner created in Firestore');
                 }
                 
                 // Create in local storage
@@ -5820,7 +5820,7 @@
         
         // Fallback: Load practitioner from local storage only
         function loadPractitionerFromLocalStorage() {
-            console.log('🔍 DEBUG: Loading practitioner from local storage');
+            if (window.CT_DEBUG) console.log('🔍 DEBUG: Loading practitioner from local storage');
             const data = cleartrackData.getData();
             const practitionerIds = Object.keys(data.practitioners || {});
             
@@ -5832,7 +5832,7 @@
                     practitioner.profileImage = null;
                 }
                 window.practitioner = practitioner;
-                console.log('🔍 DEBUG: Current practitioner set from local storage:', practitioner);
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: Current practitioner set from local storage:', practitioner);
                 updatePractitionerInterface();
                 
                 // Don't use profileImage from localStorage - Firestore is the only source of truth
@@ -5844,7 +5844,7 @@
                     updateMessagesHeaderAvatar();
                 }, 500);
             } else {
-                console.log('🔍 DEBUG: No practitioners found, creating new practitioner');
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: No practitioners found, creating new practitioner');
                 practitioner = cleartrackData.createPractitioner({
                     name: 'Practitioner',
                     practiceName: 'Your Practice Name',
@@ -5859,7 +5859,7 @@
                     isPubliclyVisible: false
                 });
                 window.practitioner = practitioner;
-                console.log('🔍 DEBUG: New practitioner created:', practitioner);
+                if (window.CT_DEBUG) console.log('🔍 DEBUG: New practitioner created:', practitioner);
                 updatePractitionerInterface();
             }
             
@@ -5877,10 +5877,23 @@
         
         // Update messages header avatar with practitioner profile image
         function updateMessagesHeaderAvatar(imageUrl) {
+            // Guard: only prevent duplicate calls if we already have an image set
+            // Allow re-runs if image arrives later
+            if (window.__ctAvatarUpdated) {
+                const avatar = document.getElementById('messagesHeaderAvatar');
+                if (avatar) {
+                    const img = avatar.querySelector('img');
+                    // If we already have a profile image set, skip duplicate call
+                    if (img && img.src && !img.src.includes('profile.svg')) {
+                        return;
+                    }
+                }
+            }
+            
             // Select ONLY the messaging header avatar by unique ID
             const avatar = document.getElementById('messagesHeaderAvatar');
             if (!avatar) {
-                console.log('🔍 updateMessagesHeaderAvatar: messagesHeaderAvatar not found');
+                if (window.CT_DEBUG) console.log('🔍 updateMessagesHeaderAvatar: messagesHeaderAvatar not found');
                 return;
             }
             
@@ -5890,7 +5903,7 @@
                 // Create img element if it doesn't exist
                 img = document.createElement('img');
                 avatar.appendChild(img);
-                console.log('✅ updateMessagesHeaderAvatar: Created img element in header avatar container');
+                if (window.CT_DEBUG) console.log('✅ updateMessagesHeaderAvatar: Created img element in header avatar container');
             }
             
             // Use provided imageUrl, or fall back to practitioner.profileImage, or use default
@@ -5902,13 +5915,16 @@
                 img.alt = 'Profile';
                 img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
                 img.className = '';
-                console.log('✅ updateMessagesHeaderAvatar: Updated header avatar img with profile image');
+                // Only set flag when actual image URL is present and assigned
+                window.__ctAvatarUpdated = true;
+                if (window.CT_DEBUG) console.log('✅ updateMessagesHeaderAvatar: Updated header avatar img with profile image');
             } else {
                 img.src = 'assets/icons/profile.svg';
                 img.alt = 'Profile';
                 img.className = 'icon icon-lg';
                 img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-                console.log('✅ updateMessagesHeaderAvatar: Updated header avatar img with default icon');
+                // Don't set flag for default icon - allow re-run when image arrives
+                if (window.CT_DEBUG) console.log('✅ updateMessagesHeaderAvatar: Updated header avatar img with default icon');
             }
         }
         
@@ -11641,6 +11657,300 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             document.body.removeChild(link);
         }
         
+        // PHASE3A: Generate Annual SARS Pack (CSV + PDF + ZIP)
+        async function generateAnnualSARSPack() {
+            console.log('[PHASE3A] Starting Annual SARS Pack generation...');
+            
+            // Step 1: Get selected client
+            const clientSelect = document.getElementById('practitionerClientSelect');
+            if (!clientSelect || !clientSelect.value) {
+                alert('Please select a client first from the client list.');
+                return;
+            }
+            
+            const clientId = clientSelect.value;
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                alert('Client not found.');
+                return;
+            }
+            
+            console.log('[PHASE3A] Client selected:', client.firstName, client.lastName);
+            
+            // Step 2: Determine tax year (current tax year: March 1 to Feb 28/29)
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth() + 1; // 1-12
+            
+            let taxYearStart, taxYearEnd, taxYearLabel;
+            if (currentMonth >= 3) {
+                // March onwards - current year to next year
+                taxYearStart = `${currentYear}-03-01`;
+                taxYearEnd = `${currentYear + 1}-02-${new Date(currentYear + 1, 1, 29).getDate() === 29 ? '29' : '28'}`;
+                taxYearLabel = `${currentYear}-${currentYear + 1}`;
+            } else {
+                // Jan/Feb - previous year to current year
+                taxYearStart = `${currentYear - 1}-03-01`;
+                taxYearEnd = `${currentYear}-02-${new Date(currentYear, 1, 29).getDate() === 29 ? '29' : '28'}`;
+                taxYearLabel = `${currentYear - 1}-${currentYear}`;
+            }
+            
+            const taxYear = {
+                start: taxYearStart,
+                end: taxYearEnd
+            };
+            
+            console.log('[PHASE3A] Tax year:', taxYearLabel, taxYear);
+            
+            // Step 3: Get expenses (which serve as trips if they have vehicleId and date)
+            const expenses = cleartrackData.getUserExpenses(clientId) || [];
+            const trips = expenses.filter(exp => exp.date && exp.vehicleId).map(exp => ({
+                id: exp.id,
+                date: exp.date,
+                vehicleId: exp.vehicleId,
+                distance: exp.distance || 0,
+                businessUse: exp.businessUse || 100,
+                description: exp.description || '',
+                category: exp.category || ''
+            }));
+            
+            console.log('[PHASE3A] Found', trips.length, 'trips with vehicle assignments');
+            
+            // Step 4: Call prepareSARSExportData()
+            if (!window.vehicleLifecycleService || !window.vehicleLifecycleService.prepareSARSExportData) {
+                alert('Vehicle lifecycle service not available. Please ensure the service is loaded.');
+                return;
+            }
+            
+            let sarsData;
+            try {
+                sarsData = await window.vehicleLifecycleService.prepareSARSExportData(clientId, taxYear, trips);
+                console.log('[PHASE3A] SARS export data prepared:', sarsData);
+            } catch (error) {
+                console.error('[PHASE3A] Error preparing SARS export data:', error);
+                alert('Error preparing SARS export data: ' + error.message);
+                return;
+            }
+            
+            if (!sarsData || !sarsData.vehicles || sarsData.vehicles.length === 0) {
+                alert('No vehicle data found for this client in the selected tax year.');
+                return;
+            }
+            
+            // Step 5: Generate CSV files (one per vehicle)
+            const csvFiles = [];
+            for (const vehicle of sarsData.vehicles) {
+                const csvContent = generateVehicleCSV(vehicle, client, taxYearLabel);
+                const fileName = `SARS_Logbook_${vehicle.regNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${taxYearLabel}.csv`;
+                csvFiles.push({ name: fileName, content: csvContent });
+                console.log('[PHASE3A] Generated CSV for vehicle:', vehicle.regNumber);
+            }
+            
+            // Step 6: Generate PDF files (one per vehicle)
+            const pdfFiles = [];
+            for (const vehicle of sarsData.vehicles) {
+                try {
+                    const pdfBlob = await generateVehiclePDF(vehicle, client, taxYearLabel);
+                    const fileName = `SARS_Logbook_${vehicle.regNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${taxYearLabel}.pdf`;
+                    pdfFiles.push({ name: fileName, blob: pdfBlob });
+                    console.log('[PHASE3A] Generated PDF for vehicle:', vehicle.regNumber);
+                } catch (error) {
+                    console.error('[PHASE3A] Error generating PDF for vehicle', vehicle.regNumber, ':', error);
+                    // Continue with other vehicles even if one PDF fails
+                }
+            }
+            
+            // Step 7: Bundle into ZIP
+            if (typeof JSZip === 'undefined') {
+                alert('JSZip library not loaded. Please refresh the page and try again.');
+                return;
+            }
+            
+            const zip = new JSZip();
+            
+            // Add CSV files
+            for (const csvFile of csvFiles) {
+                zip.file(csvFile.name, csvFile.content);
+            }
+            
+            // Add PDF files
+            for (const pdfFile of pdfFiles) {
+                const arrayBuffer = await pdfFile.blob.arrayBuffer();
+                zip.file(pdfFile.name, arrayBuffer);
+            }
+            
+            // Generate ZIP
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const zipFileName = `SARS_Annual_Pack_${client.firstName}_${client.lastName}_${taxYearLabel}.zip`;
+            
+            // Step 8: Download ZIP
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(zipBlob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', zipFileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            console.log('[PHASE3A] ZIP file downloaded:', zipFileName);
+            alert(`SARS Annual Pack generated successfully!\n\nFiles included:\n- ${csvFiles.length} CSV file(s)\n- ${pdfFiles.length} PDF file(s)`);
+            
+            // PHASE3B: Log audit event for SARS export
+            try {
+                const practitionerId = practitioner ? practitioner.id : null;
+                await logAuditEvent({
+                    type: 'SARS_EXPORT',
+                    clientId: clientId,
+                    practitionerId: practitionerId,
+                    taxYear: taxYearLabel,
+                    vehicleCount: sarsData.vehicles.length,
+                    source: 'practitioner-dashboard'
+                });
+            } catch (error) {
+                console.error('[PHASE3B-AUDIT] Error logging SARS export audit:', error);
+                // Don't block user - audit logging is non-critical
+            }
+        }
+        
+        // PHASE3A: Generate CSV content for a vehicle
+        function generateVehicleCSV(vehicle, client, taxYearLabel) {
+            const headers = ['Date', 'Opening KM', 'Closing KM', 'Business KM', 'Private KM', 'Purpose', 'From', 'To'];
+            const rows = [headers.join(',')];
+            
+            // Sort trips by date
+            const sortedTrips = [...(vehicle.trips || [])].sort((a, b) => {
+                return new Date(a.date) - new Date(b.date);
+            });
+            
+            let currentKm = vehicle.openingKm || 0;
+            
+            for (const trip of sortedTrips) {
+                const distance = trip.distance || 0;
+                const businessUse = trip.businessUse || 100;
+                const businessKm = Math.round(distance * (businessUse / 100));
+                const privateKm = distance - businessKm;
+                const closingKm = currentKm + distance;
+                
+                const row = [
+                    trip.date || '',
+                    currentKm,
+                    closingKm,
+                    businessKm,
+                    privateKm,
+                    `"${(trip.description || '').replace(/"/g, '""')}"`,
+                    '"Home"',
+                    `"${(trip.description || '').replace(/"/g, '""')}"`
+                ].join(',');
+                
+                rows.push(row);
+                currentKm = closingKm;
+            }
+            
+            // Add summary row
+            rows.push('');
+            rows.push('Summary,Total Trips,Total Distance,Total Business Distance');
+            rows.push(`Totals,${vehicle.totals.tripCount},${vehicle.totals.totalDistance},${vehicle.totals.businessDistance}`);
+            
+            return rows.join('\n');
+        }
+        
+        // PHASE3A: Generate PDF for a vehicle
+        async function generateVehiclePDF(vehicle, client, taxYearLabel) {
+            if (typeof window.jspdf === 'undefined') {
+                throw new Error('jsPDF library not loaded');
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFontSize(16);
+            doc.text('SARS Travel Logbook', 14, 20);
+            doc.setFontSize(12);
+            doc.text(`Client: ${client.firstName} ${client.lastName}`, 14, 30);
+            doc.text(`Vehicle: ${vehicle.regNumber}`, 14, 36);
+            doc.text(`Tax Year: ${taxYearLabel}`, 14, 42);
+            doc.text(`Period: ${vehicle.startDate} to ${vehicle.endDate}`, 14, 48);
+            
+            // Table headers
+            let yPos = 60;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Date', 14, yPos);
+            doc.text('Opening', 50, yPos);
+            doc.text('Closing', 70, yPos);
+            doc.text('Business', 90, yPos);
+            doc.text('Private', 110, yPos);
+            doc.text('Purpose', 130, yPos);
+            
+            yPos += 6;
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, yPos, 200, yPos);
+            yPos += 4;
+            
+            // Table rows
+            doc.setFont(undefined, 'normal');
+            const sortedTrips = [...(vehicle.trips || [])].sort((a, b) => {
+                return new Date(a.date) - new Date(b.date);
+            });
+            
+            let currentKm = vehicle.openingKm || 0;
+            let pageNum = 1;
+            const maxY = 280;
+            
+            for (const trip of sortedTrips) {
+                if (yPos > maxY) {
+                    doc.addPage();
+                    yPos = 20;
+                    pageNum++;
+                }
+                
+                const distance = trip.distance || 0;
+                const businessUse = trip.businessUse || 100;
+                const businessKm = Math.round(distance * (businessUse / 100));
+                const privateKm = distance - businessKm;
+                const closingKm = currentKm + distance;
+                
+                doc.setFontSize(9);
+                doc.text(trip.date || '', 14, yPos);
+                doc.text(currentKm.toString(), 50, yPos);
+                doc.text(closingKm.toString(), 70, yPos);
+                doc.text(businessKm.toString(), 90, yPos);
+                doc.text(privateKm.toString(), 110, yPos);
+                
+                // Truncate purpose if too long
+                const purpose = (trip.description || '').substring(0, 30);
+                doc.text(purpose, 130, yPos);
+                
+                yPos += 6;
+                currentKm = closingKm;
+            }
+            
+            // Summary on last page
+            if (yPos > maxY - 20) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            yPos += 10;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Summary', 14, yPos);
+            yPos += 6;
+            doc.setFont(undefined, 'normal');
+            doc.text(`Total Trips: ${vehicle.totals.tripCount}`, 14, yPos);
+            yPos += 6;
+            doc.text(`Total Distance: ${vehicle.totals.totalDistance} km`, 14, yPos);
+            yPos += 6;
+            doc.text(`Total Business Distance: ${vehicle.totals.businessDistance} km`, 14, yPos);
+            
+            // Generate blob
+            const pdfBlob = doc.output('blob');
+            return pdfBlob;
+        }
+        
         
         // Clean rebuild of client selection modal for invoice generation
         function openClientSelectionModal() {
@@ -12648,10 +12958,10 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                             practitionerCode: practitioner.practitionerCode || updatedPractitioner.practitionerCode
                         };
                         await window.firebaseApi.saveData('users', uid, firestoreData);
-                        console.log('🔍 DEBUG: Practitioner profile updated in Firestore');
+                        if (window.CT_DEBUG) console.log('🔍 DEBUG: Practitioner profile updated in Firestore');
                     }
                 } catch (error) {
-                    console.error('🔍 DEBUG: Error updating practitioner profile in Firestore:', error);
+                    if (window.CT_DEBUG) console.error('🔍 DEBUG: Error updating practitioner profile in Firestore:', error);
                     // Continue anyway - local storage update succeeded
                 }
             }
@@ -12789,11 +13099,11 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 window.showLoadingScreen('Signing out...', 'Logging out of ClearTrack');
             }
             
-            // Close mobile nav if it's open (handled by global-hamburger-menu.js)
+            // Close mobile nav if it's open (only if nav exists)
             const nav = document.getElementById('nav-style6');
-            const toggle = document.querySelector('.menu-toggle-style6');
             if (nav && nav.classList.contains('active')) {
                 nav.classList.remove('active');
+                const toggle = document.querySelector('.menu-toggle-style6');
                 if (toggle) toggle.classList.remove('active');
             }
             
@@ -13145,11 +13455,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             `;
             
             // Update avatar with practitioner profile image after reset
-            // Call immediately and also with delay to ensure DOM is ready
             updateMessagesHeaderAvatar();
-            setTimeout(() => {
-                updateMessagesHeaderAvatar();
-            }, 100);
             
             // Hide message input area
             const messageInputArea = document.getElementById('messageInputArea');
@@ -14052,14 +14358,16 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Debug function to help troubleshoot document preview issues
         function debugDocumentPreview(fileData, fileName) {
-            console.log('Document Preview Debug Info:');
-            console.log('File Name:', fileName);
-            console.log('File Data Type:', typeof fileData);
-            console.log('File Data Length:', fileData ? fileData.length : 'N/A');
-            console.log('File Extension:', fileName.split('.').pop().toLowerCase());
-            console.log('Is Data URL:', fileData ? fileData.startsWith('data:') : false);
-            console.log('Contains PDF:', fileData ? fileData.includes('pdf') : false);
-            console.log('MIME Type:', fileData && fileData.startsWith('data:') ? fileData.split(';')[0] : 'N/A');
+            if (DEBUG) {
+                console.log('Document Preview Debug Info:');
+                console.log('File Name:', fileName);
+                console.log('File Data Type:', typeof fileData);
+                console.log('File Data Length:', fileData ? fileData.length : 'N/A');
+                console.log('File Extension:', fileName.split('.').pop().toLowerCase());
+                console.log('Is Data URL:', fileData ? fileData.startsWith('data:') : false);
+                console.log('Contains PDF:', fileData ? fileData.includes('pdf') : false);
+                console.log('MIME Type:', fileData && fileData.startsWith('data:') ? fileData.split(';')[0] : 'N/A');
+            }
         }
 
         
@@ -15331,42 +15639,82 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
-            // Update client data with submission status
-            client.submissionStatus = 'submitted';
-            client.submissionDate = new Date().toISOString();
-            
-            // Save to cleartrackData
-            cleartrackData.updateUser(client);
-            
-            // Save to Firestore if available
-            if (window.firebaseDb && window.firebaseDb.collection) {
-                try {
-                    await window.firebaseDb.collection('users').doc(client.id).update({
-                        submissionStatus: 'submitted',
-                        submissionDate: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    console.log('✅ Client submission status updated in Firestore for', client.id);
-                } catch (error) {
-                    console.error('❌ Error updating client submission status in Firestore:', error);
+            // PHASE3C: Call server-side submission function for atomic, tamper-proof submission
+            try {
+                // Get current tax year
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                const currentMonth = today.getMonth() + 1;
+                let taxYear;
+                if (currentMonth >= 3) {
+                    taxYear = {
+                        start: `${currentYear}-03-01`,
+                        end: `${currentYear + 1}-02-${new Date(currentYear + 1, 1, 29).getDate() === 29 ? '29' : '28'}`
+                    };
+                } else {
+                    taxYear = {
+                        start: `${currentYear - 1}-03-01`,
+                        end: `${currentYear}-02-${new Date(currentYear, 1, 29).getDate() === 29 ? '29' : '28'}`
+                    };
                 }
+                
+                // Ensure Firebase Functions is initialized
+                if (!window.firebaseFunctions) {
+                    initializeFirebaseFunctions();
+                    // Wait a bit for initialization
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                if (!window.firebaseFunctions) {
+                    throw new Error('Firebase Functions not available');
+                }
+                
+                // Call server-side submission function
+                const submitClient = window.firebaseFunctions.httpsCallable('submitClientForTaxYear');
+                const result = await submitClient({
+                    clientId: client.id,
+                    practitionerId: practitioner ? practitioner.id : null,
+                    taxYear: taxYear
+                });
+                
+                console.log('[PHASE3C] Server-side submission completed:', result.data);
+                
+                // Update local client data
+                client.submissionStatus = 'submitted';
+                client.submissionDate = new Date().toISOString();
+                client.submissionSnapshotId = result.data.snapshotId;
+                
+                // Save to cleartrackData (local cache)
+                cleartrackData.updateUser(client);
+                
+                // Reload clients display to update UI
+                loadClients();
+                loadTaxReturns();
+                updateDashboard();
+                
+                // Show confirmation feedback
+                alert(`SARS submission for ${client.firstName} ${client.lastName} confirmed!`);
+                
+                // If checkbox was selected, show invoice prompt
+                const promptInvoice = document.getElementById('promptInvoiceCheckbox')?.checked;
+                if (promptInvoice) {
+                    alert('Reminder: Generate an invoice for this submission.');
+                    // Optionally, you could trigger a modal or redirect to invoice generation
+                }
+                
+                closeMarkSubmittedModal();
+            } catch (error) {
+                console.error('[PHASE3C] Error submitting client:', error);
+                let errorMessage = 'Failed to submit client. Please try again.';
+                if (error.code === 'permission-denied') {
+                    errorMessage = 'You do not have permission to submit this client.';
+                } else if (error.code === 'failed-precondition') {
+                    errorMessage = error.message || 'Client has already been submitted.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                alert(`Error: ${errorMessage}`);
             }
-            
-            // Reload clients display to update UI
-            loadClients();
-            loadTaxReturns(); // Reload tax returns to show client in submissions tab
-            updateDashboard();
-            
-            // Show confirmation feedback
-            alert(`SARS submission for ${client.firstName} ${client.lastName} confirmed!`);
-            
-            // If checkbox was selected, show invoice prompt
-            const promptInvoice = document.getElementById('promptInvoiceCheckbox')?.checked;
-            if (promptInvoice) {
-                alert('Reminder: Generate an invoice for this submission.');
-                // Optionally, you could trigger a modal or redirect to invoice generation
-            }
-            
-            closeMarkSubmittedModal();
         }
         
         
@@ -15839,7 +16187,39 @@ ${practitioner.firstName} ${practitioner.lastName}`;
     <script>
         // Simple polling for real-time updates
         setInterval(function() {
-            if (window.practitioner && window.loadConversations) {
+            // Guard 1: Practitioner exists and has id
+            if (!window.practitioner || !window.practitioner.id) {
+                return; // Don't poll, don't log
+            }
+            
+            // Guard 2: Messages section exists
+            const messagesSection = document.getElementById('messages');
+            if (!messagesSection) {
+                return; // Don't poll, don't log
+            }
+            
+            // Guard 3: Messages section is visible and active
+            const isHidden = messagesSection.classList.contains('hidden') || 
+                            messagesSection.hasAttribute('hidden') ||
+                            window.getComputedStyle(messagesSection).display === 'none';
+            if (isHidden) {
+                return; // Don't poll if section is hidden
+            }
+            
+            // Guard 4: Check if messages section is the active one
+            const allSections = document.querySelectorAll('.section');
+            let messagesIsVisible = false;
+            allSections.forEach(section => {
+                const sectionHidden = section.classList.contains('hidden') || 
+                                    section.hasAttribute('hidden') ||
+                                    window.getComputedStyle(section).display === 'none';
+                if (!sectionHidden && section.id === 'messages') {
+                    messagesIsVisible = true;
+                }
+            });
+            
+            // Only poll if messages section is visible and active
+            if (messagesIsVisible && window.loadConversations) {
                 // Refresh conversations to update sidebar
                 window.loadConversations();
                 
@@ -15853,16 +16233,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const toggle = document.getElementById("ctMenuToggle");
-        const nav = document.getElementById("ctMainNav");
-
-        if (toggle && nav) {
-            toggle.addEventListener("click", () => {
-                const open = nav.classList.toggle("active");
-                toggle.setAttribute("aria-expanded", open ? "true" : "false");
-            });
-        }
-
+        // Hamburger menu removed - dashboards use bottom navigation only
+        
         const logoutBtn = document.getElementById("desktopLogoutBtn");
         if (logoutBtn && window.firebaseAuth) {
             logoutBtn.addEventListener("click", async () => {
@@ -15942,6 +16314,11 @@ ${practitioner.firstName} ${practitioner.lastName}`;
     <script>
         // Load Firebase AI SDK dynamically as a module
         (async function() {
+            // Guard: only run once
+            if (window.__CT_AI_INITIALIZED__ === true) {
+                return;
+            }
+            
             try {
                 console.log('🔄 Loading Firebase AI SDK...');
                 // Import both the app SDK and AI SDK as modules
@@ -15959,20 +16336,35 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 
                 // Wait for Firebase config to be ready
                 const waitForFirebase = () => {
+                    // Guard: only run once
+                    if (window.__CT_AI_INITIALIZED__ === true) {
+                        return;
+                    }
+                    
                     if (window.firebaseConfig) {
+                        // Set guard BEFORE any async/await or SDK loading
+                        window.__CT_AI_INITIALIZED__ = true;
+                        
                         try {
-                            console.log('🔧 Initializing modular Firebase app for AI...');
-                            
+                            // ARCHITECTURE: This MUST use window.firebaseConfig (cleartrack-1f6c6)
+                            // DO NOT initialize cleartrack-hosting or any other project here
                             // Initialize a modular app instance using the same config
                             // This is needed because AI SDK requires modular SDK app, not compat
+                            console.log('🔧 Initializing modular Firebase app for AI...');
+                            
                             let modularApp;
                             try {
-                                // Try to get existing modular app first
+                                // Try to get existing modular app first (reuse to prevent duplicates)
                                 const existingApps = getApps();
                                 if (existingApps.length > 0) {
                                     modularApp = existingApps[0];
                                     console.log('📦 Reusing existing modular app');
                                 } else {
+                                    // Guard: Ensure we're using the correct config (cleartrack-1f6c6)
+                                    if (!window.firebaseConfig || window.firebaseConfig.projectId !== 'cleartrack-1f6c6') {
+                                        console.error('[ARCHITECTURE] AI init: config must use project cleartrack-1f6c6');
+                                        return;
+                                    }
                                     modularApp = initializeApp(window.firebaseConfig);
                                     console.log('📦 Created new modular app for AI');
                                 }
@@ -16076,6 +16468,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
     <script src="firebase-init.js"></script>
     <script src="js/auth-redirect-controller.js"></script>
     <script src="firebase-api.js"></script>
+    <!-- PHASE3A: Vehicle lifecycle service for SARS pack generation -->
+    <script src="js/vehicles/vehicle-lifecycle.service.js"></script>
     <script src="js/client-linking.js"></script>
     <!-- loading-screen.js already loaded in head -->
   <script src="dashboard-auth.js"></script>
@@ -16124,16 +16518,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const toggle = document.getElementById("ctMenuToggle");
-        const nav = document.getElementById("ctMainNav");
-
-        if (toggle && nav) {
-            toggle.addEventListener("click", () => {
-                const open = nav.classList.toggle("active");
-                toggle.setAttribute("aria-expanded", open ? "true" : "false");
-            });
-        }
-
+        // Hamburger menu removed - dashboards use bottom navigation only
+        
         const logoutBtn = document.getElementById("desktopLogoutBtn");
         if (logoutBtn && window.firebaseAuth) {
             logoutBtn.addEventListener("click", async () => {
@@ -16369,7 +16755,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             }
             
             if (!window.practitioner || !window.practitioner.id) {
-                console.debug('[Support] Practitioner not available yet');
+                // Practitioner not loaded yet - show message in UI only
                 const listEl = document.getElementById('supportTicketList');
                 if (listEl) {
                     listEl.innerHTML = '<p style="color: #667781; text-align: center; padding: 20px;">Waiting for practitioner data...</p>';
@@ -16836,7 +17222,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         // Initialize support system when practitioner is available
         function initializeSupportSystem() {
             if (!window.practitioner || !window.practitioner.id) {
-                console.debug('[Support] Waiting for practitioner...');
+                // Practitioner not loaded yet, retry silently
                 setTimeout(initializeSupportSystem, 500);
                 return;
             }
@@ -17127,19 +17513,19 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             
             // If version mismatch, force hard refresh to get latest code
             if (storedVersion && storedVersion !== AI_CODE_VERSION) {
-                console.log('🔄 AI code version mismatch detected - forcing refresh...');
+                console.log('🔄 AI code version mismatch detected - update available');
                 console.log('Stored version:', storedVersion, 'Current version:', AI_CODE_VERSION);
                 localStorage.setItem('cleartrack-ai-version', AI_CODE_VERSION);
-                // Force hard refresh to clear all caches
+                // Check for service worker updates (passive, no reload)
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(registrations => {
                         registrations.forEach(registration => {
-                            registration.update(); // Force service worker update
+                            registration.update(); // Check for updates (passive)
                         });
                     });
                 }
-                // Reload with cache bypass
-                window.location.reload(true);
+                // DO NOT reload automatically - user must manually refresh
+                console.log('⚠️ New version available - please refresh manually to get updates');
                 return;
             }
             
@@ -17177,16 +17563,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             setTimeout(() => {
                 if (!practitionerAiModel && typeof firebase !== 'undefined' && !firebase.ai) {
                     console.warn('⚠️ AI SDK failed to load - user may have cached code');
-                    const shouldRefresh = confirm('Your app may be using an outdated version. Would you like to refresh to get the latest features?');
-                    if (shouldRefresh) {
-                        // Clear all caches and reload
-                        if ('caches' in window) {
-                            caches.keys().then(names => {
-                                names.forEach(name => caches.delete(name));
-                            });
-                        }
-                        window.location.reload(true);
-                    }
+                    // DO NOT auto-reload - let user decide when to refresh
+                    console.log('⚠️ AI SDK may not be loaded - user can refresh manually if needed');
+                    // Removed auto-reload - user must manually refresh
                 }
             }, 10000);
         }
@@ -17525,20 +17904,10 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             // Enable/disable send button (check for text or file)
             const btn = document.getElementById('practitionerAskQuestionBtn');
             if (btn) {
-                // #region agent log
-                const computedStyle = window.getComputedStyle(btn);
-                fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'practitioner-dashboard.html:17425',message:'Button computed styles check',data:{background:computedStyle.backgroundColor,color:computedStyle.color,hasInlineStyle:!!btn.style.backgroundColor,inlineBackground:btn.style.backgroundColor,className:btn.className,id:btn.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
                 const hasText = textarea.value.trim();
                 const hasFile = aiChatCurrentFile !== null;
                 const shouldDisable = !hasText && !hasFile;
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'practitioner-dashboard.html:17432',message:'Button enable/disable logic',data:{hasText:!!hasText,hasFile:hasFile,textareaValue:textarea.value,textareaValueLength:textarea.value.length,aiChatCurrentFile:aiChatCurrentFile,shouldDisable:shouldDisable,currentDisabled:btn.disabled},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                // #endregion
                 btn.disabled = shouldDisable;
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'practitioner-dashboard.html:17440',message:'Button state after update',data:{disabled:btn.disabled,computedBackground:window.getComputedStyle(btn).backgroundColor},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                // #endregion
             }
         }
         window.autoResizeAIInput = autoResizeAIInput;
@@ -17583,10 +17952,6 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (textarea) {
                 autoResizeAIInput(textarea);
             }
-            // #region agent log
-            const btn = document.getElementById('practitionerAskQuestionBtn');
-            fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'practitioner-dashboard.html:17478',message:'File uploaded - button state check',data:{hasFile:!!aiChatCurrentFile,buttonDisabled:btn?.disabled,textareaValue:textarea?.value},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
             
             // Reset input
             event.target.value = '';
@@ -17627,10 +17992,6 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             if (textarea) {
                 autoResizeAIInput(textarea);
             }
-            // #region agent log
-            const btn = document.getElementById('practitionerAskQuestionBtn');
-            fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'practitioner-dashboard.html:17512',message:'File cleared - button state check',data:{hasFile:!!aiChatCurrentFile,buttonDisabled:btn?.disabled,textareaValue:textarea?.value},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
         }
         
         function formatFileSize(bytes) {
@@ -17740,6 +18101,19 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                             // Wait for AI to be ready
                             await new Promise((resolve) => {
                                 const checkAI = setInterval(() => {
+                                    // Guard: Only check if AI assistant section is visible
+                                    const aiSection = document.getElementById('ai-assistant');
+                                    if (aiSection) {
+                                        const isHidden = aiSection.classList.contains('hidden') || 
+                                                        aiSection.hasAttribute('hidden') ||
+                                                        window.getComputedStyle(aiSection).display === 'none';
+                                        if (isHidden) {
+                                            clearInterval(checkAI);
+                                            resolve();
+                                            return;
+                                        }
+                                    }
+                                    
                                     if (practitionerAiModel) {
                                         clearInterval(checkAI);
                                         resolve();
@@ -17844,6 +18218,19 @@ Format your response in clear sections with headings.`;
                         // Wait for AI to be ready
                         await new Promise((resolve) => {
                             const checkAI = setInterval(() => {
+                                // Guard: Only check if AI assistant section is visible
+                                const aiSection = document.getElementById('ai-assistant');
+                                if (aiSection) {
+                                    const isHidden = aiSection.classList.contains('hidden') || 
+                                                    aiSection.hasAttribute('hidden') ||
+                                                    window.getComputedStyle(aiSection).display === 'none';
+                                    if (isHidden) {
+                                        clearInterval(checkAI);
+                                        resolve();
+                                        return;
+                                    }
+                                }
+                                
                                 if (practitionerAiModel) {
                                     clearInterval(checkAI);
                                     resolve();
@@ -17948,10 +18335,6 @@ Format your response in clear, readable paragraphs.`;
                         if (textarea) {
                             autoResizeAIInput(textarea);
                         }
-                        // #region agent log
-                        const btn = document.getElementById('practitionerAskQuestionBtn');
-                        fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'practitioner-dashboard.html:17832',message:'AI section shown - initial button state',data:{buttonDisabled:btn?.disabled,textareaValue:textarea?.value,hasFile:!!aiChatCurrentFile},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-                        // #endregion
                     }, 100);
                 }
             };
@@ -17961,14 +18344,25 @@ Format your response in clear, readable paragraphs.`;
         function checkAISection() {
             const aiSection = document.getElementById('ai-assistant');
             if (aiSection) {
-                console.log('✅ AI Assistant section found in DOM');
-                console.log('AI Section classes:', aiSection.className);
-                console.log('AI Section display:', window.getComputedStyle(aiSection).display);
-                console.log('AI Section parent:', aiSection.parentElement?.id || 'no parent');
+                // Check if it has a parent, if not, append it to main container
+                if (!aiSection.parentElement) {
+                    const mainContainer = document.querySelector('main.main') || document.body;
+                    mainContainer.appendChild(aiSection);
+                }
+                // Verify parent exists after append
+                const parent = aiSection.parentElement;
+                if (window.CT_DEBUG) {
+                    console.log('✅ AI Assistant section found in DOM');
+                    console.log('AI Section classes:', aiSection.className);
+                    console.log('AI Section display:', window.getComputedStyle(aiSection).display);
+                    console.log('AI Section parent:', parent ? (parent.id || parent.tagName || 'attached') : 'no parent');
+                }
                 return true;
             } else {
-                console.error('❌ AI Assistant section NOT found in DOM');
-                console.error('Available sections:', Array.from(document.querySelectorAll('.section')).map(s => s.id));
+                if (window.CT_DEBUG) {
+                    console.error('❌ AI Assistant section NOT found in DOM');
+                    console.error('Available sections:', Array.from(document.querySelectorAll('.section')).map(s => s.id));
+                }
                 return false;
             }
         }
@@ -17997,8 +18391,6 @@ Format your response in clear, readable paragraphs.`;
                         }
                     } catch(e) {}
                 }
-                fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'practitioner-dashboard.html:17850',message:'Button color debug on load',data:{computedBackground:computedStyle.backgroundColor,computedColor:computedStyle.color,inlineStyle:btn.style.cssText,className:btn.className,id:btn.id,matchingRules:allStyles},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                // #endregion
             }
         }
         if (document.readyState === 'loading') {

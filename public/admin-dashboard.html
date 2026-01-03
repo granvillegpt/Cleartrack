@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    // CT PAGE IDENTITY — ADMIN DASHBOARD
+    window.__CLEARTRACK_PAGE_TYPE__ = 'admin';
+    window.__CLEARTRACK_REDIRECTED__ = true;
+    sessionStorage.setItem('ct_redirect_done', 'true');
+  </script>
+  <script>
+    const DEBUG = false;
+  </script>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - ClearTrack</title>
@@ -31,7 +41,6 @@
             window.showLoadingScreen('Loading Admin Dashboard...', 'Please wait');
         }
     </script>
-    <script src="global-hamburger-menu.js"></script>
     <script src="modal-system.js"></script>
     <script src="unified-section-handler.js"></script>
     <!-- Testing Script (remove in production) -->
@@ -1508,10 +1517,6 @@
     .toggle-switch input:checked + .toggle-slider:before {
       transform: translateX(20px);
     }
-      position: relative;
-      z-index: 10;
-      pointer-events: auto;
-    }
     
     .application-actions button {
       position: relative;
@@ -2023,25 +2028,10 @@
 <body>
   <header class="header">
     <div class="header-top">
-      <button
-          id="ctMenuToggle"
-          class="menu-toggle-style6"
-          type="button"
-          aria-label="Toggle navigation menu"
-          aria-expanded="false"
-          style="position: absolute; left: 1rem; z-index: 2;">
-          ☰
-      </button>
       <div class="logo">
         <img src="assets/images/full%20logo%20CT.png" alt="ClearTrack Logo">
       </div>
     </div>
-    <nav class="nav-style6" id="ctMainNav">
-      <a href="#" class="nav-link" onclick="showAdminSection('applications', this); return false;" id="nav-applications">Applications</a>
-      <a href="#" class="nav-link" onclick="showAdminSection('support', this); return false;" id="nav-support">Support<span id="adminSupportUnreadBadge" style="display: none; margin-left: 0.5rem; background: #dc2626; color: white; padding: 0.125rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">0</span></a>
-      <a href="#" class="nav-link" onclick="showAdminSection('usage', this); return false;" id="nav-usage">Usage & Costs</a>
-      <a href="#" class="nav-link" onclick="window.location.href='/login.html'; return false;">Logout</a>
-    </nav>
   </header>
 
   <main>
@@ -2283,6 +2273,27 @@
       </div>
     </div>
     
+    <!-- Escalated Users Section -->
+    <div id="escalated-section" class="admin-section hidden">
+      <div class="page-header">
+        <h1>Escalated Connection Requests</h1>
+        <p>Users who have been escalated after 3 connection rejections</p>
+      </div>
+
+      <div id="escalatedAlert" class="alert"></div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="escalatedCount">0</div>
+          <div class="stat-label">Escalated Users</div>
+        </div>
+      </div>
+
+      <div id="escalatedUsersList" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <p style="text-align: center; color: #6b7280; padding: 2rem;">Loading escalated users...</p>
+      </div>
+    </div>
+    
     <!-- Usage & Costs Section -->
     <div id="usage-section" class="admin-section hidden">
       <div class="page-header">
@@ -2380,6 +2391,11 @@
   <script>
       // Load Firebase AI SDK dynamically as a module
       (async function() {
+          // Guard: only run once
+          if (window.__CT_AI_INITIALIZED__ === true) {
+              return;
+          }
+          
           try {
               console.log('🔄 Loading Firebase AI SDK...');
               const appModule = await import('https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js');
@@ -2395,8 +2411,19 @@
               }
               
               const waitForFirebase = () => {
+                  // Guard: only run once
+                  if (window.__CT_AI_INITIALIZED__ === true) {
+                      return;
+                  }
+                  
                   if (window.firebaseConfig) {
+                      // Set guard BEFORE any async/await or SDK loading
+                      window.__CT_AI_INITIALIZED__ = true;
+                      
                       try {
+                          // ARCHITECTURE: This MUST use window.firebaseConfig (cleartrack-1f6c6)
+                          // DO NOT initialize cleartrack-hosting or any other project here
+                          // Reuse existing modular app if available to prevent duplicate initialization
                           console.log('🔧 Initializing modular Firebase app for AI...');
                           let modularApp;
                           try {
@@ -2404,6 +2431,11 @@
                               if (existingApps.length > 0) {
                                   modularApp = existingApps[0];
                               } else {
+                                  // Guard: Ensure we're using the correct config (cleartrack-1f6c6)
+                                  if (!window.firebaseConfig || window.firebaseConfig.projectId !== 'cleartrack-1f6c6') {
+                                      console.error('[ARCHITECTURE] AI init: config must use project cleartrack-1f6c6');
+                                      return;
+                                  }
                                   modularApp = initializeApp(window.firebaseConfig);
                               }
                           } catch (e) {
@@ -2469,6 +2501,13 @@
 
     // Set admin email - dashboard-auth.js already handles authentication
     async function initializeAdminDashboard() {
+      // Guard: only run once
+      if (window.__dashboardInitialized) {
+        console.log('[admin-dashboard] initializeAdminDashboard() already initialized, skipping');
+        return true;
+      }
+      window.__dashboardInitialized = true;
+      
       try {
         // Check for dev mode - bypass auth checks
         const urlParams = new URLSearchParams(window.location.search);
@@ -2489,46 +2528,69 @@
           return true; // Return immediately in dev mode
         }
 
-        // Wait for Firebase to be ready
-        if (!window.firebaseAuth || !window.firebaseDb) {
-          console.error('[initializeAdminDashboard] Firebase not initialized');
-          return false;
-        }
-
-        // Get current user
-        const user = window.firebaseAuth.currentUser;
-        if (user) {
-          const emailEl = document.getElementById('adminEmail');
-          if (emailEl) {
-            emailEl.textContent = user.email;
-          }
-          const mobileEmailEl = document.getElementById('mobileAdminEmail');
-          if (mobileEmailEl) {
-            mobileEmailEl.textContent = user.email;
-          }
-          return true;
-        }
-
-        // If no user yet, wait for auth state
-        return new Promise((resolve) => {
-          const unsubscribe = window.firebaseAuth.onAuthStateChanged(async (user) => {
-            unsubscribe(); // Only run once
-            if (user) {
-              const emailEl = document.getElementById('adminEmail');
-              if (emailEl) {
-                emailEl.textContent = user.email;
-              }
-              const mobileEmailEl = document.getElementById('mobileAdminEmail');
-              if (mobileEmailEl) {
-                mobileEmailEl.textContent = user.email;
-              }
-              resolve(true);
-            } else {
-              console.error('[initializeAdminDashboard] No user after auth state change');
-              resolve(false);
+        // Helper function to proceed after auth is ready
+        async function proceedWithAuth() {
+          const user = window.firebaseAuth.currentUser;
+          if (user) {
+            // User exists - proceed immediately
+            console.log('[admin-dashboard] Auth resolved, proceeding with dashboard init');
+            const emailEl = document.getElementById('adminEmail');
+            if (emailEl) {
+              emailEl.textContent = user.email;
             }
+            const mobileEmailEl = document.getElementById('mobileAdminEmail');
+            if (mobileEmailEl) {
+              mobileEmailEl.textContent = user.email;
+            }
+            return true;
+          }
+
+          // If no user yet, wait ONCE for auth state (no redirect)
+          return new Promise((resolve) => {
+            let authResolved = false;
+            const unsubscribe = window.firebaseAuth.onAuthStateChanged(async (user) => {
+              if (authResolved) return; // Only process once
+              authResolved = true;
+              unsubscribe(); // Unsubscribe immediately
+              
+              if (user) {
+                console.log('[admin-dashboard] Auth resolved, proceeding with dashboard init');
+                const emailEl = document.getElementById('adminEmail');
+                if (emailEl) {
+                  emailEl.textContent = user.email;
+                }
+                const mobileEmailEl = document.getElementById('mobileAdminEmail');
+                if (mobileEmailEl) {
+                  mobileEmailEl.textContent = user.email;
+                }
+                resolve(true);
+              } else {
+                // No user - do not redirect, just resolve false
+                console.log('[admin-dashboard] No user after auth state change (no redirect)');
+                resolve(false);
+              }
+            });
           });
-        });
+        }
+
+        // Wait for Firebase to be ready (passive wait, no redirects)
+        if (!window.firebaseAuth) {
+          console.log('[admin-dashboard] Firebase Auth not ready, waiting...');
+          // Wait ONCE for auth to be available
+          return new Promise((resolve) => {
+            const waitForAuth = () => {
+              if (window.firebaseAuth) {
+                proceedWithAuth().then(resolve).catch(() => resolve(false));
+              } else {
+                setTimeout(waitForAuth, 100);
+              }
+            };
+            waitForAuth();
+          });
+        }
+
+        // Proceed with auth check
+        return await proceedWithAuth();
       } catch (error) {
         console.error('[initializeAdminDashboard] Error initializing admin dashboard:', error);
         console.error('[initializeAdminDashboard] Error stack:', error.stack);
@@ -3643,7 +3705,6 @@
 
     // Mobile Navigation Functions
     // Style 6: Compact Dropdown Menu Toggle
-    // Menu functions removed - using global-hamburger-menu.js
     
 
     /**
@@ -4713,17 +4774,7 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-      const toggle = document.getElementById("ctMenuToggle");
-      const nav = document.getElementById("ctMainNav");
-
-      if (toggle && nav) {
-          toggle.addEventListener("click", () => {
-              const open = nav.classList.toggle("active");
-              toggle.setAttribute("aria-expanded", open ? "true" : "false");
-          });
-      }
-
-      // Desktop logout button removed - using nav link instead
+      // Hamburger menu removed - dashboards use bottom navigation only
   });
   </script>
 
@@ -4745,6 +4796,14 @@
         <path d="M 39.784 42.059 c -0.385 0.396 -0.377 1.028 0.019 1.414 c 1.695 1.651 3.44 2.477 5.189 2.477 c 1.748 0 3.5 -0.825 5.204 -2.475 c 0.397 -0.384 0.407 -1.017 0.023 -1.414 c -0.384 -0.396 -1.017 -0.407 -1.414 -0.023 c -2.604 2.52 -5.022 2.522 -7.607 0.002 C 40.802 41.655 40.169 41.664 39.784 42.059 z"/>
       </svg>
       Support
+    </button>
+    <button class="bottom-nav-item" onclick="showAdminSection('escalated', this)">
+      <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" opacity="0.3"/>
+        <path d="M12 18h2v-2h-2v2zm0-4h2v-4h-2v4z"/>
+      </svg>
+      Escalated
     </button>
     <button class="bottom-nav-item" onclick="showAdminSection('usage', this)">
       <svg width="24" height="24" viewBox="0 0 90 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -5853,10 +5912,7 @@
         targetSection.classList.remove('hidden');
       }
       
-      // Update nav active state (desktop nav)
-      document.querySelectorAll('.nav-style6 .nav-link').forEach(link => {
-        link.classList.remove('active');
-      });
+      // Desktop nav removed - using bottom navigation only
       if (buttonEl) {
         buttonEl.classList.add('active');
       }
@@ -5868,7 +5924,9 @@
       }
       
       // Load data when showing different sections
-      if (section === 'support') {
+      if (section === 'escalated') {
+        loadEscalatedUsers();
+      } else if (section === 'support') {
         // Initialize mobile state if on mobile
         const isMobile = window.matchMedia('(max-width: 768px)').matches;
         if (isMobile) {
@@ -7401,6 +7459,22 @@
         return; // Already initialized
       }
       
+      // Guard: Check if support section exists and is visible
+      const supportSection = document.getElementById('support-section');
+      if (supportSection) {
+        const isHidden = supportSection.classList.contains('hidden') || 
+                        supportSection.hasAttribute('hidden') ||
+                        window.getComputedStyle(supportSection).display === 'none';
+        if (isHidden) {
+          return; // Don't retry if section is hidden
+        }
+      } else {
+        // Section doesn't exist yet, allow retry but with limit
+        if (retryCount >= 5) {
+          return; // Stop retrying if section doesn't exist after 5 attempts
+        }
+      }
+      
       if (retryCount >= MAX_ADMIN_AI_INIT_ATTEMPTS) {
         console.warn('Max Admin AI initialization attempts reached. AI may not be available.');
         return;
@@ -7682,6 +7756,390 @@ Generate only the reply text, without any additional formatting or explanations.
     
     // Make loadUsageData globally available
     window.loadUsageData = loadUsageData;
+    
+    // Load escalated users
+    async function loadEscalatedUsers() {
+      // Role gate: only admins can access
+      const currentUser = window.firebaseAuth?.currentUser;
+      if (!currentUser) {
+        document.getElementById('escalatedUsersList').innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">You must be logged in to view escalated users.</p>';
+        return;
+      }
+      
+      // Check admin role
+      try {
+        const adminDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+        if (!adminDoc.exists || adminDoc.data().role !== 'admin') {
+          document.getElementById('escalatedUsersList').innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Access denied. Admin role required.</p>';
+          document.getElementById('escalated-section').style.display = 'none';
+          return;
+        }
+      } catch (error) {
+        console.error('[Admin Escalated] Error checking admin role:', error);
+        document.getElementById('escalatedUsersList').innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Error checking permissions.</p>';
+        return;
+      }
+      
+      if (!window.firebaseDb) {
+        showEscalatedAlert('Firebase not available', 'error');
+        return;
+      }
+      
+      try {
+        const db = window.firebaseDb;
+        
+        // Query users with connectionStatus === 'escalated'
+        const escalatedUsersSnapshot = await db.collection('users')
+          .where('connectionStatus', '==', 'escalated')
+          .get();
+        
+        const clientRoles = ['sales_rep', 'employee', 'contractor', 'business_owner', 'client', 'user'];
+        const escalatedUsers = [];
+        
+        escalatedUsersSnapshot.forEach(doc => {
+          const userData = doc.data();
+          const role = userData.role;
+          
+          // Filter to only client users
+          if (role && clientRoles.includes(role)) {
+            escalatedUsers.push({
+              id: doc.id,
+              ...userData
+            });
+          }
+        });
+        
+        // Sort by lastRejectedAt descending (most recent first)
+        escalatedUsers.sort((a, b) => {
+          const aDate = a.lastRejectedAt?.toDate ? a.lastRejectedAt.toDate() : (a.lastRejectedAt ? new Date(a.lastRejectedAt) : new Date(0));
+          const bDate = b.lastRejectedAt?.toDate ? b.lastRejectedAt.toDate() : (b.lastRejectedAt ? new Date(b.lastRejectedAt) : new Date(0));
+          return bDate - aDate;
+        });
+        
+        // Update count
+        document.getElementById('escalatedCount').textContent = escalatedUsers.length;
+        
+        // Render list
+        renderEscalatedUsersList(escalatedUsers);
+      } catch (error) {
+        console.error('[Admin Escalated] Error loading escalated users:', error);
+        showEscalatedAlert('Error loading escalated users: ' + error.message, 'error');
+        document.getElementById('escalatedUsersList').innerHTML = '<p style="text-align: center; color: #dc2626; padding: 2rem;">Error loading escalated users.</p>';
+      }
+    }
+    
+    // Show alert in escalated section
+    function showEscalatedAlert(message, type = 'info') {
+      const alertEl = document.getElementById('escalatedAlert');
+      if (!alertEl) return;
+      
+      alertEl.textContent = message;
+      alertEl.className = 'alert';
+      alertEl.classList.add(type === 'error' ? 'alert-error' : type === 'success' ? 'alert-success' : 'alert-info');
+      alertEl.style.display = 'block';
+      
+      if (type === 'success') {
+        setTimeout(() => {
+          alertEl.style.display = 'none';
+        }, 3000);
+      }
+    }
+    
+    // Render escalated users list
+    function renderEscalatedUsersList(users) {
+      const listContainer = document.getElementById('escalatedUsersList');
+      if (!listContainer) {
+        console.error('[Admin Escalated] List container not found');
+        return;
+      }
+      
+      if (users.length === 0) {
+        listContainer.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">No escalated users found.</p>';
+        return;
+      }
+      
+      listContainer.innerHTML = users.map(user => {
+        const name = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown';
+        const email = user.email || 'No email';
+        const role = user.role || 'Unknown';
+        const rejectionCount = user.rejectionCount || 0;
+        const lastRejectedAt = user.lastRejectedAt?.toDate ? user.lastRejectedAt.toDate() : (user.lastRejectedAt ? new Date(user.lastRejectedAt) : null);
+        const lastRejectedStr = lastRejectedAt ? lastRejectedAt.toLocaleDateString() : 'Unknown';
+        const practitionerId = user.practitionerId || null;
+        
+        return `
+          <div class="application-item" style="padding: 1.5rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; background: white;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+              <div>
+                <h3 style="margin: 0 0 0.5rem 0; color: #1f2933; font-size: 1.125rem;">${escapeHtml(name)}</h3>
+                <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">${escapeHtml(email)}</p>
+              </div>
+              <div style="text-align: right;">
+                <span style="display: inline-block; padding: 0.25rem 0.75rem; background: #fee2e2; color: #991b1b; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">ESCALATED</span>
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: #f9fafb; border-radius: 6px;">
+              <div>
+                <span style="font-size: 0.75rem; color: #6b7280; font-weight: 600; text-transform: uppercase;">Role</span>
+                <p style="margin: 0.25rem 0 0 0; color: #1f2933; font-size: 0.875rem;">${escapeHtml(role)}</p>
+              </div>
+              <div>
+                <span style="font-size: 0.75rem; color: #6b7280; font-weight: 600; text-transform: uppercase;">Rejections</span>
+                <p style="margin: 0.25rem 0 0 0; color: #1f2933; font-size: 0.875rem;">${rejectionCount}</p>
+              </div>
+              <div>
+                <span style="font-size: 0.75rem; color: #6b7280; font-weight: 600; text-transform: uppercase;">Last Rejected</span>
+                <p style="margin: 0.25rem 0 0 0; color: #1f2933; font-size: 0.875rem;">${lastRejectedStr}</p>
+              </div>
+              ${practitionerId ? `
+              <div>
+                <span style="font-size: 0.75rem; color: #6b7280; font-weight: 600; text-transform: uppercase;">Current Practitioner</span>
+                <p style="margin: 0.25rem 0 0 0; color: #1f2933; font-size: 0.875rem; font-family: monospace; font-size: 0.75rem;">${escapeHtml(practitionerId)}</p>
+              </div>
+              ` : ''}
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <button onclick="openAssignPractitionerModal('${user.id}')" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                Assign Practitioner
+              </button>
+              <button onclick="markUserAdminResolved('${user.id}')" class="btn" style="padding: 0.5rem 1rem; font-size: 0.875rem; background: #e5e7eb; color: #374151; border: none;">
+                Mark Resolved (No Practitioner)
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Escape HTML helper
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Open assign practitioner modal
+    async function openAssignPractitionerModal(userId) {
+      // Role gate
+      const currentUser = window.firebaseAuth?.currentUser;
+      if (!currentUser) {
+        alert('You must be logged in to assign practitioners.');
+        return;
+      }
+      
+      try {
+        const adminDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+        if (!adminDoc.exists || adminDoc.data().role !== 'admin') {
+          alert('Access denied. Admin role required.');
+          return;
+        }
+      } catch (error) {
+        console.error('[Admin Escalated] Error checking admin role:', error);
+        alert('Error checking permissions.');
+        return;
+      }
+      
+      // Load practitioners
+      let practitioners = [];
+      try {
+        const practitionersSnapshot = await window.firebaseDb.collection('users')
+          .where('role', '==', 'practitioner')
+          .get();
+        
+        practitioners = practitionersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      } catch (error) {
+        console.error('[Admin Escalated] Error loading practitioners:', error);
+        alert('Error loading practitioners.');
+        return;
+      }
+      
+      // Create modal overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+      overlay.id = 'assignPractitionerModalOverlay';
+      
+      // Create modal
+      const modal = document.createElement('div');
+      modal.style.cssText = 'background: white; border-radius: 8px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);';
+      
+      modal.innerHTML = `
+        <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Assign Practitioner</h2>
+        <p style="margin-bottom: 20px; color: #475569;">Select a practitioner to assign to this user:</p>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1f2933;">Practitioner</label>
+          <select id="assignPractitionerSelect" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px;">
+            <option value="">Select a practitioner...</option>
+            ${practitioners.map(p => {
+              const name = p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Unknown';
+              const email = p.email || '';
+              return `<option value="${p.id}">${escapeHtml(name)} (${escapeHtml(email)})</option>`;
+            }).join('')}
+          </select>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1f2933;">Resolution Note (Optional)</label>
+          <textarea id="assignPractitionerNote" placeholder="Add a note about this resolution..." style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; min-height: 80px; resize: vertical;"></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+          <button id="assignPractitionerCancel" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Cancel</button>
+          <button id="assignPractitionerSubmit" style="flex: 1; background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Assign</button>
+        </div>
+      `;
+      
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+      
+      // Close on overlay click
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.remove();
+        }
+      });
+      
+      // Cancel button
+      modal.querySelector('#assignPractitionerCancel').addEventListener('click', () => {
+        overlay.remove();
+      });
+      
+      // Submit button
+      modal.querySelector('#assignPractitionerSubmit').addEventListener('click', async () => {
+        const practitionerId = modal.querySelector('#assignPractitionerSelect').value;
+        const note = modal.querySelector('#assignPractitionerNote').value.trim();
+        
+        if (!practitionerId) {
+          alert('Please select a practitioner.');
+          return;
+        }
+        
+        await assignPractitionerToUser(userId, practitionerId, note);
+        overlay.remove();
+      });
+    }
+    
+    // Assign practitioner to user
+    async function assignPractitionerToUser(userId, practitionerId, note) {
+      // Role gate
+      const currentUser = window.firebaseAuth?.currentUser;
+      if (!currentUser || currentUser.uid === undefined) {
+        alert('You must be logged in to assign practitioners.');
+        return;
+      }
+      
+      try {
+        const adminDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+        if (!adminDoc.exists || adminDoc.data().role !== 'admin') {
+          alert('Access denied. Admin role required.');
+          return;
+        }
+      } catch (error) {
+        console.error('[Admin Escalated] Error checking admin role:', error);
+        alert('Error checking permissions.');
+        return;
+      }
+      
+      if (!window.firebaseDb) {
+        alert('Firebase not available.');
+        return;
+      }
+      
+      try {
+        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+        
+        // Update user document
+        await window.firebaseDb.collection('users').doc(userId).update({
+          connectionStatus: 'approved',
+          connectionResolved: true,
+          practitionerId: practitionerId,
+          adminResolvedBy: currentUser.uid,
+          adminResolvedAt: serverTimestamp,
+          adminResolutionNote: note || null
+        });
+        
+        console.log('[Admin Escalated] Practitioner assigned to user:', userId);
+        showEscalatedAlert('Practitioner assigned successfully.', 'success');
+        
+        // Reload list
+        await loadEscalatedUsers();
+      } catch (error) {
+        console.error('[Admin Escalated] Error assigning practitioner:', error);
+        alert('Error assigning practitioner: ' + error.message);
+      }
+    }
+    
+    // Mark user as admin resolved without practitioner
+    async function markUserAdminResolved(userId) {
+      // Role gate
+      const currentUser = window.firebaseAuth?.currentUser;
+      if (!currentUser || currentUser.uid === undefined) {
+        alert('You must be logged in to resolve users.');
+        return;
+      }
+      
+      try {
+        const adminDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+        if (!adminDoc.exists || adminDoc.data().role !== 'admin') {
+          alert('Access denied. Admin role required.');
+          return;
+        }
+      } catch (error) {
+        console.error('[Admin Escalated] Error checking admin role:', error);
+        alert('Error checking permissions.');
+        return;
+      }
+      
+      // Ask for confirmation
+      const confirmed = confirm('Mark this user as resolved without assigning a practitioner?');
+      if (!confirmed) {
+        return;
+      }
+      
+      // Ask for optional note
+      const note = prompt('Add an optional resolution note (or leave blank):');
+      
+      if (!window.firebaseDb) {
+        alert('Firebase not available.');
+        return;
+      }
+      
+      try {
+        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+        
+        // Update user document
+        await window.firebaseDb.collection('users').doc(userId).update({
+          connectionStatus: 'approved',
+          connectionResolved: true,
+          practitionerId: null,
+          adminResolvedBy: currentUser.uid,
+          adminResolvedAt: serverTimestamp,
+          adminResolutionNote: note || null
+        });
+        
+        console.log('[Admin Escalated] User marked as resolved:', userId);
+        showEscalatedAlert('User marked as resolved successfully.', 'success');
+        
+        // Reload list
+        await loadEscalatedUsers();
+      } catch (error) {
+        console.error('[Admin Escalated] Error marking user as resolved:', error);
+        alert('Error marking user as resolved: ' + error.message);
+      }
+    }
+    
+    // Make functions globally available
+    window.loadEscalatedUsers = loadEscalatedUsers;
+    window.renderEscalatedUsersList = renderEscalatedUsersList;
+    window.openAssignPractitionerModal = openAssignPractitionerModal;
+    window.assignPractitionerToUser = assignPractitionerToUser;
+    window.markUserAdminResolved = markUserAdminResolved;
   </script>
 
   <!-- Service Worker Registration - Works on all domains -->
@@ -7703,16 +8161,13 @@ Generate only the reply text, without any additional formatting or explanations.
               // Check for updates immediately
               registration.update();
               
-              // Listen for controller change (when new SW takes control)
+              // Listen for controller change (when new SW takes control) - PASSIVE, NO RELOAD
               navigator.serviceWorker.addEventListener('controllerchange', function() {
-                console.log('Service worker controller changed - reloading page');
-                // Only reload if not on login page
-                if (!window.location.pathname.includes('login.html')) {
-                  window.location.reload();
-                }
+                console.log('Service worker controller changed - update available (manual refresh required)');
+                // DO NOT reload automatically - let user manually refresh to get updates
               });
               
-              // Listen for updates and force activation
+              // Listen for updates - PASSIVE, NO RELOAD
               registration.addEventListener('updatefound', function() {
                 const newWorker = registration.installing;
                 if (newWorker) {
@@ -7724,22 +8179,10 @@ Generate only the reply text, without any additional formatting or explanations.
                     if (newWorker.state === 'installed') {
                       if (navigator.serviceWorker.controller) {
                         // There's a new service worker available
-                        console.log('New service worker installed, requesting activation...');
-                        
-                        // Send message to new worker to skip waiting
-                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                        
-                        // Skip auto-reload on login page
-                        if (window.location.pathname.includes('login.html')) {
-                          console.log('New service worker available, but skipping auto-reload on login page');
-                          return;
-                        }
-                        
-                        // Wait a bit for activation, then reload
-                        setTimeout(function() {
-                          console.log('Reloading to use new service worker...');
-                          window.location.reload();
-                        }, 500);
+                        console.log('New service worker installed - will activate on next page load (no auto-reload)');
+                        // DO NOT send SKIP_WAITING message
+                        // DO NOT reload automatically
+                        // User must manually refresh to get updates
                       } else {
                         // First time installation
                         console.log('Service worker installed for the first time');
@@ -7749,10 +8192,10 @@ Generate only the reply text, without any additional formatting or explanations.
                 }
               });
               
-              // Check for updates more frequently (every 10 seconds for faster updates)
+              // Check for updates less frequently (every 5 minutes) - passive updates only
               setInterval(function() {
                 registration.update();
-              }, 10 * 1000); // Check every 10 seconds
+              }, 5 * 60 * 1000); // Check every 5 minutes (reduced from 10 seconds)
               
               // Also check when page becomes visible (user returns to tab)
               document.addEventListener('visibilitychange', function() {
@@ -7827,14 +8270,7 @@ Generate only the reply text, without any additional formatting or explanations.
           timestamp: Date.now()
         };
         // Console fallback for debugging
-        console.log('[Refresh Button Debug]', hypothesisId, message, data);
-        fetch('http://127.0.0.1:7243/ingest/4ced639f-f705-4ba5-816f-e4d083213529', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(payload)
-        }).catch((err) => {
-          console.warn('[Refresh Button Debug] Log server unavailable:', err);
-        });
+        if (DEBUG) console.log('[Refresh Button Debug]', hypothesisId, message, data);
       }
       
       function checkRefreshButton() {
