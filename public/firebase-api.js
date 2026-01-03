@@ -497,15 +497,28 @@ window.cleartrackApi.listenToSupportMessages = firebaseApi.listenToSupportMessag
   /**
    * Redirect user based on their role
    * @param {string} role - User role ('practitioner', 'admin', or other)
+   * 
+   * REDIRECT OWNERSHIP: This function is now a no-op.
+   * Only auth-redirect-controller.js may perform redirects.
    */
   function redirectByRole(role) {
-    if (role === 'practitioner') {
-      window.location.href = '/practitioner-dashboard.html';
-    } else if (role === 'admin') {
-      window.location.href = '/admin-dashboard.html';
-    } else {
-      window.location.href = '/user-dashboard.html';
+    // Guard: Check if redirect already handled
+    if (window.__ctDidRedirect) {
+      console.log('[firebase-api] Redirect already handled, ignoring redirectByRole call for role:', role);
+      return;
     }
+
+    // Delegate to auth-redirect-controller if available
+    if (window.authRedirectController && typeof window.authRedirectController.executeRedirect === 'function') {
+      const destination = window.authRedirectController.getRedirectDestination(role);
+      console.log('[firebase-api] Delegating redirect to auth-redirect-controller:', destination);
+      window.authRedirectController.executeRedirect(destination);
+      return;
+    }
+
+    // If auth-redirect-controller not available, log but do not redirect
+    console.log('[firebase-api] redirectByRole called but auth-redirect-controller not available. Role:', role);
+    console.log('[firebase-api] Redirect request ignored - only auth-redirect-controller.js may redirect');
   }
 
   // Expose the API globally (for backward compatibility)

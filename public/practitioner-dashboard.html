@@ -5674,9 +5674,6 @@
                     if (window._practitionerStatusListener) {
                         window._practitionerStatusListener();
                     }
-                    if (window._practitionerStatusListenerByEmail) {
-                        window._practitionerStatusListenerByEmail();
-                    }
                     
                     // Sign out and redirect
                     if (window.firebaseAuth) {
@@ -5699,9 +5696,6 @@
                     // Stop any listeners
                     if (window._practitionerStatusListener) {
                         window._practitionerStatusListener();
-                    }
-                    if (window._practitionerStatusListenerByEmail) {
-                        window._practitionerStatusListenerByEmail();
                     }
                     
                     // Sign out and redirect
@@ -5733,39 +5727,8 @@
                 console.error('🔍 DEBUG: Error in UID-based status listener:', error);
             });
             
-            // Also set up listener by email if email is available (for email-based documents)
-            let unsubscribeByEmail = null;
-            if (userEmail) {
-                if (window.CT_DEBUG) console.log('🔍 DEBUG: Also setting up email-based status listener for:', userEmail);
-                
-                // Query by email and set up listener on the first matching document
-                const emailQuery = window.firebaseDb.collection('users')
-                    .where('email', '==', userEmail)
-                    .limit(1);
-                
-                emailQuery.onSnapshot((snapshot) => {
-                    if (!snapshot.empty) {
-                        snapshot.docs.forEach(doc => {
-                            // Only process if it's a different document than the UID one
-                            if (doc.id !== uid) {
-                                if (window.CT_DEBUG) console.log('🔍 DEBUG: Found email-based document:', doc.id, 'different from UID:', uid);
-                                const userData = doc.data();
-                                if (checkAndBlockIfSuspended(userData, 'email-based document')) {
-                                    return; // Already blocked
-                                }
-                            }
-                        });
-                    }
-                }, (error) => {
-                    console.error('🔍 DEBUG: Error in email-based status listener:', error);
-                });
-            }
-            
-            // Store unsubscribe functions for cleanup if needed
+            // Store unsubscribe function for cleanup if needed
             window._practitionerStatusListener = unsubscribe;
-            if (unsubscribeByEmail) {
-                window._practitionerStatusListenerByEmail = unsubscribeByEmail;
-            }
         }
         
         // Create new practitioner in Firestore

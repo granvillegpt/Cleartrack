@@ -21,6 +21,11 @@
     window.__redirectHandled = false;
   }
 
+  // Idempotent redirect guard - ensures redirects happen exactly ONCE
+  if (typeof window.__ctDidRedirect === 'undefined') {
+    window.__ctDidRedirect = false;
+  }
+
   // Prevent multiple instances
   if (window.__authRedirectControllerInitialized) {
     return;
@@ -32,28 +37,77 @@
   let userRoleResolved = false;
 
   /**
+   * Ensure user document exists in Firestore with safe defaults
+   * @param {string} uid - Firebase Auth UID
+   * @param {string} email - User email (optional)
+   * @returns {Promise<boolean>} - true if doc exists/created, false on error
+   */
+  async function ensureUserDoc(uid, email) {
+    if (!window.firebaseDb) {
+      console.error('[ensureUserDoc] Firestore not available');
+      return false;
+    }
+
+    try {
+      const userRef = window.firebaseDb.collection('users').doc(uid);
+      const userDoc = await userRef.get();
+      
+      if (!userDoc.exists) {
+        // Create new user document with safe defaults
+        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+        await userRef.set({
+          uid: uid,
+          email: email || null,
+          role: 'client', // Default to client, not user
+          createdAt: serverTimestamp,
+          updatedAt: serverTimestamp
+        }, { merge: false }); // Use set, not merge, for new docs
+        console.log('[ensureUserDoc] Created user document with role: client');
+        return true;
+      } else {
+        // Document exists - check if role is missing
+        const userData = userDoc.data();
+        if (!userData.role) {
+          // Patch missing role (do not overwrite existing role)
+          const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+          await userRef.update({
+            role: 'client',
+            updatedAt: serverTimestamp
+          });
+          console.log('[ensureUserDoc] Patched missing role: client');
+        }
+        return true;
+      }
+    } catch (error) {
+      console.error('[ensureUserDoc] Error ensuring user document:', error);
+      return false; // Never throw - return boolean
+    }
+  }
+
+  /**
    * CT-AUTH-REDIRECT-STABILISATION: Resolve user role from users/{uid} ONLY
    * NO email queries - exactly one document per user
    */
-  async function resolveUserRole(uid) {
+  async function resolveUserRole(uid, email) {
     if (!window.firebaseDb) {
       throw new Error('Firestore not available');
     }
 
     try {
+      // Ensure user document exists with safe defaults
+      await ensureUserDoc(uid, email);
+
+      // Now read the role from the document
       const userDoc = await window.firebaseDb.collection('users').doc(uid).get();
       
       if (!userDoc.exists) {
-        // Create default user document if missing
-        await window.firebaseDb.collection('users').doc(uid).set({
-          role: 'user',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        return 'user';
+        // Should not happen after ensureUserDoc, but fallback to client
+        console.warn('[auth-redirect] User document still missing after ensureUserDoc, defaulting to client');
+        return 'client';
       }
 
       const data = userDoc.data();
-      const role = String(data.role || 'user').toLowerCase().trim();
+      const role = String(data.role || 'client').toLowerCase().trim();
       return role;
     } catch (error) {
       console.error('[auth-redirect] Error resolving user role:', error);
@@ -89,14 +143,27 @@
   }
 
   /**
-   * CT-AUTH-REDIRECT-STABILISATION: DISABLED - Redirects handled by firebase-init.js
-   * This function now only validates role, never redirects
+   * CT-AUTH-REDIRECT-STABILISATION: Execute redirect with idempotent guard
+   * This is the ONLY function that performs redirects in the application
    */
   function executeRedirect(destination) {
-    // DISABLED - firebase-init.js is the sole redirect authority
-    console.log('[auth-redirect] Redirect request ignored (handled by firebase-init.js):', destination);
-    // DO NOT redirect - firebase-init.js handles all redirects
-    return;
+    // Idempotent guard - ensure redirect happens exactly ONCE
+    if (window.__ctDidRedirect) {
+      console.log('[auth-redirect] Redirect already executed, ignoring:', destination);
+      return;
+    }
+
+    if (!destination) {
+      console.warn('[auth-redirect] No destination provided for redirect');
+      return;
+    }
+
+    // Set guard immediately to prevent duplicate redirects
+    window.__ctDidRedirect = true;
+    window.__redirectHandled = true;
+    
+    console.log('[auth-redirect] Executing redirect to:', destination);
+    window.location.replace(destination);
   }
 
   /**
@@ -140,21 +207,29 @@
         return;
       }
 
-      // User is logged in - resolve role and redirect
+      // User is logged in - ensure user doc, resolve role, and redirect
       try {
-        if (userRoleResolved) {
-          return; // Already resolved
+        if (userRoleResolved || window.__ctDidRedirect) {
+          return; // Already resolved or redirected
         }
 
+        // Step 1: Ensure user document exists with safe defaults
+        const userDocEnsured = await ensureUserDoc(user.uid, user.email);
+        if (!userDocEnsured) {
+          console.error('[auth-redirect] Failed to ensure user document, cannot proceed with redirect');
+          return;
+        }
+
+        // Step 2: Resolve user role (ensureUserDoc already called inside resolveUserRole, but we call it explicitly first)
         userRoleResolved = true;
-        let role = await resolveUserRole(user.uid);
+        let role = await resolveUserRole(user.uid, user.email);
         // Normalize role: "user" → "client" (in memory only)
         if (role === 'user') {
           role = 'client';
         }
         console.log('[auth-redirect] User role resolved:', role);
 
-        // PHASE3D: Check profile readiness instead of onboarding status
+        // Step 3: Check profile readiness
         let profileReady = false;
         try {
           const userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
@@ -168,33 +243,22 @@
           console.warn('[PHASE3D] [auth-redirect] Error checking profile readiness:', err);
         }
 
-        // DISABLED - firebase-init.js handles all redirects
-        // Only validate role here, never redirect
+        // Step 4: Determine redirect destination and execute redirect
         const currentPath = window.location.pathname;
         const destination = getRedirectDestination(role, profileReady);
         
-        // Skip redirect enforcement if user not yet hydrated
-        if (!window.currentUser) {
-          console.log("[auth-redirect] Skipped redirect — user not hydrated yet");
+        // Check if already on correct page
+        if (currentPath.includes(destination.replace('/', '').replace('.html', ''))) {
+          console.log('[auth-redirect] Already on correct page, no redirect needed');
+          window.__ctDidRedirect = true; // Set guard to prevent future redirects
           return;
         }
         
-        // PHASE3D: Role validation only - show error if on wrong page, but don't redirect
-        // Note: role is already normalized above, so use it directly
-        if (role === 'practitioner' && !currentPath.includes('practitioner-dashboard')) {
-          console.warn('[PHASE3D] [auth-redirect] Role mismatch: practitioner on wrong page (redirect handled by firebase-init.js)');
-        } else if (role === 'admin' && !currentPath.includes('admin-dashboard')) {
-          console.warn('[PHASE3D] [auth-redirect] Role mismatch: admin on wrong page (redirect handled by firebase-init.js)');
-        } else if (role === 'client') {
-          // PHASE3D: Clients should always be on user-dashboard (wizard handles incomplete profiles)
-          if (!currentPath.includes('user-dashboard')) {
-            console.warn('[PHASE3D] [auth-redirect] Role mismatch: client on wrong page (redirect handled by firebase-init.js)');
-          }
-        }
-        // DO NOT call executeRedirect - firebase-init.js handles redirects
+        // Execute redirect (with idempotent guard inside executeRedirect)
+        executeRedirect(destination);
       } catch (error) {
         console.error('[auth-redirect] Error in auth state handler:', error);
-        // DO NOT redirect on error - firebase-init.js handles redirects
+        // Do not redirect on error - let user stay on current page
       }
     });
   }

@@ -3200,6 +3200,26 @@
             }
         }
         
+        // WIZARD: Remove any legacy onboarding banners
+        function removeLegacyOnboardingBanner() {
+            // Remove any legacy onboarding banners that might exist
+            const legacyBanners = [
+                document.getElementById('ct-onboarding-banner'),
+                document.getElementById('onboarding-banner'),
+                document.getElementById('onboarding-panel'),
+                document.querySelector('.onboarding-banner'),
+                document.querySelector('.onboarding-panel'),
+                document.querySelector('[data-onboarding-banner]')
+            ];
+            
+            legacyBanners.forEach(banner => {
+                if (banner) {
+                    console.log('[WIZARD] Removing legacy onboarding banner');
+                    banner.remove();
+                }
+            });
+        }
+        
         // WIZARD: Set up Firestore listener for connection status changes
         let connectionStatusUnsubscribe = null;
         
@@ -3921,6 +3941,9 @@
                     window.startMessagePolling();
                 }
                 
+                // WIZARD: Remove any legacy onboarding banners first
+                removeLegacyOnboardingBanner();
+                
                 // Invoke onboarding wizard (will show if profile not ready)
                 OnboardingWizard(currentUser);
                 
@@ -4250,6 +4273,9 @@
                     // Ensure wizard is disabled for ready profiles
                     window.CT_ONBOARDING_WIZARD_ENABLED = false;
                 }
+                
+                // WIZARD: Remove any legacy onboarding banners first
+                removeLegacyOnboardingBanner();
                 
                 // Invoke onboarding wizard (will show if profile not ready)
                 OnboardingWizard(currentUser);

@@ -199,11 +199,19 @@
         }
       }
 
-      // Perform exactly ONE redirect at the end if needed
+      // Redirect ownership: Only auth-redirect-controller.js may redirect
+      // Set flags but do not redirect here
       if (redirectTarget) {
-        window.__CLEARTRACK_REDIRECTED__ = true;
-        sessionStorage.setItem('ct_redirect_done', 'true');
-        window.location.replace(redirectTarget + '?v=' + Date.now());
+        // Delegate redirect to auth-redirect-controller if available
+        if (window.authRedirectController && typeof window.authRedirectController.executeRedirect === 'function') {
+          console.log('[firebase-init] Delegating redirect to auth-redirect-controller:', redirectTarget);
+          window.authRedirectController.executeRedirect(redirectTarget);
+        } else {
+          // If auth-redirect-controller not available, set flags only (no redirect)
+          console.log('[firebase-init] Redirect target determined but auth-redirect-controller not available, setting flags only:', redirectTarget);
+          window.__CLEARTRACK_REDIRECTED__ = true;
+          sessionStorage.setItem('ct_redirect_done', 'true');
+        }
       } else {
         // Already on correct page - set guards to prevent future redirects
         window.__CLEARTRACK_REDIRECTED__ = true;

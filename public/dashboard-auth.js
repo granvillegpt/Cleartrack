@@ -87,10 +87,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[dashboard-auth] Auth already processed, skipping redirect');
         return;
       }
+      // Guard: Check if redirect already handled by auth-redirect-controller
+      if (window.__ctDidRedirect) {
+        console.log('[dashboard-auth] Redirect already handled by auth-redirect-controller, skipping');
+        return;
+      }
       console.log('[dashboard-auth] No user logged in, redirecting to login page');
       authProcessed = true;
       if (authUnsubscribe) authUnsubscribe();
-      window.location.href = '/login.html';
+      // Delegate to auth-redirect-controller if available, otherwise redirect (login page is safe)
+      if (window.authRedirectController && typeof window.authRedirectController.executeRedirect === 'function') {
+        window.authRedirectController.executeRedirect('/login.html');
+      } else {
+        window.location.href = '/login.html';
+      }
       return;
     }
     
@@ -101,23 +111,26 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       // Load user profile from Firestore
       let profile;
-      let role = 'user'; // Default role
+      let role = 'client'; // Default role (changed from 'user' to 'client')
       
       try {
         profile = await window.cleartrackAuthApi.getUserProfile(user.uid);
         if (profile && profile.role) {
           role = profile.role;
         } else {
-          console.warn('[dashboard-auth] User profile missing role, defaulting to "user"');
+          console.warn('[dashboard-auth] User profile missing role, defaulting to "client"');
           // Create default user document if it doesn't exist
           if (window.firebaseDb) {
             try {
+              const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
               await window.firebaseDb.collection('users').doc(user.uid).set({
-                email: user.email || '',
-                role: 'user',
-                createdAt: new Date().toISOString()
+                uid: user.uid,
+                email: user.email || null,
+                role: 'client', // Default to client, not user
+                createdAt: serverTimestamp,
+                updatedAt: serverTimestamp
               }, { merge: true });
-              console.log('[dashboard-auth] Created default user document');
+              console.log('[dashboard-auth] Created default user document with role: client');
             } catch (createError) {
               console.error('[dashboard-auth] Failed to create default user document:', createError);
             }
@@ -128,13 +141,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // User document doesn't exist - create a default one
         if (window.firebaseDb) {
           try {
+            const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
             await window.firebaseDb.collection('users').doc(user.uid).set({
-              email: user.email || '',
-              role: 'user',
-              createdAt: new Date().toISOString()
+              uid: user.uid,
+              email: user.email || null,
+              role: 'client', // Default to client, not user
+              createdAt: serverTimestamp,
+              updatedAt: serverTimestamp
             }, { merge: true });
-            console.log('[dashboard-auth] Created default user document after error');
-            role = 'user';
+            console.log('[dashboard-auth] Created default user document after error with role: client');
+            role = 'client';
           } catch (createError) {
             console.error('[dashboard-auth] Failed to create default user document:', createError);
             // Continue with default role
@@ -148,6 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (role !== 'admin') {
           console.log(`[dashboard-auth] Access denied: User role "${role}" cannot access admin dashboard. Redirecting...`);
           if (!authProcessed) {
+            // Guard: Check if redirect already handled
+            if (window.__ctDidRedirect) {
+              console.log('[dashboard-auth] Redirect already handled, skipping redirectByRole');
+              return;
+            }
             authProcessed = true;
             isProcessingAuth = false;
             if (authUnsubscribe) {
@@ -171,6 +192,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // On practitioner dashboard
         if (role !== 'practitioner') {
           console.log(`[dashboard-auth] Access denied: User role "${role}" cannot access practitioner dashboard. Redirecting...`);
+          // Guard: Check if redirect already handled
+          if (window.__ctDidRedirect) {
+            console.log('[dashboard-auth] Redirect already handled, skipping redirectByRole');
+            return;
+          }
           window.cleartrackAuthApi.redirectByRole(role);
           return;
         }
@@ -188,22 +214,44 @@ document.addEventListener('DOMContentLoaded', function() {
         if (practitionerStatus === 'suspended') {
           console.log('[dashboard-auth] Access denied: Practitioner account is suspended.');
           alert('Your practitioner account has been suspended. Please contact support for assistance.');
-          window.firebaseAuth.signOut().then(() => {
-            window.location.href = '/login.html';
-          }).catch(() => {
-            window.location.href = '/login.html';
-          });
+          // Guard: Check if redirect already handled (but allow security redirects)
+          if (!window.__ctDidRedirect) {
+            window.firebaseAuth.signOut().then(() => {
+              if (window.authRedirectController && typeof window.authRedirectController.executeRedirect === 'function') {
+                window.authRedirectController.executeRedirect('/login.html');
+              } else {
+                window.location.href = '/login.html';
+              }
+            }).catch(() => {
+              if (window.authRedirectController && typeof window.authRedirectController.executeRedirect === 'function') {
+                window.authRedirectController.executeRedirect('/login.html');
+              } else {
+                window.location.href = '/login.html';
+              }
+            });
+          }
           return;
         }
         
         if (isFraudTagged) {
           console.log('[dashboard-auth] Access denied: Practitioner account is fraud-tagged.');
           alert('Your practitioner account has been flagged. Please contact support for assistance.');
-          window.firebaseAuth.signOut().then(() => {
-            window.location.href = '/login.html';
-          }).catch(() => {
-            window.location.href = '/login.html';
-          });
+          // Guard: Check if redirect already handled (but allow security redirects)
+          if (!window.__ctDidRedirect) {
+            window.firebaseAuth.signOut().then(() => {
+              if (window.authRedirectController && typeof window.authRedirectController.executeRedirect === 'function') {
+                window.authRedirectController.executeRedirect('/login.html');
+              } else {
+                window.location.href = '/login.html';
+              }
+            }).catch(() => {
+              if (window.authRedirectController && typeof window.authRedirectController.executeRedirect === 'function') {
+                window.authRedirectController.executeRedirect('/login.html');
+              } else {
+                window.location.href = '/login.html';
+              }
+            });
+          }
           return;
         }
         
@@ -221,6 +269,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (role === 'practitioner' || role === 'admin') {
           console.log('[dashboard-auth] Access denied: Practitioner/Admin cannot access user dashboard. Redirecting...');
           if (!authProcessed) {
+            // Guard: Check if redirect already handled
+            if (window.__ctDidRedirect) {
+              console.log('[dashboard-auth] Redirect already handled, skipping redirectByRole');
+              return;
+            }
             authProcessed = true;
             isProcessingAuth = false;
             if (authUnsubscribe) {
@@ -246,13 +299,23 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('[dashboard-auth] Error loading user profile:', error);
       // On error, redirect to login page (only once)
       if (!authProcessed) {
+        // Guard: Check if redirect already handled
+        if (window.__ctDidRedirect) {
+          console.log('[dashboard-auth] Redirect already handled, skipping error redirect');
+          return;
+        }
         authProcessed = true;
         isProcessingAuth = false;
         if (authUnsubscribe) {
           authUnsubscribe();
           authUnsubscribe = null;
         }
-        window.location.href = '/login.html';
+        // Delegate to auth-redirect-controller if available
+        if (window.authRedirectController && typeof window.authRedirectController.executeRedirect === 'function') {
+          window.authRedirectController.executeRedirect('/login.html');
+        } else {
+          window.location.href = '/login.html';
+        }
       }
     }
   });
