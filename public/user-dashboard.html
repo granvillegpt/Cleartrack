@@ -1887,6 +1887,60 @@
             cursor: not-allowed !important;
         }
     </style>
+    
+    <!-- Wizard Modal Styles -->
+    <style>
+        .ct-wizard-modal {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+            padding: 0;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .ct-wizard-modal-content {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .ct-wizard-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (max-width: 480px) {
+            .ct-wizard-modal {
+                width: calc(100vw - 24px) !important;
+                max-width: 100% !important;
+                max-height: calc(100dvh - 24px) !important;
+                margin: 12px !important;
+            }
+            
+            .ct-wizard-modal-content {
+                padding: 16px !important;
+            }
+            
+            .ct-wizard-overlay {
+                align-items: flex-start !important;
+                padding: 12px !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="app">
@@ -2782,13 +2836,16 @@
         
         // WIZARD: Global state to prevent duplicate initialization
         let wizardInitialized = false;
+        let wizardEverOpened = false;
         
         // OnboardingWizard - real onboarding wizard implementation
         function OnboardingWizard(user) {
             // Prevent duplicate initialization
-            if (wizardInitialized) {
+            if (wizardEverOpened) {
                 return;
             }
+            wizardInitialized = true;
+            wizardEverOpened = true;
             
             // Check if wizard should be shown
             if (!shouldShowWizard(user, null)) {
@@ -2808,7 +2865,6 @@
             }
             
             console.log('[WIZARD] Opening wizard modal');
-            wizardInitialized = true;
             
             // Get user UID
             let uid = null;
@@ -2826,12 +2882,15 @@
             // Create modal overlay
             const overlay = document.createElement('div');
             overlay.id = 'ct-wizard-overlay';
+            overlay.className = 'ct-wizard-overlay';
             overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;';
             
             // Create modal container
             wizardModal = document.createElement('div');
             wizardModal.id = 'ct-wizard-modal';
-            wizardModal.style.cssText = 'background: white; border-radius: 8px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);';
+            wizardModal.className = 'ct-wizard-modal';
+            wizardModal.style.cssText = 'background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);';
+            
             
             // Determine current step
             let currentStep = 1;
@@ -2840,74 +2899,94 @@
                 currentStep = 2; // Role already selected, go to step 2
             }
             
+            // Wizard header helper function
+            function getWizardHeader() {
+                return `
+                    <div style="background: #0b7285; color: #fff; display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem 2rem; border-radius: 8px 8px 0 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div>
+                            <h1 style="margin: 0; color: #fff; font-size: 1.5rem; font-weight: 600;">ClearTrack Setup</h1>
+                            <p style="margin: 4px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 0.875rem;">Complete setup to get started</p>
+                        </div>
+                        <button id="wizard-logout-btn" style="background: none; border: none; color: rgba(255, 255, 255, 0.9); font-size: 0.875rem; cursor: pointer; padding: 8px 12px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.background='rgba(255, 255, 255, 0.1)';" onmouseout="this.style.color='rgba(255, 255, 255, 0.9)'; this.style.background='none';">Logout</button>
+                    </div>
+                `;
+            }
+            
+            // Wizard logout handler
+            async function handleWizardLogout() {
+                try {
+                    if (window.firebaseAuth) {
+                        await window.firebaseAuth.signOut();
+                        window.location.href = '/index.html';
+                    } else {
+                        window.location.href = '/index.html';
+                    }
+                } catch (error) {
+                    console.error('[WIZARD] Logout error:', error);
+                    window.location.href = '/index.html';
+                }
+            }
+            
             // Step 1: Role Selection
             function renderStep1() {
                 wizardModal.innerHTML = `
-                    <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Welcome to ClearTrack</h2>
-                    <p style="margin-bottom: 20px; color: #475569;">Let's get you set up. First, please select your role:</p>
-                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                        <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
-                            <input type="radio" name="wizard-role" value="sales_rep" style="margin-right: 12px;">
-                            <span>Sales Representative / Commission Earner</span>
-                        </label>
-                        <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
-                            <input type="radio" name="wizard-role" value="employee" style="margin-right: 12px;">
-                            <span>Employee with Travel Allowance</span>
-                        </label>
-                        <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
-                            <input type="radio" name="wizard-role" value="contractor" style="margin-right: 12px;">
-                            <span>Independent Contractor</span>
-                        </label>
-                        <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
-                            <input type="radio" name="wizard-role" value="business_owner" style="margin-right: 12px;">
-                            <span>Business Owner</span>
-                        </label>
+                    ${getWizardHeader()}
+                    <div class="ct-wizard-modal-content">
+                        <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Welcome to ClearTrack</h2>
+                        <p style="margin-bottom: 20px; color: #475569;">Let's get you set up. First, please select your role:</p>
+                        <div class="vehicle-acquisition-type" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="wizard-role-sales_rep" value="sales_rep">
+                                Sales Representative / Commission Earner
+                            </label>
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="wizard-role-employee" value="employee">
+                                Employee with Travel Allowance
+                            </label>
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="wizard-role-contractor" value="contractor">
+                                Independent Contractor
+                            </label>
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="wizard-role-business_owner" value="business_owner">
+                                Business Owner
+                            </label>
+                        </div>
+                        <button id="wizard-step1-continue" style="background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 20px;" disabled>Continue</button>
                     </div>
-                    <button id="wizard-step1-continue" style="background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%;" disabled>Continue</button>
                 `;
                 
-                // Add hover effects to labels
-                const labels = wizardModal.querySelectorAll('label');
-                labels.forEach(label => {
-                    label.addEventListener('mouseenter', () => {
-                        if (!label.querySelector('input').checked) {
-                            label.style.borderColor = '#0b7285';
-                            label.style.background = '#f0f9ff';
-                        }
-                    });
-                    label.addEventListener('mouseleave', () => {
-                        if (!label.querySelector('input').checked) {
-                            label.style.borderColor = '#e2e8f0';
-                            label.style.background = 'white';
-                        }
-                    });
-                });
+                // Attach logout handler
+                const logoutBtn = wizardModal.querySelector('#wizard-logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', handleWizardLogout);
+                }
                 
-                // Handle role selection
-                const radioInputs = wizardModal.querySelectorAll('input[name="wizard-role"]');
+                // Handle role selection - ensure only one checkbox can be checked
+                const checkboxInputs = wizardModal.querySelectorAll('.vehicle-acquisition-type input[type="checkbox"]');
                 const continueBtn = wizardModal.querySelector('#wizard-step1-continue');
                 
-                radioInputs.forEach(radio => {
-                    radio.addEventListener('change', () => {
-                        continueBtn.disabled = false;
-                        continueBtn.style.background = '#0b7285';
-                        // Update label styles
-                        labels.forEach(l => {
-                            const input = l.querySelector('input');
-                            if (input.checked) {
-                                l.style.borderColor = '#0b7285';
-                                l.style.background = '#f0f9ff';
-                            } else {
-                                l.style.borderColor = '#e2e8f0';
-                                l.style.background = 'white';
-                            }
-                        });
+                checkboxInputs.forEach(checkbox => {
+                    checkbox.addEventListener('change', () => {
+                        if (checkbox.checked) {
+                            // Uncheck all other checkboxes
+                            checkboxInputs.forEach(otherCheckbox => {
+                                if (otherCheckbox !== checkbox) {
+                                    otherCheckbox.checked = false;
+                                }
+                            });
+                        }
+                        // Enable continue button if any checkbox is checked
+                        const anyChecked = Array.from(checkboxInputs).some(cb => cb.checked);
+                        continueBtn.disabled = !anyChecked;
+                        continueBtn.style.background = anyChecked ? '#0b7285' : '#e2e8f0';
                     });
                 });
                 
                 // Handle continue button
                 continueBtn.addEventListener('click', async () => {
-                    const selectedRole = wizardModal.querySelector('input[name="wizard-role"]:checked')?.value;
+                    const selectedCheckbox = Array.from(checkboxInputs).find(cb => cb.checked);
+                    const selectedRole = selectedCheckbox?.value;
                     if (!selectedRole) return;
                     
                     try {
@@ -2942,36 +3021,68 @@
             // Step 2: Practitioner Code Question
             function renderStep2() {
                 wizardModal.innerHTML = `
-                    <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Connect with Your Practitioner</h2>
-                    <p style="margin-bottom: 20px; color: #475569;">Do you have a practitioner code?</p>
-                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <button id="wizard-step2-yes" style="flex: 1; background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Yes, I have a code</button>
-                        <button id="wizard-step2-no" style="flex: 1; background: #e2e8f0; color: #475569; border: 2px solid #e2e8f0; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">No, I need help finding one</button>
+                    ${getWizardHeader()}
+                    <div class="ct-wizard-modal-content">
+                        <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Connect with Your Practitioner</h2>
+                        <p style="margin-bottom: 20px; color: #475569;">Do you have a practitioner code?</p>
+                        <div class="vehicle-acquisition-type" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 20px;">
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="wizard-step2-yes" value="yes">
+                                Yes, I have a code
+                            </label>
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="wizard-step2-no" value="no">
+                                No, I need help finding one
+                            </label>
+                        </div>
                     </div>
                 `;
                 
-                // Handle Yes button
-                wizardModal.querySelector('#wizard-step2-yes').addEventListener('click', () => {
-                    renderStep2a();
+                // Attach logout handler
+                const logoutBtn = wizardModal.querySelector('#wizard-logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', handleWizardLogout);
+                }
+                
+                // Handle checkbox selection - ensure only one can be checked
+                const yesCheckbox = wizardModal.querySelector('#wizard-step2-yes');
+                const noCheckbox = wizardModal.querySelector('#wizard-step2-no');
+                
+                yesCheckbox.addEventListener('change', () => {
+                    if (yesCheckbox.checked) {
+                        noCheckbox.checked = false;
+                        renderStep2a();
+                    }
                 });
                 
-                // Handle No button
-                wizardModal.querySelector('#wizard-step2-no').addEventListener('click', () => {
-                    renderStep2b();
+                noCheckbox.addEventListener('change', () => {
+                    if (noCheckbox.checked) {
+                        yesCheckbox.checked = false;
+                        renderStep2b();
+                    }
                 });
             }
             
             // Step 2a: Code Input
             function renderStep2a() {
                 wizardModal.innerHTML = `
-                    <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Enter Practitioner Code</h2>
-                    <p style="margin-bottom: 20px; color: #475569;">Enter the code provided by your tax practitioner:</p>
-                    <input type="text" id="wizard-practitioner-code" placeholder="Enter code" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; margin-bottom: 20px; text-transform: uppercase;" maxlength="10">
-                    <div style="display: flex; gap: 12px;">
-                        <button id="wizard-step2a-back" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Back</button>
+                    ${getWizardHeader()}
+                    <div class="ct-wizard-modal-content">
+                        <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Enter Practitioner Code</h2>
+                        <p style="margin-bottom: 20px; color: #475569;">Enter the code provided by your tax practitioner:</p>
+                        <input type="text" id="wizard-practitioner-code" placeholder="Enter code" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; margin-bottom: 20px; text-transform: uppercase;" maxlength="10">
+                        <div style="display: flex; gap: 12px;">
+                            <button id="wizard-step2a-back" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Back</button>
                         <button id="wizard-step2a-submit" style="flex: 1; background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Submit</button>
                     </div>
+                    </div>
                 `;
+                
+                // Attach logout handler
+                const logoutBtn = wizardModal.querySelector('#wizard-logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', handleWizardLogout);
+                }
                 
                 // Auto-uppercase input
                 const codeInput = wizardModal.querySelector('#wizard-practitioner-code');
@@ -3062,9 +3173,11 @@
             // Step 2b: Questionnaire
             function renderStep2b() {
                 wizardModal.innerHTML = `
-                    <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Help Us Find Your Practitioner</h2>
-                    <p style="margin-bottom: 20px; color: #475569;">Please provide some information so we can match you with a practitioner:</p>
-                    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+                    ${getWizardHeader()}
+                    <div class="ct-wizard-modal-content">
+                        <h2 style="margin-top: 0; color: #0b7285; font-size: 1.5rem;">Help Us Find Your Practitioner</h2>
+                        <p style="margin-bottom: 20px; color: #475569;">Please provide some information so we can match you with a practitioner:</p>
+                        <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
                         <div>
                             <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1f2933;">Business Type</label>
                             <select id="wizard-business-type" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px;">
@@ -3077,22 +3190,22 @@
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1f2933;">Service Needs</label>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center;">
-                                    <input type="checkbox" value="tax_preparation" style="margin-right: 8px;">
-                                    <span>Tax Preparation</span>
+                            <div class="vehicle-acquisition-type" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <label class="checkbox-row">
+                                    <input type="checkbox" value="tax_preparation">
+                                    Tax Preparation
                                 </label>
-                                <label style="display: flex; align-items: center;">
-                                    <input type="checkbox" value="tax_planning" style="margin-right: 8px;">
-                                    <span>Tax Planning</span>
+                                <label class="checkbox-row">
+                                    <input type="checkbox" value="tax_planning">
+                                    Tax Planning
                                 </label>
-                                <label style="display: flex; align-items: center;">
-                                    <input type="checkbox" value="bookkeeping" style="margin-right: 8px;">
-                                    <span>Bookkeeping</span>
+                                <label class="checkbox-row">
+                                    <input type="checkbox" value="bookkeeping">
+                                    Bookkeeping
                                 </label>
-                                <label style="display: flex; align-items: center;">
-                                    <input type="checkbox" value="audit_support" style="margin-right: 8px;">
-                                    <span>Audit Support</span>
+                                <label class="checkbox-row">
+                                    <input type="checkbox" value="audit_support">
+                                    Audit Support
                                 </label>
                             </div>
                         </div>
@@ -3101,11 +3214,18 @@
                             <textarea id="wizard-message" placeholder="Any additional information..." style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; min-height: 80px; resize: vertical;"></textarea>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 12px;">
-                        <button id="wizard-step2b-back" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Back</button>
-                        <button id="wizard-step2b-submit" style="flex: 1; background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Submit</button>
+                        <div style="display: flex; gap: 12px;">
+                            <button id="wizard-step2b-back" style="flex: 1; background: #e2e8f0; color: #475569; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Back</button>
+                            <button id="wizard-step2b-submit" style="flex: 1; background: #0b7285; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Submit</button>
+                        </div>
                     </div>
                 `;
+                
+                // Attach logout handler
+                const logoutBtn = wizardModal.querySelector('#wizard-logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', handleWizardLogout);
+                }
                 
                 // Handle back button
                 wizardModal.querySelector('#wizard-step2b-back').addEventListener('click', () => {
@@ -3178,16 +3298,18 @@
                 if (overlay && overlay.parentNode) {
                     overlay.remove();
                 }
-                wizardInitialized = false;
                 console.log('[WIZARD] Wizard closed');
             }
             
-            // Close on overlay click
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    closeWizard();
+            // Prevent ESC key from closing wizard
+            const preventEscHandler = function(e) {
+                if (e.key === 'Escape' && document.getElementById('ct-wizard-modal')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
                 }
-            });
+            };
+            document.addEventListener('keydown', preventEscHandler, true);
             
             // Render initial step
             overlay.appendChild(wizardModal);

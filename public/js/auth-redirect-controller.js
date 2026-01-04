@@ -126,6 +126,10 @@
   /**
    * CT-AUTH-REDIRECT-STABILISATION: Determine redirect destination based on role
    * PHASE3D: Parameter renamed from onboardingComplete to profileReady for clarity
+   * 
+   * NOTE: Practitioner approval check happens in initializeAuthRedirect() BEFORE calling this function.
+   * Non-approved practitioners have their role overridden to 'client', so if role === 'practitioner' here,
+   * we know they are approved.
    */
   function getRedirectDestination(role, profileReady = false) {
     if (role === 'practitioner') {
@@ -229,19 +233,40 @@
         }
         console.log('[auth-redirect] User role resolved:', role);
 
-        // Step 3: Check profile readiness
+        // Step 2.5: Fetch user document to check practitionerStatus and profile readiness
+        let userDoc = null;
+        let practitionerStatus = null;
         let profileReady = false;
         try {
-          const userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+          userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
           if (userDoc.exists) {
-            const data = userDoc.data();
+            const userData = userDoc.data();
+            practitionerStatus = userData.practitionerStatus || null;
             // Use isProfileReady helper if available, otherwise fallback to basic check
-            profileReady = window.isProfileReady ? window.isProfileReady(data) : Boolean(data && data.role);
-            console.log('[PHASE3D] [auth-redirect] Profile readiness check:', { role, profileReady, migrationComplete: data.migrationComplete });
+            profileReady = window.isProfileReady ? window.isProfileReady(userData) : Boolean(userData && userData.role);
+            console.log('[PHASE3D] [auth-redirect] Profile readiness check:', { role, profileReady, migrationComplete: userData.migrationComplete });
           }
         } catch (err) {
-          console.warn('[PHASE3D] [auth-redirect] Error checking profile readiness:', err);
+          console.warn('[auth-redirect] Error fetching user document for practitionerStatus:', err);
         }
+
+        // Step 2.6: Check if user is an approved practitioner
+        const isApprovedPractitioner = 
+          role === 'practitioner' && 
+          practitionerStatus === 'approved';
+
+        // If practitioner but not approved, treat as client
+        if (role === 'practitioner' && !isApprovedPractitioner) {
+          console.log('[auth-redirect] Practitioner not approved, routing to client flow');
+          role = 'client'; // Override role for routing purposes
+        }
+
+        // Add mandatory debug log
+        console.log('[AUTH] Redirect decision', {
+          role: role,
+          practitionerStatus: practitionerStatus,
+          isApprovedPractitioner: isApprovedPractitioner
+        });
 
         // Step 4: Determine redirect destination and execute redirect
         const currentPath = window.location.pathname;

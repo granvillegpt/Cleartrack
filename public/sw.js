@@ -2,7 +2,7 @@
 // Auto-versioning: Version is updated automatically via update-sw-version.js script
 // Format: YYYYMMDD-HHMM (updates automatically on deploy)
 // Run: node update-sw-version.js (or it runs automatically on deploy)
-const CACHE_VERSION = '20251230-0850';
+const CACHE_VERSION = '20260104-1656';
 const CACHE_NAME = `cleartrack-v${CACHE_VERSION}`;
 const STATIC_CACHE = `cleartrack-static-v${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `cleartrack-dynamic-v${CACHE_VERSION}`;
@@ -79,8 +79,6 @@ self.addEventListener('fetch', event => {
     event.respondWith(new Response('', { status: 404, statusText: 'Not Found' }));
     return;
   }
-  
-  // PHASE3D: client-onboarding.html has been removed - page no longer exists
   
   // For HTML files (especially dashboards with AI), ALWAYS fetch fresh from network - never use cache
   // This prevents showing old cached versions that don't have AI SDK initialization

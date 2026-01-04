@@ -11,6 +11,13 @@
         "**/.*",
         "**/node_modules/**"
       ],
+      "redirects": [
+        {
+          "source": "/client-onboarding.html",
+          "destination": "/login.html",
+          "type": 301
+        }
+      ],
       "rewrites": [
         {
           "source": "**",
@@ -79,6 +86,13 @@
         "firebase.json",
         "**/.*",
         "**/node_modules/**"
+      ],
+      "redirects": [
+        {
+          "source": "/client-onboarding.html",
+          "destination": "/login.html",
+          "type": 301
+        }
       ],
       "rewrites": [
         {
