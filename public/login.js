@@ -75,6 +75,256 @@ window.switchToRegister = function() {
   hideError();
 };
 
+// ============================================
+// LOADING STATE MANAGEMENT (Module Scope)
+// ============================================
+let loginTimeout = null;
+
+// Get loading overlay elements - use function to ensure they're found
+function getLoadingElements() {
+  return {
+    overlay: document.getElementById('loadingOverlay'),
+    text: document.getElementById('loadingText'),
+    subtext: document.getElementById('loadingSubtext')
+  };
+}
+
+function setLoginLoading(isLoading, message = 'Signing in to ClearTrack...', submessage = 'Please wait') {
+  try {
+    // Get submitBtn directly instead of relying on DOMContentLoaded const
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+      submitBtn.disabled = isLoading;
+      submitBtn.textContent = isLoading ? 'Signing in...' : 'Sign In';
+    }
+  } catch (btnError) {
+    console.warn('[login.js] Error updating submit button:', btnError);
+  }
+  
+  // Get elements fresh each time to ensure they exist
+  let loadingOverlay, loadingText, loadingSubtext;
+  try {
+    const elements = getLoadingElements();
+    loadingOverlay = elements.overlay;
+    loadingText = elements.text;
+    loadingSubtext = elements.subtext;
+  } catch (elementError) {
+    console.error('[login.js] Error getting loading elements:', elementError);
+    return; // Can't proceed without overlay
+  }
+  
+  // If overlay doesn't exist, create it (fallback only)
+  if (!loadingOverlay) {
+    console.warn('[login.js] Loading overlay not found, creating...');
+    loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loadingOverlay';
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+      <div class="loading-spinner-wrapper" style="position: relative !important; width: 100px !important; height: 100px !important; margin: 0 auto 1.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;">
+        <div class="loading-spinner" style="width: 100px !important; height: 100px !important; border: 4px solid #e5e7eb !important; border-top: 4px solid #0b7285 !important; border-radius: 50% !important; animation: spin 1s linear infinite !important; margin: 0 !important; position: absolute !important; top: 0 !important; left: 0 !important; background: transparent !important; z-index: 1 !important;"></div>
+        <div class="loading-spinner-logo" id="loginLoadingLogo" style="position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 75px !important; height: 75px !important; z-index: 10 !important; display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; background: transparent !important;">
+          <img src="/assets/images/icon%20logo.png" alt="ClearTrack Logo" id="loadingLogoImg" style="width: 100% !important; height: 100% !important; display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 10 !important; object-fit: contain !important; object-position: center center !important; border: none !important;" onload="console.log('✅ LOGO LOADED:', this.src);" onerror="console.error('❌ LOGO FAILED:', this.src);">
+        </div>
+      </div>
+      <div class="loading-text" id="loadingText">${message}</div>
+      <div class="loading-subtext" id="loadingSubtext">${submessage}</div>
+    `;
+    document.body.appendChild(loadingOverlay);
+    // Update references
+    const newText = document.getElementById('loadingText');
+    const newSubtext = document.getElementById('loadingSubtext');
+    if (newText) newText.textContent = message;
+    if (newSubtext) newSubtext.textContent = submessage;
+  } else {
+    // Overlay exists in HTML - ensure only ONE logo exists and it's the correct one
+    try {
+      const existingLogos = loadingOverlay.querySelectorAll('.loading-spinner-logo');
+      const existingImages = loadingOverlay.querySelectorAll('.loading-spinner-logo img, #loadingLogoImg');
+      
+      // Remove all logo containers except the first one
+      if (existingLogos.length > 1) {
+        console.warn('[login.js] Found multiple logo containers, removing duplicates');
+        for (let i = 1; i < existingLogos.length; i++) {
+          try {
+            existingLogos[i].remove();
+          } catch (removeError) {
+            console.warn('[login.js] Error removing duplicate logo:', removeError);
+          }
+        }
+      }
+      
+      // Ensure the logo image is correct
+      const logoImg = loadingOverlay.querySelector('#loadingLogoImg') || loadingOverlay.querySelector('.loading-spinner-logo img');
+      if (logoImg) {
+        try {
+          // Force reload the correct logo
+          logoImg.src = '/assets/images/icon%20logo.png';
+          logoImg.alt = 'ClearTrack Logo';
+          logoImg.id = 'loadingLogoImg';
+          // Remove any other images
+          existingImages.forEach((img, index) => {
+            if (index > 0 && img !== logoImg) {
+              try {
+                img.remove();
+              } catch (imgRemoveError) {
+                console.warn('[login.js] Error removing duplicate image:', imgRemoveError);
+              }
+            }
+          });
+        } catch (logoError) {
+          console.warn('[login.js] Error updating logo:', logoError);
+        }
+      } else {
+        // No logo found, create it
+        const logoContainer = loadingOverlay.querySelector('.loading-spinner-logo');
+        if (logoContainer) {
+          try {
+            logoContainer.innerHTML = '<img src="/assets/images/icon%20logo.png" alt="ClearTrack Logo" id="loadingLogoImg" onerror="this.style.display=\'none\';">';
+          } catch (createLogoError) {
+            console.warn('[login.js] Error creating logo:', createLogoError);
+          }
+        }
+      }
+    } catch (logoCheckError) {
+      console.warn('[login.js] Error checking/updating logo:', logoCheckError);
+      // Continue anyway - logo is not critical
+    }
+  }
+  
+  // Show/hide loading overlay - keep it visible during transitions
+  if (!loadingOverlay) {
+    console.error('[login.js] Loading overlay not available');
+    return;
+  }
+  
+  try {
+    if (isLoading) {
+      // Update messages immediately
+      try {
+        if (loadingText) loadingText.textContent = message || 'Loading...';
+        if (loadingSubtext) loadingSubtext.textContent = submessage || '';
+      } catch (textError) {
+        console.warn('[login.js] Error updating text:', textError);
+      }
+      
+      // Force reset any previous state first
+      loadingOverlay.classList.remove('show');
+      
+      // Remove inline styles that might hide it
+      try {
+        loadingOverlay.style.removeProperty('display');
+        loadingOverlay.style.removeProperty('visibility');
+        loadingOverlay.style.removeProperty('opacity');
+      } catch (styleError) {
+        console.warn('[login.js] Error removing styles:', styleError);
+      }
+      
+      // Show immediately - no requestAnimationFrame delay
+      // Force visibility with inline styles for immediate display
+      // Set individual properties to preserve background-image from CSS
+      try {
+        loadingOverlay.style.position = 'fixed';
+        loadingOverlay.style.top = '0';
+        loadingOverlay.style.left = '0';
+        loadingOverlay.style.right = '0';
+        loadingOverlay.style.bottom = '0';
+        loadingOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        loadingOverlay.style.backdropFilter = 'blur(1px)';
+        loadingOverlay.style.webkitBackdropFilter = 'blur(1px)';
+        loadingOverlay.style.display = 'flex';
+        loadingOverlay.style.alignItems = 'center';
+        loadingOverlay.style.justifyContent = 'center';
+        loadingOverlay.style.flexDirection = 'column';
+        loadingOverlay.style.zIndex = '99999';
+        loadingOverlay.style.opacity = '1';
+        loadingOverlay.style.visibility = 'visible';
+        loadingOverlay.style.pointerEvents = 'auto';
+        // Don't set background or backgroundImage - let CSS handle the splash screen
+        loadingOverlay.classList.add('show');
+      } catch (showError) {
+        console.error('[login.js] Error showing overlay:', showError);
+        // Fallback: just add the show class
+        loadingOverlay.classList.add('show');
+      }
+      
+      // Ensure logo is visible (non-critical, don't fail if this errors)
+      try {
+        const logoImg = loadingOverlay.querySelector('#loadingLogoImg');
+        const logoContainer = loadingOverlay.querySelector('.loading-spinner-logo');
+        if (logoImg) {
+          logoImg.style.cssText = 'width: 100% !important; height: 100% !important; display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 10 !important; object-fit: contain !important; object-position: center center !important;';
+        }
+        if (logoContainer) {
+          logoContainer.style.cssText = 'position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 75px !important; height: 75px !important; z-index: 10 !important; display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important;';
+        }
+      } catch (logoError) {
+        console.warn('[login.js] Error ensuring logo visibility:', logoError);
+        // Continue - logo is not critical
+      }
+    } else {
+      // Only hide if explicitly set to false (not during transitions)
+      try {
+        loadingOverlay.classList.remove('show');
+        // Use setTimeout to ensure smooth transition
+        setTimeout(() => {
+          try {
+            if (loadingOverlay && !loadingOverlay.classList.contains('show')) {
+              loadingOverlay.style.display = 'none';
+              loadingOverlay.style.visibility = 'hidden';
+              loadingOverlay.style.opacity = '0';
+            }
+          } catch (hideError) {
+            console.warn('[login.js] Error hiding overlay:', hideError);
+          }
+        }, 300);
+      } catch (hideError) {
+        console.warn('[login.js] Error hiding overlay:', hideError);
+      }
+    }
+  } catch (overlayError) {
+    console.error('[login.js] Critical error in setLoginLoading:', overlayError);
+    // Try basic fallback
+    try {
+      if (isLoading) {
+        loadingOverlay.classList.add('show');
+      } else {
+        loadingOverlay.classList.remove('show');
+      }
+    } catch (fallbackError) {
+      console.error('[login.js] Fallback also failed:', fallbackError);
+    }
+  }
+  
+  // Clear any existing timeout
+  if (loginTimeout) {
+    clearTimeout(loginTimeout);
+    loginTimeout = null;
+  }
+  
+  // If loading, set a timeout to reset button after 50 seconds (safety net)
+  // Increased to 50s to account for slow networks, but operations have individual timeouts
+  if (isLoading) {
+    loginTimeout = setTimeout(() => {
+      console.error('[login.js] Login timeout - resetting button state');
+      setLoginLoading(false);
+      showError('Login is taking longer than expected. Please check your connection and try again.');
+    }, 50000); // 50 second timeout (safety net, should not normally trigger)
+  }
+}
+
+// Helper function to set loading state for registration
+function setRegisterLoading(isLoading) {
+  // Get registerBtn directly instead of relying on DOMContentLoaded const
+  const registerBtn = document.getElementById('registerBtn');
+  if (registerBtn) {
+    registerBtn.disabled = isLoading;
+    registerBtn.textContent = isLoading ? 'Creating account...' : 'Create Account';
+  }
+}
+
+// ============================================
+// INVITE PROCESSING
+// ============================================
 // Helper function to route user based on role
 /**
  * Process pending invite and connect user to practitioner
@@ -255,83 +505,37 @@ async function processPendingInvite(userId) {
   }
 }
 
-async function routeUser(role, userId, userData = null) {
-  console.log('[routeUser] ========================================');
-  console.log('[routeUser] Called with role:', role, 'userId:', userId);
-  console.log('[routeUser] Role type:', typeof role);
-  
-  // Ensure role is a string and lowercase for comparison
-  const normalizedRole = String(role || 'user').toLowerCase().trim();
-  console.log('[routeUser] Normalized role:', normalizedRole);
-  
-  // Skip redundant Firestore check if role is already known
-  // The role was already checked during login, so we can trust it
-  
-  if (normalizedRole === 'practitioner') {
-    console.log('[routeUser] ✅ Routing to practitioner dashboard');
-    safeRedirect('/practitioner-dashboard.html');
+// ============================================
+// ROUTING FUNCTIONS
+// ============================================
+// Prevent redirect loops - check if we're already redirecting
+let isRedirecting = false;
+let redirectTimeout = null;
+
+function safeRedirect(url) {
+  if (isRedirecting) {
+    console.warn('[login.js] Already redirecting, ignoring duplicate redirect to:', url);
     return;
-  } else if (normalizedRole === 'admin') {
-    console.log('[routeUser] ✅ Routing to admin dashboard');
-    safeRedirect('/admin-dashboard.html');
-    return;
-  } else {
-    // For regular users (default), check if they have a practitioner
-    console.log('[routeUser] Routing regular user - checking for practitioner connection');
-    
-    // Use userData if provided to avoid redundant Firestore query
-    let practitionerId = null;
-    if (userData) {
-      practitionerId = userData.practitionerId || userData.connectedPractitioner || null;
-      console.log('[routeUser] Practitioner ID from userData:', practitionerId);
-    }
-    
-    // Only check Firestore if we don't have userData or no practitioner found
-    if (!practitionerId && window.firebaseDb && userId) {
-      // Quick check for pending invite (non-blocking, fast timeout)
-      const pendingInviteId = sessionStorage.getItem('pendingInviteId');
-      if (pendingInviteId) {
-        // Process invite in background, don't wait
-        processPendingInvite(userId).then(inviteResult => {
-          if (inviteResult.success) {
-            console.log('[routeUser] ✅ Auto-connected via invite (background)');
-          }
-        }).catch(err => {
-          console.warn('[routeUser] Invite processing failed (non-blocking):', err);
-        });
-      }
-      
-      // Check practitioner connection with very short timeout
-      try {
-        const userDocPromise = window.firebaseDb.collection('users').doc(userId).get();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Query timeout')), 3000)
-        );
-        
-        const userDoc = await Promise.race([userDocPromise, timeoutPromise]);
-        
-        if (userDoc.exists) {
-          const docData = userDoc.data();
-          practitionerId = docData.practitionerId || docData.connectedPractitioner || null;
-          console.log('[routeUser] Practitioner ID from Firestore:', practitionerId);
-        }
-      } catch (error) {
-        console.warn('[routeUser] Error checking practitioner (non-blocking):', error);
-        // Continue with routing - dashboard will handle practitioner check
-      }
-    }
-    
-    // PHASE3D: Route based on practitioner status - always route to user dashboard (wizard handles onboarding)
-    if (!practitionerId) {
-      console.log('[PHASE3D] [routeUser] No practitioner found - routing to user dashboard (wizard handles onboarding)');
-      safeRedirect('/user-dashboard.html');
-      return;
-    } else {
-      console.log('[routeUser] Practitioner found - routing to user dashboard');
-      safeRedirect('/user-dashboard.html');
-      return;
-    }
   }
+  
+  // Clear any existing redirect timeout
+  if (redirectTimeout) {
+    clearTimeout(redirectTimeout);
+  }
+  
+  isRedirecting = true;
+  console.log('[login.js] ✅✅✅ REDIRECTING TO:', url);
+  
+  // Set a timeout to reset the flag in case redirect fails
+  redirectTimeout = setTimeout(() => {
+    isRedirecting = false;
+    console.warn('[login.js] Redirect timeout - resetting redirect flag');
+  }, 5000);
+  
+  // Perform redirect with cache bust - use replace to avoid back button
+  const cacheBust = '?v=' + Date.now();
+  const finalUrl = url.includes('?') ? url + '&v=' + Date.now() : url + cacheBust;
+  window.location.replace(finalUrl);
 }
 
 // Helper function to get user-friendly error message
@@ -368,10 +572,6 @@ function getAuthErrorMessage(error) {
 }
 
 console.log('[login.js] ✅ Script file loaded');
-
-// Prevent redirect loops - check if we're already redirecting
-let isRedirecting = false;
-let redirectTimeout = null;
 
 // Guard against multiple redirects
 /**
@@ -458,17 +658,29 @@ async function routeUserAfterLogin(user, role, userData) {
     ]);
     
     if (uidDoc.exists) {
-      const uidRole = String(uidDoc.data().role || 'user').toLowerCase().trim();
+      const uidData = uidDoc.data();
+      const uidRole = String(uidData.role || 'user').toLowerCase().trim();
       console.log('[login.js] 🔍 UID doc role:', uidRole);
       
       if (uidRole === 'practitioner' || uidRole === 'admin') {
         finalRole = uidRole;
         console.log('[login.js] ✅ Using UID doc role:', finalRole);
       }
+      
+      // Ensure userData includes onboardingState from UID document
+      if (!userData) {
+        userData = {};
+      }
+      if (!userData.onboardingState && uidData.onboardingState) {
+        userData.onboardingState = uidData.onboardingState;
+      }
     }
   } catch (uidError) {
     console.warn('[login.js] UID check error:', uidError.message);
   }
+  
+  // Client routing is handled centrally by auth-redirect-controller.js
+  // login.js should authenticate only, not decide navigation for clients
   
   // Route based on final role
   console.log('[login.js] ========================================');
@@ -495,38 +707,14 @@ async function routeUserAfterLogin(user, role, userData) {
     return;
   }
   
-  // PHASE3D: Default: route to user dashboard (wizard handles onboarding)
-  console.log('[PHASE3D] [login.js] ✅ Routing to user dashboard (wizard handles onboarding)');
-  console.log('[PHASE3D] Client onboarding page fully removed — wizard-only flow enforced');
+  // Default: route to user dashboard
+  console.log('[login.js] ✅ Routing to user dashboard');
   safeRedirect('/user-dashboard.html');
 }
 
-function safeRedirect(url) {
-  if (isRedirecting) {
-    console.warn('[login.js] Already redirecting, ignoring duplicate redirect to:', url);
-    return;
-  }
-  
-  // Clear any existing redirect timeout
-  if (redirectTimeout) {
-    clearTimeout(redirectTimeout);
-  }
-  
-  isRedirecting = true;
-  console.log('[login.js] ✅✅✅ REDIRECTING TO:', url);
-  
-  // Set a timeout to reset the flag in case redirect fails
-  redirectTimeout = setTimeout(() => {
-    isRedirecting = false;
-    console.warn('[login.js] Redirect timeout - resetting redirect flag');
-  }, 5000);
-  
-  // Perform redirect with cache bust - use replace to avoid back button
-  const cacheBust = '?v=' + Date.now();
-  const finalUrl = url.includes('?') ? url + '&v=' + Date.now() : url + cacheBust;
-  window.location.replace(finalUrl);
-}
-
+// ============================================
+// DOM CONTENT LOADED - FORM HANDLERS
+// ============================================
 document.addEventListener('DOMContentLoaded', function() {
   console.log('[login.js] ✅ DOMContentLoaded - initializing login handlers');
   
@@ -677,9 +865,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('[login.js] Initializing login handlers...');
 
-  // Helper function to set loading state for login
-  let loginTimeout = null;
-  
   // Reset loading overlay on page load to ensure it's ready
   function resetLoadingOverlay() {
     try {
@@ -698,244 +883,6 @@ document.addEventListener('DOMContentLoaded', function() {
     resetLoadingOverlay();
   } catch (initError) {
     console.warn('[login.js] Error initializing loading overlay:', initError);
-  }
-  
-  // Get loading overlay elements - use function to ensure they're found
-  function getLoadingElements() {
-    return {
-      overlay: document.getElementById('loadingOverlay'),
-      text: document.getElementById('loadingText'),
-      subtext: document.getElementById('loadingSubtext')
-    };
-  }
-  
-  function setLoginLoading(isLoading, message = 'Signing in to ClearTrack...', submessage = 'Please wait') {
-    try {
-      if (submitBtn) {
-        submitBtn.disabled = isLoading;
-        submitBtn.textContent = isLoading ? 'Signing in...' : 'Sign In';
-      }
-    } catch (btnError) {
-      console.warn('[login.js] Error updating submit button:', btnError);
-    }
-    
-    // Get elements fresh each time to ensure they exist
-    let loadingOverlay, loadingText, loadingSubtext;
-    try {
-      const elements = getLoadingElements();
-      loadingOverlay = elements.overlay;
-      loadingText = elements.text;
-      loadingSubtext = elements.subtext;
-    } catch (elementError) {
-      console.error('[login.js] Error getting loading elements:', elementError);
-      return; // Can't proceed without overlay
-    }
-    
-    // If overlay doesn't exist, create it (fallback only)
-    if (!loadingOverlay) {
-      console.warn('[login.js] Loading overlay not found, creating...');
-      loadingOverlay = document.createElement('div');
-      loadingOverlay.id = 'loadingOverlay';
-      loadingOverlay.className = 'loading-overlay';
-      loadingOverlay.innerHTML = `
-        <div class="loading-spinner-wrapper" style="position: relative !important; width: 100px !important; height: 100px !important; margin: 0 auto 1.5rem !important; display: flex !important; align-items: center !important; justify-content: center !important;">
-          <div class="loading-spinner" style="width: 100px !important; height: 100px !important; border: 4px solid #e5e7eb !important; border-top: 4px solid #0b7285 !important; border-radius: 50% !important; animation: spin 1s linear infinite !important; margin: 0 !important; position: absolute !important; top: 0 !important; left: 0 !important; background: transparent !important; z-index: 1 !important;"></div>
-          <div class="loading-spinner-logo" id="loginLoadingLogo" style="position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 75px !important; height: 75px !important; z-index: 10 !important; display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; background: transparent !important;">
-            <img src="/assets/images/icon%20logo.png" alt="ClearTrack Logo" id="loadingLogoImg" style="width: 100% !important; height: 100% !important; display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 10 !important; object-fit: contain !important; object-position: center center !important; border: none !important;" onload="console.log('✅ LOGO LOADED:', this.src);" onerror="console.error('❌ LOGO FAILED:', this.src);">
-          </div>
-        </div>
-        <div class="loading-text" id="loadingText">${message}</div>
-        <div class="loading-subtext" id="loadingSubtext">${submessage}</div>
-      `;
-      document.body.appendChild(loadingOverlay);
-      // Update references
-      const newText = document.getElementById('loadingText');
-      const newSubtext = document.getElementById('loadingSubtext');
-      if (newText) newText.textContent = message;
-      if (newSubtext) newSubtext.textContent = submessage;
-    } else {
-      // Overlay exists in HTML - ensure only ONE logo exists and it's the correct one
-      try {
-        const existingLogos = loadingOverlay.querySelectorAll('.loading-spinner-logo');
-        const existingImages = loadingOverlay.querySelectorAll('.loading-spinner-logo img, #loadingLogoImg');
-        
-        // Remove all logo containers except the first one
-        if (existingLogos.length > 1) {
-          console.warn('[login.js] Found multiple logo containers, removing duplicates');
-          for (let i = 1; i < existingLogos.length; i++) {
-            try {
-              existingLogos[i].remove();
-            } catch (removeError) {
-              console.warn('[login.js] Error removing duplicate logo:', removeError);
-            }
-          }
-        }
-        
-        // Ensure the logo image is correct
-        const logoImg = loadingOverlay.querySelector('#loadingLogoImg') || loadingOverlay.querySelector('.loading-spinner-logo img');
-        if (logoImg) {
-          try {
-            // Force reload the correct logo
-            logoImg.src = '/assets/images/icon%20logo.png';
-            logoImg.alt = 'ClearTrack Logo';
-            logoImg.id = 'loadingLogoImg';
-            // Remove any other images
-            existingImages.forEach((img, index) => {
-              if (index > 0 && img !== logoImg) {
-                try {
-                  img.remove();
-                } catch (imgRemoveError) {
-                  console.warn('[login.js] Error removing duplicate image:', imgRemoveError);
-                }
-              }
-            });
-          } catch (logoError) {
-            console.warn('[login.js] Error updating logo:', logoError);
-          }
-        } else {
-          // No logo found, create it
-          const logoContainer = loadingOverlay.querySelector('.loading-spinner-logo');
-          if (logoContainer) {
-            try {
-              logoContainer.innerHTML = '<img src="/assets/images/icon%20logo.png" alt="ClearTrack Logo" id="loadingLogoImg" onerror="this.style.display=\'none\';">';
-            } catch (createLogoError) {
-              console.warn('[login.js] Error creating logo:', createLogoError);
-            }
-          }
-        }
-      } catch (logoCheckError) {
-        console.warn('[login.js] Error checking/updating logo:', logoCheckError);
-        // Continue anyway - logo is not critical
-      }
-    }
-    
-    // Show/hide loading overlay - keep it visible during transitions
-    if (!loadingOverlay) {
-      console.error('[login.js] Loading overlay not available');
-      return;
-    }
-    
-    try {
-      if (isLoading) {
-        // Update messages immediately
-        try {
-          if (loadingText) loadingText.textContent = message || 'Loading...';
-          if (loadingSubtext) loadingSubtext.textContent = submessage || '';
-        } catch (textError) {
-          console.warn('[login.js] Error updating text:', textError);
-        }
-        
-        // Force reset any previous state first
-        loadingOverlay.classList.remove('show');
-        
-        // Remove inline styles that might hide it
-        try {
-          loadingOverlay.style.removeProperty('display');
-          loadingOverlay.style.removeProperty('visibility');
-          loadingOverlay.style.removeProperty('opacity');
-        } catch (styleError) {
-          console.warn('[login.js] Error removing styles:', styleError);
-        }
-        
-        // Show immediately - no requestAnimationFrame delay
-        // Force visibility with inline styles for immediate display
-        // Set individual properties to preserve background-image from CSS
-        try {
-          loadingOverlay.style.position = 'fixed';
-          loadingOverlay.style.top = '0';
-          loadingOverlay.style.left = '0';
-          loadingOverlay.style.right = '0';
-          loadingOverlay.style.bottom = '0';
-          loadingOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-          loadingOverlay.style.backdropFilter = 'blur(1px)';
-          loadingOverlay.style.webkitBackdropFilter = 'blur(1px)';
-          loadingOverlay.style.display = 'flex';
-          loadingOverlay.style.alignItems = 'center';
-          loadingOverlay.style.justifyContent = 'center';
-          loadingOverlay.style.flexDirection = 'column';
-          loadingOverlay.style.zIndex = '99999';
-          loadingOverlay.style.opacity = '1';
-          loadingOverlay.style.visibility = 'visible';
-          loadingOverlay.style.pointerEvents = 'auto';
-          // Don't set background or backgroundImage - let CSS handle the splash screen
-          loadingOverlay.classList.add('show');
-        } catch (showError) {
-          console.error('[login.js] Error showing overlay:', showError);
-          // Fallback: just add the show class
-          loadingOverlay.classList.add('show');
-        }
-        
-        // Ensure logo is visible (non-critical, don't fail if this errors)
-        try {
-          const logoImg = loadingOverlay.querySelector('#loadingLogoImg');
-          const logoContainer = loadingOverlay.querySelector('.loading-spinner-logo');
-          if (logoImg) {
-            logoImg.style.cssText = 'width: 100% !important; height: 100% !important; display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 10 !important; object-fit: contain !important; object-position: center center !important;';
-          }
-          if (logoContainer) {
-            logoContainer.style.cssText = 'position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 75px !important; height: 75px !important; z-index: 10 !important; display: flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important;';
-          }
-        } catch (logoError) {
-          console.warn('[login.js] Error ensuring logo visibility:', logoError);
-          // Continue - logo is not critical
-        }
-      } else {
-        // Only hide if explicitly set to false (not during transitions)
-        try {
-          loadingOverlay.classList.remove('show');
-          // Use setTimeout to ensure smooth transition
-          setTimeout(() => {
-            try {
-              if (loadingOverlay && !loadingOverlay.classList.contains('show')) {
-                loadingOverlay.style.display = 'none';
-                loadingOverlay.style.visibility = 'hidden';
-                loadingOverlay.style.opacity = '0';
-              }
-            } catch (hideError) {
-              console.warn('[login.js] Error hiding overlay:', hideError);
-            }
-          }, 300);
-        } catch (hideError) {
-          console.warn('[login.js] Error hiding overlay:', hideError);
-        }
-      }
-    } catch (overlayError) {
-      console.error('[login.js] Critical error in setLoginLoading:', overlayError);
-      // Try basic fallback
-      try {
-        if (isLoading) {
-          loadingOverlay.classList.add('show');
-        } else {
-          loadingOverlay.classList.remove('show');
-        }
-      } catch (fallbackError) {
-        console.error('[login.js] Fallback also failed:', fallbackError);
-      }
-    }
-    
-    // Clear any existing timeout
-    if (loginTimeout) {
-      clearTimeout(loginTimeout);
-      loginTimeout = null;
-    }
-    
-    // If loading, set a timeout to reset button after 50 seconds (safety net)
-    // Increased to 50s to account for slow networks, but operations have individual timeouts
-    if (isLoading) {
-      loginTimeout = setTimeout(() => {
-        console.error('[login.js] Login timeout - resetting button state');
-        setLoginLoading(false);
-        showError('Login is taking longer than expected. Please check your connection and try again.');
-      }, 50000); // 50 second timeout (safety net, should not normally trigger)
-    }
-  }
-
-  // Helper function to set loading state for registration
-  function setRegisterLoading(isLoading) {
-    if (registerBtn) {
-    registerBtn.disabled = isLoading;
-    registerBtn.textContent = isLoading ? 'Creating account...' : 'Create Account';
-    }
   }
 
   // Handle login form submission
@@ -1023,26 +970,19 @@ document.addEventListener('DOMContentLoaded', function() {
       const userDocPromise = window.firebaseDb.collection('users').doc(user.uid).get();
       const tokenPromise = user.getIdToken();
       
-      // Race both with timeouts
-      const userDocTimeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('User document query timeout')), 8000)
-      );
-      const tokenTimeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Token generation timeout')), 8000)
-      );
-      
       let token = null;
       let userDoc = null;
       
       console.log('[login.js] 🔍 Starting Step 2 - fetching token and user document...');
       
-      // Get token (non-blocking)
+      // Get token (non-blocking) with error handling to prevent uncaught rejections
       tokenPromise.then(t => {
         token = t;
         localStorage.setItem('token', token);
         console.log('[login.js] ✅ Token retrieved');
       }).catch(err => {
         console.warn('[login.js] ⚠️ Token retrieval failed:', err);
+        // Suppress unhandled rejection
       });
       
       // Get user document with timeout - don't let it hang
@@ -1082,12 +1022,16 @@ document.addEventListener('DOMContentLoaded', function() {
           const normalizedExistingRole = String(existingRole || '').toLowerCase().trim();
           console.log('[login.js] Normalized existing role:', normalizedExistingRole);
           
+          // Define allowed roles
+          const allowedRoles = ['user', 'client', 'sales_rep', 'employee', 'contractor', 'business_owner', 'practitioner', 'admin'];
+          
           // Use existing role if it's already set correctly
           if (normalizedExistingRole === 'practitioner' || normalizedExistingRole === 'admin') {
             role = normalizedExistingRole;
             console.log('[login.js] ✅ Using existing role:', role);
-          } else if (existingRole && normalizedExistingRole !== 'user' && normalizedExistingRole !== '') {
+          } else if (existingRole && normalizedExistingRole !== '' && !allowedRoles.includes(normalizedExistingRole)) {
             // Invalid role - correct it (non-blocking, don't wait)
+            // Only correct if role exists, is not empty, and is not in allowed list
             console.log('[login.js] Correcting invalid role:', existingRole);
             window.firebaseDb.collection('users').doc(user.uid).update({ role: 'user' }).catch(err => {
               console.error('[login.js] Failed to update role:', err);
@@ -1143,15 +1087,80 @@ document.addEventListener('DOMContentLoaded', function() {
                   console.log('[login.js] ⚠️ No practitioner/admin found in email documents, checking applications...');
                   
                   // Check practitioner applications
+                  try {
+                    console.log('[login.js] 🔍 Starting practitioner application query...');
+                    const practitionerAppSnapshot = await Promise.race([
+                      window.firebaseDb.collection('practitionerApplications')
+                        .where('email', '==', normalizedEmail)
+                        .where('status', '==', 'approved')
+                        .limit(1)
+                        .get(),
+                      new Promise((_, reject) => setTimeout(() => reject(new Error('Application query timeout')), 2000))
+                    ]);
+                    
+                    console.log('[login.js] ✅ Application query completed, empty:', practitionerAppSnapshot.empty);
+                    
+                    if (!practitionerAppSnapshot.empty) {
+                    const foundApprovedApp = practitionerAppSnapshot.docs[0].data();
+                    console.log('[login.js] ✅ Found approved practitioner application - updating role immediately');
+                  
+                    const updateData = {
+                      role: 'practitioner',
+                      practitionerStatus: 'approved',
+                      practitionerCode: foundApprovedApp.practitionerCode || null,
+                      firstName: foundApprovedApp.firstName || null,
+                      lastName: foundApprovedApp.lastName || null,
+                      name: `${foundApprovedApp.firstName || ''} ${foundApprovedApp.lastName || ''}`.trim() || null,
+                      email: user.email,
+                      phone: foundApprovedApp.phone || null,
+                      practiceName: foundApprovedApp.practiceName || null,
+                      practiceNumber: foundApprovedApp.practiceNumber || null,
+                      sarsNumber: foundApprovedApp.sarsNumber || null,
+                      yearsExperience: foundApprovedApp.yearsExperience || null,
+                      qualifications: foundApprovedApp.qualifications || null,
+                      specializations: foundApprovedApp.specializations || [],
+                      bio: foundApprovedApp.bio || null
+                    };
+                    
+                    // Remove null values
+                    Object.keys(updateData).forEach(key => {
+                      if (updateData[key] === null) delete updateData[key];
+                    });
+                    
+                    // Update immediately and wait for it
+                    await window.firebaseDb.collection('users').doc(user.uid).set(updateData, { merge: true });
+                    console.log('[login.js] ✅ Updated user document with practitioner role');
+                    
+                    // Update role for routing
+                    role = 'practitioner';
+                    userData = { ...userData, ...updateData };
+                  } else {
+                      // No practitioner application found - continue with 'user' role
+                      role = 'user';
+                      console.log('[login.js] ✅ No approved application found, role set to user');
+                    }
+                  } catch (appQueryError) {
+                    console.warn('[login.js] Practitioner application query error:', appQueryError.message);
+                    role = 'user';
+                  }
+                }
+              } else {
+                // No documents found by email - check practitioner applications
+                console.log('[login.js] No documents found by email - checking applications...');
+                
+                try {
+                  console.log('[login.js] 🔍 Starting practitioner application query (no email docs)...');
                   const practitionerAppSnapshot = await Promise.race([
                     window.firebaseDb.collection('practitionerApplications')
                       .where('email', '==', normalizedEmail)
                       .where('status', '==', 'approved')
                       .limit(1)
                       .get(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Application query timeout')), 2000))
                   ]);
-                
+                  
+                  console.log('[login.js] ✅ Application query completed, empty:', practitionerAppSnapshot.empty);
+              
                   if (!practitionerAppSnapshot.empty) {
                     const foundApprovedApp = practitionerAppSnapshot.docs[0].data();
                     console.log('[login.js] ✅ Found approved practitioner application - updating role immediately');
@@ -1189,62 +1198,16 @@ document.addEventListener('DOMContentLoaded', function() {
                   } else {
                     // No practitioner application found - continue with 'user' role
                     role = 'user';
+                    console.log('[login.js] ✅ No approved application found, role set to user');
                   }
-                }
-              } else {
-                // No documents found by email - check practitioner applications
-                console.log('[login.js] No documents found by email - checking applications...');
-                
-                const practitionerAppSnapshot = await Promise.race([
-                  window.firebaseDb.collection('practitionerApplications')
-                    .where('email', '==', normalizedEmail)
-                    .where('status', '==', 'approved')
-                    .limit(1)
-                    .get(),
-                  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
-                ]);
-              
-                if (!practitionerAppSnapshot.empty) {
-                  const foundApprovedApp = practitionerAppSnapshot.docs[0].data();
-                  console.log('[login.js] ✅ Found approved practitioner application - updating role immediately');
-                
-                  const updateData = {
-                    role: 'practitioner',
-                    practitionerStatus: 'approved',
-                    practitionerCode: foundApprovedApp.practitionerCode || null,
-                    firstName: foundApprovedApp.firstName || null,
-                    lastName: foundApprovedApp.lastName || null,
-                    name: `${foundApprovedApp.firstName || ''} ${foundApprovedApp.lastName || ''}`.trim() || null,
-                    email: user.email,
-                    phone: foundApprovedApp.phone || null,
-                    practiceName: foundApprovedApp.practiceName || null,
-                    practiceNumber: foundApprovedApp.practiceNumber || null,
-                    sarsNumber: foundApprovedApp.sarsNumber || null,
-                    yearsExperience: foundApprovedApp.yearsExperience || null,
-                    qualifications: foundApprovedApp.qualifications || null,
-                    specializations: foundApprovedApp.specializations || [],
-                    bio: foundApprovedApp.bio || null
-                  };
-                  
-                  // Remove null values
-                  Object.keys(updateData).forEach(key => {
-                    if (updateData[key] === null) delete updateData[key];
-                  });
-                  
-                  // Update immediately and wait for it
-                  await window.firebaseDb.collection('users').doc(user.uid).set(updateData, { merge: true });
-                  console.log('[login.js] ✅ Updated user document with practitioner role');
-                  
-                  // Update role for routing
-                  role = 'practitioner';
-                  userData = { ...userData, ...updateData };
-                } else {
-                  // No practitioner application found - continue with 'user' role
+                } catch (appQueryError2) {
+                  console.warn('[login.js] Practitioner application query error (no email docs):', appQueryError2.message);
                   role = 'user';
                 }
               }
             } catch (appCheckError) {
               console.warn('[login.js] Application check failed:', appCheckError.message);
+              console.warn('[login.js] Application check error stack:', appCheckError.stack);
               role = 'user';
             }
           }
@@ -1550,7 +1513,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (routingError) {
         console.error('[login.js] Routing error:', routingError);
         console.error('[login.js] Routing error stack:', routingError.stack);
-        // PHASE3D: Fallback: redirect to user dashboard (wizard handles onboarding)
+        // Fallback: redirect to user dashboard
         safeRedirect('/user-dashboard.html');
       }
 
@@ -1658,7 +1621,8 @@ document.addEventListener('DOMContentLoaded', function() {
         firstName: firstName,
         lastName: lastName,
         name: `${firstName} ${lastName}`,
-        role: 'user', // Always 'user' for new registrations
+        role: 'user', // Always 'user' for new registrations (normalizes to 'client')
+        onboardingState: 'NEW', // Set onboarding state for new clients
         createdAt: new Date().toISOString()
       };
 

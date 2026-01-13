@@ -254,6 +254,25 @@
             color: #ffffff;
         }
         
+        /* Hide desktop nav on mobile */
+        @media (max-width: 768px) {
+            .nav {
+                display: none !important;
+            }
+        }
+        
+        /* CRITICAL: Ensure desktop nav is visible on desktop */
+        @media (min-width: 769px) {
+            .header .nav,
+            header .nav,
+            .header .nav#desktopNav,
+            .nav#desktopNav {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        }
+        
         /* ============================================
            MENU TOGGLE BUTTON (Style 6)
            ============================================ */
@@ -1206,6 +1225,35 @@
             color: #6b7280;
         }
         
+        /* Client Avatar Container */
+        .client-avatar-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .client-info-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+        
+        .client-actions-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
         .practitioner-code {
             background: #f0f9ff;
             border: 1px solid #bae6fd;
@@ -1262,6 +1310,7 @@
             
             body {
                 overflow-x: hidden !important;
+                overflow-y: auto !important; /* Explicitly ensure scrolling works on mobile */
             }
             
             .section {
@@ -1881,6 +1930,110 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .vehicle-details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Client Cards Mobile Responsive Styles */
+            .client-card {
+                padding: 1rem !important;
+                margin-bottom: 0.875rem !important;
+                border-radius: 12px !important;
+            }
+            
+            .client-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 1rem !important;
+            }
+            
+            .client-header > div:first-child {
+                width: 100% !important;
+            }
+            
+            .client-info-container {
+                width: 100% !important;
+            }
+            
+            .client-avatar-container {
+                width: 48px !important;
+                height: 48px !important;
+                font-size: 1.125rem !important;
+            }
+            
+            .client-actions-container {
+                width: 100% !important;
+                flex-direction: column !important;
+                margin-top: 0.5rem !important;
+            }
+            
+            .client-actions-container button {
+                width: 100% !important;
+                min-height: 44px !important;
+                padding: 0.75rem 1rem !important;
+                font-size: 0.95rem !important;
+                border-radius: 8px !important;
+            }
+            
+            .client-name {
+                font-size: 1rem !important;
+                line-height: 1.4 !important;
+            }
+            
+            .client-email {
+                font-size: 0.8125rem !important;
+                word-break: break-word !important;
+            }
+            
+            .client-stats {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+                margin-top: 1rem !important;
+            }
+            
+            .client-stat {
+                padding: 0.5rem !important;
+            }
+            
+            .client-stat-value {
+                font-size: 1.125rem !important;
+            }
+            
+            .client-stat-label {
+                font-size: 0.6875rem !important;
+            }
+            
+            /* Status badges wrap better on mobile */
+            .client-header .flex-1 > div[style*="display: flex"] {
+                flex-wrap: wrap !important;
+                gap: 0.375rem !important;
+            }
+            
+            .client-header .flex-1 > div[style*="display: flex"] span {
+                font-size: 0.6875rem !important;
+                padding: 0.25rem 0.5rem !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .client-card {
+                padding: 0.875rem !important;
+            }
+            
+            .client-stats {
+                gap: 0.5rem !important;
+            }
+            
+            .client-stat-value {
+                font-size: 1rem !important;
+            }
+            
+            .client-stat-label {
+                font-size: 0.625rem !important;
+            }
         }
 
         .vehicle-detail {
@@ -3764,6 +3917,17 @@
                 </div>
                 <button class="btn btn-outline" onclick="window.location.href='/login.html'" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.3);" id="desktopLogoutBtn" data-ct-logout>Logout</button>
             </div>
+            <nav class="nav" id="desktopNav">
+                <a href="#" class="nav-link active" data-section="dashboard" onclick="showSection('dashboard'); return false;">Dashboard</a>
+                <a href="#" class="nav-link" data-section="clients" onclick="showSection('clients'); return false;">Clients</a>
+                <a href="#" class="nav-link" data-section="messages" onclick="showSection('messages'); return false;">Messages</a>
+                <a href="#" class="nav-link" data-section="requests" onclick="showSection('requests'); return false;">Requests</a>
+                <a href="#" class="nav-link" data-section="tax-returns" onclick="showSection('tax-returns'); return false;">Submissions</a>
+                <a href="#" class="nav-link" data-section="invoices" onclick="showSection('invoices'); return false;">Invoices</a>
+                <a href="#" class="nav-link" data-section="ai-assistant" onclick="showSection('ai-assistant'); return false;">AI Assistant</a>
+                <a href="#" class="nav-link" data-section="profile" onclick="showSection('profile'); return false;">Profile</a>
+                <a href="#" class="nav-link" data-section="support" onclick="showSection('support'); return false;">Support</a>
+            </nav>
         </header>
         
         <main class="main">
@@ -3803,7 +3967,14 @@
                     </div>
                     <div class="card-body">
                         <p style="margin-bottom: 1rem; color: #6b7280;">Generate SARS-compliant annual logbook packs for clients</p>
+                        <label for="practitionerTaxYearSelect" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Tax Year</label>
+                        <select id="practitionerTaxYearSelect" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #e5e7eb; border-radius: 6px;">
+                            <!-- Populated by JavaScript -->
+                        </select>
                         <button class="btn btn-primary" onclick="generateAnnualSARSPack()">Generate Annual SARS Pack</button>
+                        <button class="btn btn-secondary" onclick="openAssistedReconstructionModal()" style="margin-top: 0.5rem; width: 100%;">
+                            Create Logbook (No Route List)
+                        </button>
                     </div>
                 </div>
                 
@@ -4058,6 +4229,15 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <label for="practitionerTaxYearContextSelect" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Tax Year Context</label>
+                        <select id="practitionerTaxYearContextSelect" class="filter-select">
+                            <option value="">Loading...</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -5163,7 +5343,7 @@
                 return false;
             }
             modal.classList.add('hidden');
-            document.body.style.overflow = '';
+            restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             return true;
         }
         
@@ -5183,25 +5363,30 @@
         window.hideModal = hideModal;
         window.hideModalOnOverlay = hideModalOnOverlay;
         
+        // Helper function to restore body scrolling consistently
+        // This ensures all overflow properties are properly restored
+        function restoreBodyScrolling() {
+            document.body.style.overflow = '';
+            document.body.style.overflowY = 'auto';
+            document.documentElement.style.overflow = '';
+            document.documentElement.style.overflowY = 'auto';
+        }
+        
         // Safety check: Ensure body scrolling is enabled on page load
         // This fixes cases where a modal might have left overflow: hidden set
         function ensureBodyScrolling() {
             // Check if any modal is actually visible
             const visibleModals = document.querySelectorAll('.modal-overlay:not(.hidden)');
-            if (visibleModals.length === 0) {
-                // No modals are open, ensure scrolling is enabled
-                document.body.style.overflow = '';
-                document.body.style.overflowY = 'auto';
-                document.documentElement.style.overflow = '';
-                document.documentElement.style.overflowY = 'auto';
+            const moreMenuActive = document.getElementById('moreMenu')?.classList.contains('active');
+            
+            if (visibleModals.length === 0 && !moreMenuActive) {
+                // No modals or menus are open, ensure scrolling is enabled
+                restoreBodyScrolling();
             }
         }
         
         // Force scrolling to work - run immediately
-        document.body.style.overflow = '';
-        document.body.style.overflowY = 'auto';
-        document.documentElement.style.overflow = '';
-        document.documentElement.style.overflowY = 'auto';
+        restoreBodyScrolling();
         
         // Run on page load
         if (document.readyState === 'loading') {
@@ -5221,6 +5406,27 @@
         let clients = [];
         let taxReturns = [];
         let currentClientId = null;
+        
+        // Phase 2.5: Tax Year Context (non-persistent, in-memory only)
+        window.currentPractitionerTaxYearContext = null;
+        
+        // Helper function to verify current user is a practitioner or admin
+        async function isPractitionerRole() {
+            try {
+                const currentUser = window.firebaseAuth?.currentUser;
+                if (!currentUser) return false;
+                
+                const userDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+                if (!userDoc.exists) return false;
+                
+                const userData = userDoc.data();
+                const userRole = (userData.role || '').toLowerCase().trim();
+                return userRole === 'practitioner' || userRole === 'admin';
+            } catch (error) {
+                console.warn('[practitioner-dashboard] Error checking role:', error);
+                return false;
+            }
+        }
         
         // Initialize application
         document.addEventListener('DOMContentLoaded', function() {
@@ -5249,8 +5455,8 @@
             preventPractitionerCodeFocus();
             // Also run it after a delay to ensure DOM is fully loaded
             setTimeout(() => preventPractitionerCodeFocus(), 500);
-            // Load data - updateDashboard will be called by loadClients() after clients are loaded
-            loadClients();
+            // Defer loadClients() until practitioner role is confirmed
+            // It will be called from loadPractitionerFromFirestore() after role verification
             loadTaxReturns();
             // loadInvoices() will be called after practitioner is loaded
             // Also call updateDashboard here as a fallback, but loadClients() will call it too
@@ -5532,6 +5738,16 @@
                     // Update existing practitioner with Firestore data
                     practitioner = data.practitioners[uid];
                     
+                    // Ensure practitionerCode exists - generate if missing (before creating object)
+                    let practitionerCode = firestoreProfile.practitionerCode || practitioner.practitionerCode;
+                    if (!practitionerCode) {
+                        if (cleartrackData.generateUniquePractitionerCode) {
+                            practitionerCode = await cleartrackData.generateUniquePractitionerCode();
+                        } else {
+                            practitionerCode = cleartrackData.generatePractitionerCode();
+                        }
+                    }
+                    
                     // Merge Firestore data into local practitioner
                     practitioner = {
                         ...practitioner,
@@ -5549,8 +5765,7 @@
                         bio: firestoreProfile.bio || practitioner.bio || '',
                         phone: firestoreProfile.phone || practitioner.phone || '',
                         isPubliclyVisible: firestoreProfile.isPubliclyVisible !== undefined ? firestoreProfile.isPubliclyVisible : (practitioner.isPubliclyVisible || false),
-                        // Ensure practitionerCode exists - generate if missing
-                        practitionerCode: firestoreProfile.practitionerCode || practitioner.practitionerCode || cleartrackData.generatePractitionerCode(),
+                        practitionerCode: practitionerCode,
                         // Firestore is the single source of truth for profileImage
                         profileImage: firestoreProfile.profileImage || ''
                     };
@@ -5559,7 +5774,14 @@
                     cleartrackData.updatePractitioner(uid, practitioner);
                 } else {
                     // Create new practitioner in local storage with Firestore data
-                    const practitionerCode = firestoreProfile.practitionerCode || cleartrackData.generatePractitionerCode();
+                    let practitionerCode = firestoreProfile.practitionerCode;
+                    if (!practitionerCode) {
+                        if (cleartrackData.generateUniquePractitionerCode) {
+                            practitionerCode = await cleartrackData.generateUniquePractitionerCode();
+                        } else {
+                            practitionerCode = cleartrackData.generatePractitionerCode();
+                        }
+                    }
                     practitioner = cleartrackData.createPractitionerWithId(uid, {
                         firstName: firestoreProfile.firstName || '',
                         lastName: firestoreProfile.lastName || '',
@@ -5607,8 +5829,17 @@
                     updateMessagesHeaderAvatar();
                 }, 500);
                 
+                // Populate tax year selector
+                populateTaxYearSelector();
+                
+                // Phase 2.5: Initialize tax year context selector
+                populateTaxYearContextSelector();
+                
                 // Load invoices now that practitioner is available
                 loadInvoices();
+                
+                // Load clients now that practitioner role is confirmed
+                loadClients();
                 
                 // Wait a moment for interface to render, then check if we should hide loading screen
                 setTimeout(() => {
@@ -5736,8 +5967,11 @@
             try {
                 if (window.CT_DEBUG) console.log('🔍 DEBUG: Creating new practitioner in Firestore');
                 
-                // Generate practitioner code
-                const practitionerCode = cleartrackData.generatePractitionerCode();
+                // Generate practitioner code and ensure uniqueness
+                let practitionerCode = cleartrackData.generatePractitionerCode();
+                if (cleartrackData.ensureUniquePractitionerCode) {
+                    practitionerCode = await cleartrackData.ensureUniquePractitionerCode(uid, practitionerCode);
+                }
                 
                 // Get Firebase user email
                 const firebaseUser = window.firebaseAuth.currentUser;
@@ -5774,6 +6008,11 @@
                 window.practitioner = practitioner;
                 updatePractitionerInterface();
                 
+                // Set up connection requests listener when practitioner is loaded
+                if (typeof setupConnectionRequestsListener === 'function') {
+                    setupConnectionRequestsListener();
+                }
+                
             } catch (error) {
                 console.error('🔍 DEBUG: Error creating practitioner in Firestore:', error);
                 // Fallback to local storage
@@ -5797,6 +6036,11 @@
                 window.practitioner = practitioner;
                 if (window.CT_DEBUG) console.log('🔍 DEBUG: Current practitioner set from local storage:', practitioner);
                 updatePractitionerInterface();
+                
+                // Set up connection requests listener when practitioner is loaded
+                if (typeof setupConnectionRequestsListener === 'function') {
+                    setupConnectionRequestsListener();
+                }
                 
                 // Don't use profileImage from localStorage - Firestore is the only source of truth
                 // Avatars will be updated when Firestore data loads
@@ -6085,7 +6329,7 @@
             const modal = document.getElementById('documentDownloadModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             }
         }
         
@@ -6226,7 +6470,7 @@
             const modal = document.getElementById('documentViewerModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             } else {
                 return;
             }
@@ -6365,6 +6609,15 @@
                     throw new Error('cleartrackData.getConnectedUsers is not available');
                 }
                 
+                // CRITICAL: Verify role before calling getConnectedUsers
+                const hasPractitionerRole = await isPractitionerRole();
+                if (!hasPractitionerRole) {
+                    console.warn('[practitioner-dashboard] User is not a practitioner, cannot show clients');
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                    return;
+                }
+                
                 const allClients = await cleartrackData.getConnectedUsers(practitioner.id);
                 
                 if (!Array.isArray(allClients)) {
@@ -6472,6 +6725,15 @@
                 
                 if (!cleartrackData || typeof cleartrackData.getConnectedUsers !== 'function') {
                     throw new Error('cleartrackData.getConnectedUsers is not available');
+                }
+                
+                // CRITICAL: Verify role before calling getConnectedUsers
+                const hasPractitionerRole = await isPractitionerRole();
+                if (!hasPractitionerRole) {
+                    console.warn('[practitioner-dashboard] User is not a practitioner, cannot show active clients');
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                    return;
                 }
                 
                 const allClients = await cleartrackData.getConnectedUsers(practitioner.id);
@@ -6655,7 +6917,7 @@
             const modal = document.getElementById('pendingReturnsModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             }
         }
         
@@ -6717,7 +6979,7 @@
             const modal = document.getElementById('completedReturnsModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             }
         }
         
@@ -6900,7 +7162,7 @@
             const modal = document.getElementById('invoiceModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             }
         }
         
@@ -6909,7 +7171,7 @@
             const modal = document.getElementById('invoicePreviewModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             } else {
                 return;
             }
@@ -6941,8 +7203,16 @@
                           `**Due Date:** ${new Date(invoice.dueDate).toLocaleDateString()}\n\n` +
                           `Please find your invoice attached. Payment details are included in the document.`;
             
+            // CRITICAL: Verify role before calling getConnectedUsers
+            const hasPractitionerRole = await isPractitionerRole();
+            if (!hasPractitionerRole) {
+                console.warn('[practitioner-dashboard] User is not a practitioner, cannot perform operation');
+                alert('You must be a practitioner to send invoices.');
+                return;
+            }
+            
             // Get connected users from data storage
-            const connectedUsers = cleartrackData.getConnectedUsers(practitioner.id);
+            const connectedUsers = await cleartrackData.getConnectedUsers(practitioner.id);
             
             // Find the client in the connected users - try different name formats
             let client = connectedUsers.find(c => c.name === invoice.clientName);
@@ -7035,7 +7305,7 @@
         }
         
         // Send invoice via email
-        function sendInvoiceViaEmail() {
+        async function sendInvoiceViaEmail() {
             if (!window.currentInvoice) {
                 alert('No invoice available to send.');
                 return;
@@ -7043,8 +7313,16 @@
             
             const invoice = window.currentInvoice;
             
+            // CRITICAL: Verify role before calling getConnectedUsers
+            const hasPractitionerRole = await isPractitionerRole();
+            if (!hasPractitionerRole) {
+                console.warn('[practitioner-dashboard] User is not a practitioner, cannot perform operation');
+                alert('You must be a practitioner to send invoices.');
+                return;
+            }
+            
             // Get connected users from data storage
-            const connectedUsers = cleartrackData.getConnectedUsers(practitioner.id);
+            const connectedUsers = await cleartrackData.getConnectedUsers(practitioner.id);
             
             // Find the client in the connected users - try different name formats
             let client = connectedUsers.find(c => c.name === invoice.clientName);
@@ -8071,15 +8349,22 @@
         }
         
         // Open new invoice modal from invoice tab
-        function openNewInvoiceModalFromInvoiceTab() {
+        async function openNewInvoiceModalFromInvoiceTab() {
             console.log('🔧 openNewInvoiceModalFromInvoiceTab called');
             
             // Ensure clients is always an array
             if (!clients || !Array.isArray(clients)) {
                 console.log('📋 Initializing clients array...');
                 if (practitioner) {
-                    const fetchedClients = cleartrackData.getConnectedUsers(practitioner.id);
+                    // CRITICAL: Verify role before calling getConnectedUsers
+                    const hasPractitionerRole = await isPractitionerRole();
+                    if (hasPractitionerRole) {
+                        const fetchedClients = await cleartrackData.getConnectedUsers(practitioner.id);
                     clients = Array.isArray(fetchedClients) ? fetchedClients : [];
+                } else {
+                        console.warn('[practitioner-dashboard] User is not a practitioner, cannot load clients');
+                        clients = [];
+                    }
                 } else {
                     clients = [];
                 }
@@ -8115,7 +8400,7 @@
             const modal = document.getElementById('newInvoiceModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             } else {
                 return;
             }
@@ -8145,7 +8430,7 @@
         let selectedAutocompleteIndex = -1;
         
         // Populate client dropdown (now for autocomplete)
-        function populateClientDropdown() {
+        async function populateClientDropdown() {
             const clientInput = document.getElementById('newInvoiceClientSelect');
             if (!clientInput) return;
             
@@ -8153,7 +8438,15 @@
             if (!clients || !Array.isArray(clients)) {
                 console.warn('⚠️ Clients is not an array, loading clients...');
                 if (practitioner) {
-                    clients = cleartrackData.getConnectedUsers(practitioner.id) || [];
+                    // CRITICAL: Verify role before calling getConnectedUsers
+                    const hasPractitionerRole = await isPractitionerRole();
+                    if (hasPractitionerRole) {
+                        const fetchedClients = await cleartrackData.getConnectedUsers(practitioner.id);
+                        clients = Array.isArray(fetchedClients) ? fetchedClients : [];
+                } else {
+                        console.warn('[practitioner-dashboard] User is not a practitioner, cannot load clients');
+                        clients = [];
+                    }
                 } else {
                     clients = [];
                 }
@@ -8977,7 +9270,7 @@
         }
         
         // Email invoice
-        function emailInvoice(invoiceId) {
+        async function emailInvoice(invoiceId) {
             console.log('📧 Emailing invoice:', invoiceId);
             
             // First try to find invoice in storage
@@ -8995,8 +9288,16 @@
                 return;
             }
             
+            // CRITICAL: Verify role before calling getConnectedUsers
+            const hasPractitionerRole = await isPractitionerRole();
+            if (!hasPractitionerRole) {
+                console.warn('[practitioner-dashboard] User is not a practitioner, cannot perform operation');
+                alert('You must be a practitioner to email invoices.');
+                return;
+            }
+            
             // Get connected users to find client email
-            const connectedUsers = cleartrackData.getConnectedUsers(practitioner.id);
+            const connectedUsers = await cleartrackData.getConnectedUsers(practitioner.id);
             
             // Find the client - try different name formats
             let client = connectedUsers.find(c => {
@@ -9070,8 +9371,16 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
+            // CRITICAL: Verify role before calling getConnectedUsers
+            const hasPractitionerRole = await isPractitionerRole();
+            if (!hasPractitionerRole) {
+                console.warn('[practitioner-dashboard] User is not a practitioner, cannot perform operation');
+                alert('You must be a practitioner to open invoice modal.');
+                return;
+            }
+            
             // Get connected users to find client
-            const connectedUsers = cleartrackData.getConnectedUsers(practitioner.id);
+            const connectedUsers = await cleartrackData.getConnectedUsers(practitioner.id);
             
             // Find the client - try different name formats
             let client = connectedUsers.find(c => {
@@ -9453,7 +9762,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             const modal = document.getElementById('clientDataModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             }
         }
         
@@ -9658,8 +9967,17 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 if (options?.loadData !== false) {
                     if (sectionName === 'dashboard' && typeof updateDashboard === 'function') {
                         updateDashboard();
-                    } else if (sectionName === 'messages' && typeof loadMessages === 'function') {
-                        loadMessages();
+                    } else if (sectionName === 'messages') {
+                        // Load conversations list to show clients in sidebar
+                        if (typeof loadConversations === 'function') {
+                            loadConversations();
+                        }
+                        // Set up real-time message listener when messages section is shown
+                        setTimeout(() => {
+                            if (typeof window.setupPractitionerMessageListener === 'function') {
+                                window.setupPractitionerMessageListener();
+                            }
+                        }, 300);
                         // Update messages header avatar when messages section is shown
                         setTimeout(() => {
                             if (practitioner && practitioner.profileImage) {
@@ -9675,8 +9993,18 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         loadTaxReturns();
                     } else if (sectionName === 'invoices' && typeof loadInvoices === 'function') {
                         loadInvoices();
-                    } else if (sectionName === 'requests' && typeof loadConnectionRequests === 'function') {
+                    } else if (sectionName === 'requests') {
+                        // Load both connection requests and client requests
+                        if (typeof loadConnectionRequests === 'function') {
                         loadConnectionRequests();
+                        }
+                        if (typeof loadClientRequests === 'function') {
+                            loadClientRequests();
+                        }
+                        // Set up real-time listener when requests section is shown
+                        if (typeof setupConnectionRequestsListener === 'function') {
+                            setupConnectionRequestsListener();
+                        }
                     } else if (sectionName === 'support' && typeof loadSupportTickets === 'function') {
                         console.debug('[Support] Loading tickets via showSection');
                         loadSupportTickets();
@@ -9852,7 +10180,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         }
         
         // Load clients from real data storage
-        function loadClients() {
+        async function loadClients() {
             if (!practitioner) {
                 // If no practitioner, ensure clients is an empty array
                 clients = [];
@@ -9860,8 +10188,17 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
-            // Get clients and ensure it's always an array
-            const fetchedClients = cleartrackData.getConnectedUsers(practitioner.id);
+            // CRITICAL: Verify role before calling getConnectedUsers
+            const hasPractitionerRole = await isPractitionerRole();
+            if (!hasPractitionerRole) {
+                console.warn('[practitioner-dashboard] User is not a practitioner, skipping getConnectedUsers');
+                clients = [];
+                updateDashboard();
+                return;
+            }
+            
+            // Get clients and ensure it's always an array - CRITICAL: await async call
+            const fetchedClients = await cleartrackData.getConnectedUsers(practitioner.id);
             clients = Array.isArray(fetchedClients) ? fetchedClients : [];
             
             // Calculate document and expense counts for each client
@@ -9915,8 +10252,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return `
                 <div class="client-card">
                     <div class="client-header">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; color: #6b7280; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; overflow: hidden; flex-shrink: 0; border: 2px solid #e5e7eb;">
+                        <div class="client-info-container">
+                            <div class="client-avatar-container">
                                 ${client.profileImage ? 
                                     `<img src="${client.profileImage}" alt="${client.firstName} ${client.lastName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />` : 
                                     client.firstName.charAt(0)
@@ -9944,7 +10281,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                                 }
                             </div>
                         </div>
-                        <div class="flex gap-2">
+                        </div>
+                        <div class="client-actions-container">
                             <button class="btn btn-sm btn-outline" onclick="viewClientDetails('${client.id}')">View Details</button>
                             <button class="btn btn-sm" onclick="disconnectClient('${client.id}')" style="background: #dc2626; color: white; border: none;">Disconnect</button>
                         </div>
@@ -10517,19 +10855,19 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             clientsList.innerHTML = displayClients.map(client => `
                 <div class="client-card">
                     <div class="client-header">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; color: #6b7280; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; overflow: hidden; flex-shrink: 0; border: 2px solid #e5e7eb;">
+                        <div class="client-info-container">
+                            <div class="client-avatar-container">
                                 ${client.profileImage ? 
                                     `<img src="${client.profileImage}" alt="${client.firstName} ${client.lastName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />` : 
                                     client.firstName.charAt(0)
                                 }
                         </div>
-                        <div>
+                            <div class="flex-1">
                             <div class="client-name">${client.firstName} ${client.lastName}</div>
                             <div class="client-email">${client.email}</div>
                         </div>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="client-actions-container">
                             <button class="btn btn-sm btn-outline" onclick="viewClientDetails('${client.id}')">View Details</button>
                             ${client.readinessStatus?.status === 'ready' && client.submissionStatus !== 'submitted' ?
                                 '<button class="btn btn-sm btn-primary" onclick="openMarkSubmittedModal(\'' + client.id + '\')" style="background: #0b7285; color: white; border: none;">Mark as Submitted</button>' :
@@ -10913,7 +11251,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             modal.classList.add('hidden');
-            document.body.style.overflow = '';
+            restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             const form = document.getElementById('addClientForm');
             if (form) form.reset();
         }
@@ -10962,10 +11300,189 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             alert('Client added successfully!');
         });
         
+        // Load client logbooks
+        async function loadClientLogbooks(clientId, taxYear = null) {
+            if (!window.firestoreData) return [];
+            try {
+                const logbooks = await window.firestoreData.getUserLogbooks(clientId, taxYear);
+                return logbooks;
+            } catch (error) {
+                console.error('Error loading client logbooks:', error);
+                return [];
+            }
+        }
+
+        // Render logbook editor UI
+        function renderLogbookEditor(logbook, clientId) {
+            if (logbook.lockedForSARS) {
+                return `
+                    <div style="padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; margin-bottom: 1rem;">
+                        <p style="color: #dc2626; font-weight: 500; margin: 0;">This logbook is locked for SARS submission and cannot be edited.</p>
+                        <button onclick="toggleLogbookLock('${clientId}', '${logbook.id}', false)" class="btn btn-secondary" style="margin-top: 0.5rem;">Unlock for Editing</button>
+                    </div>
+                `;
+            }
+            
+            const entries = logbook.logbookEntries || [];
+            const entriesHtml = entries.map((entry, index) => `
+                <tr data-entry-index="${index}">
+                    <td><input type="date" value="${entry.date || ''}" class="logbook-edit-date" data-index="${index}" style="width: 100%; padding: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                    <td><input type="text" value="${entry.from || ''}" class="logbook-edit-from" data-index="${index}" style="width: 100%; padding: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                    <td><input type="text" value="${entry.to || ''}" class="logbook-edit-to" data-index="${index}" style="width: 100%; padding: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                    <td><input type="number" value="${entry.businessKm || 0}" class="logbook-edit-business" data-index="${index}" step="0.1" style="width: 100%; padding: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                    <td><input type="number" value="${entry.privateKm || 0}" class="logbook-edit-private" data-index="${index}" step="0.1" style="width: 100%; padding: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                    <td><input type="text" value="${entry.purpose || ''}" class="logbook-edit-purpose" data-index="${index}" style="width: 100%; padding: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px;"></td>
+                    <td><button onclick="deleteLogbookEntry('${clientId}', '${logbook.id}', ${index})" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Delete</button></td>
+                </tr>
+            `).join('');
+            
+            return `
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h4 style="margin: 0;">Logbook: ${logbook.generationMethod || 'route_list'}</h4>
+                        <button onclick="toggleLogbookLock('${clientId}', '${logbook.id}', true)" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Lock for SARS</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                            <thead>
+                                <tr style="background: #f9fafb; border-bottom: 2px solid #e5e7eb;">
+                                    <th style="padding: 0.5rem; text-align: left;">Date</th>
+                                    <th style="padding: 0.5rem; text-align: left;">From</th>
+                                    <th style="padding: 0.5rem; text-align: left;">To</th>
+                                    <th style="padding: 0.5rem; text-align: left;">Business Km</th>
+                                    <th style="padding: 0.5rem; text-align: left;">Private Km</th>
+                                    <th style="padding: 0.5rem; text-align: left;">Purpose</th>
+                                    <th style="padding: 0.5rem; text-align: left;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${entriesHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button onclick="saveLogbookEdits('${clientId}', '${logbook.id}')" class="btn btn-primary" style="margin-top: 1rem;">Save Changes</button>
+                </div>
+            `;
+        }
+
+        // Save logbook edits
+        async function saveLogbookEdits(clientId, logbookId) {
+            const container = document.querySelector(`[data-logbook-id="${logbookId}"]`);
+            if (!container) {
+                alert('Logbook container not found');
+                return;
+            }
+            
+            const entryUpdates = [];
+            const rows = container.querySelectorAll('tbody tr[data-entry-index]');
+            
+            rows.forEach(row => {
+                const index = parseInt(row.getAttribute('data-entry-index'));
+                const dateInput = row.querySelector('.logbook-edit-date');
+                const fromInput = row.querySelector('.logbook-edit-from');
+                const toInput = row.querySelector('.logbook-edit-to');
+                const businessInput = row.querySelector('.logbook-edit-business');
+                const privateInput = row.querySelector('.logbook-edit-private');
+                const purposeInput = row.querySelector('.logbook-edit-purpose');
+                
+                const updates = {};
+                if (dateInput) updates.date = dateInput.value;
+                if (fromInput) updates.from = fromInput.value;
+                if (toInput) updates.to = toInput.value;
+                if (businessInput) updates.businessKm = parseFloat(businessInput.value) || 0;
+                if (privateInput) updates.privateKm = parseFloat(privateInput.value) || 0;
+                if (purposeInput) updates.purpose = purposeInput.value;
+                
+                entryUpdates.push({ index, updates });
+            });
+            
+            try {
+                await window.firestoreData.updateLogbookEntries(clientId, logbookId, entryUpdates);
+                await window.firestoreData.syncLogbookEditsToExpenses(clientId, logbookId, entryUpdates);
+                alert('Logbook updated successfully');
+                // Reload logbook display
+                const taxYear = getTaxYearFromContext();
+                const logbooks = await loadClientLogbooks(clientId, taxYear);
+                displayClientLogbooks(logbooks, clientId);
+            } catch (error) {
+                console.error('Error saving logbook edits:', error);
+                alert('Error saving logbook: ' + error.message);
+            }
+        }
+
+        // Delete logbook entry
+        async function deleteLogbookEntry(clientId, logbookId, index) {
+            if (!confirm('Are you sure you want to delete this entry?')) return;
+            
+            try {
+                await window.firestoreData.updateLogbookEntries(clientId, logbookId, [{ index, delete: true }]);
+                alert('Entry deleted successfully');
+                // Reload logbook display
+                const taxYear = getTaxYearFromContext();
+                const logbooks = await loadClientLogbooks(clientId, taxYear);
+                displayClientLogbooks(logbooks, clientId);
+            } catch (error) {
+                console.error('Error deleting logbook entry:', error);
+                alert('Error deleting entry: ' + error.message);
+            }
+        }
+
+        // Display client logbooks
+        async function displayClientLogbooks(logbooks, clientId) {
+            const container = document.getElementById('clientLogbooksContainer');
+            if (!container) return;
+            
+            if (logbooks.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 1rem;">No logbooks found for this client.</p>';
+                return;
+            }
+            
+            container.innerHTML = logbooks.map(logbook => {
+                const editorHtml = renderLogbookEditor(logbook, clientId);
+                return `<div data-logbook-id="${logbook.id}" style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px;">${editorHtml}</div>`;
+            }).join('');
+            
+            // Re-attach event listeners for editable fields if needed
+            logbooks.forEach(logbook => {
+                const container = document.querySelector(`[data-logbook-id="${logbook.id}"]`);
+                if (container) {
+                    // Event listeners are already attached via inline handlers in renderLogbookEditor
+                }
+            });
+        }
+
+        // Toggle logbook lock
+        async function toggleLogbookLock(clientId, logbookId, lockState) {
+            try {
+                await window.firestoreData.updateLogbook(clientId, logbookId, {
+                    lockedForSARS: lockState,
+                    lastReviewedByPractitioner: lockState ? practitioner.id : null
+                });
+                alert(lockState ? 'Logbook locked for SARS submission' : 'Logbook unlocked for editing');
+                // Reload logbook display
+                const taxYear = getTaxYearFromContext();
+                const logbooks = await loadClientLogbooks(clientId, taxYear);
+                displayClientLogbooks(logbooks, clientId);
+            } catch (error) {
+                console.error('Error toggling logbook lock:', error);
+                alert('Error updating logbook lock: ' + error.message);
+            }
+        }
+        
         // View client details
-        function viewClientDetails(clientId) {
+        async function viewClientDetails(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
+            
+            // Phase 2.5: Detect client change and reset context if needed
+            const previousClientId = window.currentClientId;
+            if (previousClientId !== clientId) {
+                // Client changed - reset context to null
+                window.currentPractitionerTaxYearContext = null;
+            }
+            
+            // Phase 2.5: Default to active tax year if context is null
+            await defaultTaxYearContextForClient(clientId);
             
             // Get client's tax returns and invoices for enhanced display
             const clientTaxReturns = taxReturns.filter(tr => tr.userId === client.id);
@@ -11239,6 +11756,33 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     <button class="btn btn-primary btn-sm" onclick="saveClientNotes('${clientId}')">Save Notes</button>
                 </div>
                 
+                <!-- Employment History Section -->
+                <div class="contact-info-section">
+                    <h3 class="section-title">Employment History</h3>
+                    <div class="contact-details" id="clientEmploymentHistoryContainer_${clientId}">
+                        <p>Loading employment history...</p>
+                    </div>
+                </div>
+                
+                <!-- Tax Year Context Section -->
+                <div class="contact-info-section">
+                    <h3 class="section-title">Tax Year Context</h3>
+                    <div class="contact-details" id="clientTaxYearContextContainer_${clientId}">
+                        <p>Loading tax year context...</p>
+                    </div>
+                </div>
+                
+                <!-- Logbooks Section -->
+                <div class="logbooks-section" style="margin-top: 2rem;">
+                    <h3 class="section-title">
+                        <img src="assets/icons/document.svg" class="icon icon-sm" alt="Logbooks">
+                        Logbooks
+                    </h3>
+                    <div id="clientLogbooksContainer">
+                        <p style="color: #6b7280; text-align: center; padding: 1rem;">Loading logbooks...</p>
+                    </div>
+                </div>
+                
                 <!-- Modal Footer -->
                 <div class="modal-footer">
                     <button class="btn btn-outline" onclick="hideClientDetailsModal()">Close</button>
@@ -11247,6 +11791,287 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             `;
             
             showModal('clientDetailsModal');
+            
+            // Store current client ID for context change handler
+            window.currentClientId = clientId;
+            
+            // Load and display logbooks after modal is shown
+            setTimeout(async () => {
+                // Phase 2.5: Use tax year context if set
+                let taxYear = null;
+                if (window.currentPractitionerTaxYearContext) {
+                    taxYear = convertTaxYearIdToObject(window.currentPractitionerTaxYearContext);
+                }
+                const logbooks = await loadClientLogbooks(clientId, taxYear);
+                displayClientLogbooks(logbooks, clientId);
+            }, 100);
+            
+            // Load and display employment history after modal is shown
+            setTimeout(async () => {
+                await loadClientEmploymentHistory(clientId);
+            }, 150);
+            
+            // Load and display tax year context after modal is shown
+            setTimeout(async () => {
+                await loadClientTaxYearContext(clientId);
+            }, 200);
+        }
+        
+        async function loadClientEmploymentHistory(clientId) {
+            const container = document.getElementById(`clientEmploymentHistoryContainer_${clientId}`);
+            if (!container || !window.engagementService) {
+                return;
+            }
+            
+            try {
+                const engagements = await window.engagementService.getEngagementPeriodsForUser(clientId);
+                
+                if (!engagements || engagements.length === 0) {
+                    // Phase 3D: System nudge for incomplete employment history
+                    container.innerHTML = `
+                        <div style="padding: 1rem; background: #fef3c7; border: 1px solid #fde68a; border-radius: 0.5rem; color: #92400e;">
+                            <p style="margin: 0; font-weight: 500;">⚠️ Employment history incomplete</p>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">Client has not entered any employment periods yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Phase 3D: Check for pending confirmation
+                const pendingCount = engagements.filter(e => !e.lockedByPractitioner).length;
+                let nudgeHtml = '';
+                if (pendingCount > 0) {
+                    nudgeHtml = `
+                        <div style="margin-bottom: 1rem; padding: 0.75rem; background: #fef3c7; border: 1px solid #fde68a; border-radius: 0.5rem; color: #92400e;">
+                            <p style="margin: 0; font-size: 0.875rem; font-weight: 500;">📋 ${pendingCount} employment period(s) pending confirmation</p>
+                        </div>
+                    `;
+                }
+                
+                let html = '';
+                const isPractitioner = practitioner !== null;
+                engagements.forEach(engagement => {
+                    const endDateDisplay = engagement.endDate || 'Active';
+                    const enteredBy = engagement.createdBy === 'user' ? 'Entered by user' : 'Entered by practitioner';
+                    const isLocked = engagement.locked === true || engagement.lockedByPractitioner === true;
+                    const isConfirmed = engagement.confirmedByPractitioner === true;
+                    const confirmationState = isLocked 
+                        ? 'Confirmed (locked)' 
+                        : isConfirmed
+                        ? 'Confirmed'
+                        : 'Unconfirmed – pending review';
+                    
+                    html += `
+                        <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: ${isLocked ? '#f9fafb' : '#ffffff'};">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                                <div>
+                                    <h4 style="margin: 0 0 0.5rem 0; color: #111827;">${engagement.employerName || 'Not specified'}</h4>
+                                    <span style="display: inline-block; padding: 0.25rem 0.5rem; background: ${isLocked ? '#dcfce7' : isConfirmed ? '#dcfce7' : '#fef3c7'}; color: ${isLocked ? '#166534' : isConfirmed ? '#166534' : '#92400e'}; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 500;">
+                                        ${confirmationState}
+                                    </span>
+                                </div>
+                                ${isPractitioner && !isLocked ? `
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button class="btn btn-outline btn-sm" onclick="confirmEngagementPeriod('${engagement.id}', '${clientId}')">
+                                        Confirm
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" onclick="lockEngagementPeriod('${engagement.id}', '${clientId}')">
+                                        <img src="assets/icons/lock.svg" class="icon icon-sm" alt="Lock">
+                                        Lock
+                                    </button>
+                                </div>
+                                ` : isLocked ? `
+                                <span style="padding: 0.25rem 0.5rem; background: #fee2e2; color: #991b1b; border-radius: 0.25rem; font-size: 0.875rem;">
+                                    Locked
+                                </span>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="contact-item">
+                                <span class="contact-label">Role:</span>
+                                <span class="contact-value">${engagement.role || 'Not specified'}</span>
+                            </div>
+                            <div class="contact-item">
+                                <span class="contact-label">Period:</span>
+                                <span class="contact-value">${engagement.startDate} → ${endDateDisplay}</span>
+                            </div>
+                            <div class="contact-item">
+                                <span class="contact-label">Status:</span>
+                                <span class="contact-value">${engagement.status === 'active' ? 'Active' : 'Ended'}</span>
+                            </div>
+                            <div class="contact-item">
+                                <span class="contact-label">Entered by:</span>
+                                <span class="contact-value">${enteredBy}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = nudgeHtml + html;
+            } catch (error) {
+                console.error('Error loading employment history:', error);
+                container.innerHTML = '<p>Error loading employment history.</p>';
+            }
+        }
+        
+        // Phase 3C Step 1: Confirm engagement period
+        async function confirmEngagementPeriod(engagementId, clientId) {
+            if (!window.firebaseDb) {
+                alert('Service not available. Please refresh the page.');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to confirm this employment period?')) {
+                return;
+            }
+            
+            try {
+                const updateData = {
+                    confirmedByPractitioner: true,
+                    confirmedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await window.firebaseDb.collection('engagementPeriods').doc(engagementId).update(updateData);
+                alert('Employment period confirmed successfully.');
+                await loadClientEmploymentHistory(clientId);
+            } catch (error) {
+                console.error('Error confirming employment period:', error);
+                alert('Error confirming employment period: ' + (error.message || 'Unknown error'));
+            }
+        }
+        window.confirmEngagementPeriod = confirmEngagementPeriod;
+        
+        // Phase 3C Step 1: Lock engagement period
+        async function lockEngagementPeriod(engagementId, clientId) {
+            if (!window.firebaseDb) {
+                alert('Service not available. Please refresh the page.');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to lock this employment period? The user will not be able to edit it after locking.')) {
+                return;
+            }
+            
+            try {
+                const updateData = {
+                    locked: true,
+                    lockedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await window.firebaseDb.collection('engagementPeriods').doc(engagementId).update(updateData);
+                alert('Employment period locked successfully.');
+                await loadClientEmploymentHistory(clientId);
+            } catch (error) {
+                console.error('Error locking employment period:', error);
+                alert('Error locking employment period: ' + (error.message || 'Unknown error'));
+            }
+        }
+        window.lockEngagementPeriod = lockEngagementPeriod;
+        
+        async function loadClientTaxYearContext(clientId) {
+            const container = document.getElementById(`clientTaxYearContextContainer_${clientId}`);
+            if (!container) {
+                return;
+            }
+            
+            try {
+                // Phase 2.5: Use tax year context if set, otherwise calculate current tax year
+                let taxYear;
+                let taxYearLabel;
+                
+                const contextTaxYear = getTaxYearFromContext();
+                if (contextTaxYear) {
+                    taxYear = contextTaxYear;
+                    // Extract label from tax year ID
+                    const taxYearId = window.currentPractitionerTaxYearContext || '';
+                    const parts = taxYearId.split('-');
+                    if (parts.length === 2) {
+                        taxYearLabel = `${parts[0]} / ${parts[1]}`;
+                    } else {
+                        taxYearLabel = `${taxYear.start} - ${taxYear.end}`;
+                    }
+                } else {
+                    // Fall back to current tax year calculation (existing behavior)
+                    const today = new Date();
+                    const currentYear = today.getFullYear();
+                    const currentMonth = today.getMonth() + 1;
+                    
+                    if (currentMonth >= 3) {
+                        taxYear = {
+                            start: `${currentYear}-03-01`,
+                            end: `${currentYear + 1}-02-${new Date(currentYear + 1, 1, 29).getDate() === 29 ? '29' : '28'}`
+                        };
+                        taxYearLabel = `${currentYear} / ${currentYear + 1}`;
+                    } else {
+                        taxYear = {
+                            start: `${currentYear - 1}-03-01`,
+                            end: `${currentYear}-02-${new Date(currentYear, 1, 29).getDate() === 29 ? '29' : '28'}`
+                        };
+                        taxYearLabel = `${currentYear - 1} / ${currentYear}`;
+                    }
+                }
+                
+                // Get coverage from engagement periods
+                let coverageText = 'Data covers: No engagement periods in tax year';
+                if (window.engagementService && window.engagementService.getEffectiveLogbookDateRange) {
+                    try {
+                        const effectiveRanges = await window.engagementService.getEffectiveLogbookDateRange(clientId, taxYear);
+                        if (effectiveRanges && effectiveRanges.length > 0) {
+                            const earliestStart = effectiveRanges.reduce((earliest, range) => {
+                                return range.startDate < earliest ? range.startDate : earliest;
+                            }, effectiveRanges[0].startDate);
+                            const latestEnd = effectiveRanges.reduce((latest, range) => {
+                                return range.endDate > latest ? range.endDate : latest;
+                            }, effectiveRanges[0].endDate);
+                            coverageText = `Data covers: ${earliestStart} → ${latestEnd}`;
+                        }
+                    } catch (coverageError) {
+                        console.error('Error getting effective logbook date range:', coverageError);
+                        coverageText = 'Data covers: Unable to determine';
+                    }
+                }
+                
+                // Get submission state
+                const client = clients.find(c => c.id === clientId);
+                let submissionState = 'Not submitted';
+                if (client) {
+                    if (client.submissionStatus === 'submitted') {
+                        submissionState = 'Submitted';
+                    } else {
+                        // Check if any logbook is locked
+                        try {
+                            // Phase 2.5: Pass tax year to loadClientLogbooks
+                            const logbooks = await loadClientLogbooks(clientId, taxYear);
+                            const hasLockedLogbook = logbooks.some(logbook => logbook.lockedForSARS === true);
+                            if (hasLockedLogbook) {
+                                submissionState = 'Locked for SARS';
+                            }
+                        } catch (logbookError) {
+                            console.error('Error checking logbook lock state:', logbookError);
+                        }
+                    }
+                }
+                
+                // Render using contact-item pattern
+                let html = `
+                    <div class="contact-item">
+                        <span class="contact-label">Tax year:</span>
+                        <span class="contact-value">Tax Year: ${taxYearLabel}</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">Coverage:</span>
+                        <span class="contact-value">${coverageText}</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-label">Submission state:</span>
+                        <span class="contact-value">${submissionState}</span>
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading tax year context:', error);
+                container.innerHTML = '<p>Error loading tax year context.</p>';
+            }
         }
         
         function hideClientDetailsModal() {
@@ -11275,7 +12100,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             const modal = document.getElementById('vehicleDetailsModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             }
         }
         
@@ -11466,9 +12291,18 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
-            const expenses = cleartrackData.getUserExpenses(clientId);
+            let expenses = cleartrackData.getUserExpenses(clientId);
             if (!expenses || expenses.length === 0) {
                 alert('No expenses found for this client');
+                return;
+            }
+            
+            // Phase 2.5: Filter expenses by tax year context if set
+            const taxYear = getTaxYearFromContext();
+            expenses = filterExpensesByTaxYear(expenses, taxYear);
+            
+            if (expenses.length === 0) {
+                alert('No expenses found for the selected tax year');
                 return;
             }
             
@@ -11586,9 +12420,18 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
-            const expenses = cleartrackData.getUserExpenses(clientId);
+            let expenses = cleartrackData.getUserExpenses(clientId);
             if (!expenses || expenses.length === 0) {
                 alert('No expenses found for this client');
+                return;
+            }
+            
+            // Phase 2.5: Filter expenses by tax year context if set
+            const taxYear = getTaxYearFromContext();
+            expenses = filterExpensesByTaxYear(expenses, taxYear);
+            
+            if (expenses.length === 0) {
+                alert('No expenses found for the selected tax year');
                 return;
             }
             
@@ -11620,6 +12463,221 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             document.body.removeChild(link);
         }
         
+        // Populate tax year selector dropdown
+        function populateTaxYearSelector() {
+            const select = document.getElementById('practitionerTaxYearSelect');
+            if (!select) return;
+            const taxYears = getAvailableTaxYears();
+            select.innerHTML = taxYears.map(ty => 
+                `<option value='${JSON.stringify(ty)}'>${ty.label}</option>`
+            ).join('');
+        }
+        
+        // Phase 2.5: Populate tax year context selector
+        async function populateTaxYearContextSelector() {
+            const select = document.getElementById('practitionerTaxYearContextSelect');
+            if (!select) return;
+            
+            try {
+                // Generate all possible tax years (2020 to current) to match existing pattern
+                const taxYears = getAvailableTaxYears();
+                
+                // Get active tax year for default selection
+                const currentUserId = window.firebaseAuth?.currentUser?.uid;
+                if (!currentUserId) {
+                    select.innerHTML = '<option value="">Not authenticated</option>';
+                    return;
+                }
+                
+                // Phase 2.5: Only set default if context is null
+                let activeTaxYearId = null;
+                const existingContext = window.currentPractitionerTaxYearContext;
+                
+                if (existingContext === null) {
+                    // Context is null - determine which active tax year to use
+                    const currentClientId = window.currentClientId;
+                    
+                    if (currentClientId && window.taxYearService && window.taxYearService.getActiveTaxYear) {
+                        // Use client's active tax year if client is selected
+                        const activeTaxYear = window.taxYearService.getActiveTaxYear(currentClientId);
+                        activeTaxYearId = activeTaxYear?.id || null;
+                    }
+                    
+                    // Fallback to practitioner's active tax year if no client or client tax year unavailable
+                    if (!activeTaxYearId && window.taxYearService && window.taxYearService.getActiveTaxYear) {
+                        const activeTaxYear = window.taxYearService.getActiveTaxYear(currentUserId);
+                        activeTaxYearId = activeTaxYear?.id || null;
+                    }
+                    
+                    // Final fallback: use most recent tax year
+                    if (!activeTaxYearId && taxYears.length > 0) {
+                        activeTaxYearId = taxYears[0].label;
+                    }
+                } else {
+                    // Context already set - use existing value
+                    activeTaxYearId = existingContext;
+                }
+                
+                // Populate dropdown
+                select.innerHTML = taxYears.map(ty => {
+                    const taxYearId = ty.label; // Label is already in "2024-2025" format
+                    const selected = taxYearId === activeTaxYearId ? ' selected' : '';
+                    return `<option value="${taxYearId}"${selected}>${ty.label}</option>`;
+                }).join('');
+                
+                // Phase 2.5: Set default context state only if it was null
+                if (existingContext === null && activeTaxYearId) {
+                    window.currentPractitionerTaxYearContext = activeTaxYearId;
+                }
+                
+                // Attach change handler if not already attached
+                if (!select.hasAttribute('data-handler-attached')) {
+                    select.addEventListener('change', onTaxYearContextChange);
+                    select.setAttribute('data-handler-attached', 'true');
+                }
+            } catch (error) {
+                console.error('Error populating tax year context selector:', error);
+                select.innerHTML = '<option value="">Error loading tax years</option>';
+            }
+        }
+        
+        // Phase 2.5: Helper to convert tax year ID to object format
+        function convertTaxYearIdToObject(taxYearId) {
+            if (!taxYearId) return null;
+            
+            // Tax year ID format: "2024-2025"
+            const parts = taxYearId.split('-');
+            if (parts.length !== 2) return null;
+            
+            const startYear = parseInt(parts[0]);
+            const endYear = parseInt(parts[1]);
+            
+            const start = `${startYear}-03-01`;
+            const isLeapYear = new Date(endYear, 1, 29).getDate() === 29;
+            const end = `${endYear}-02-${isLeapYear ? '29' : '28'}`;
+            
+            return { start, end };
+        }
+        
+        // Phase 2.5: Helper to get tax year object from context
+        function getTaxYearFromContext() {
+            const taxYearId = window.currentPractitionerTaxYearContext || null;
+            if (!taxYearId) return null;
+            return convertTaxYearIdToObject(taxYearId);
+        }
+        
+        // Phase 2.5: Helper to filter expenses by tax year
+        function filterExpensesByTaxYear(expenses, taxYear) {
+            if (!taxYear || !taxYear.start || !taxYear.end) {
+                return expenses; // Return original array if no tax year filter
+            }
+            
+            const startDate = new Date(taxYear.start);
+            const endDate = new Date(taxYear.end);
+            
+            return expenses.filter(expense => {
+                if (!expense.date) return false;
+                const expenseDate = new Date(expense.date);
+                return expenseDate >= startDate && expenseDate <= endDate;
+            });
+        }
+        
+        // Phase 2.5: Helper to safely default tax year context for a client
+        async function defaultTaxYearContextForClient(clientId) {
+            // Only default if context is null
+            if (window.currentPractitionerTaxYearContext !== null) {
+                return window.currentPractitionerTaxYearContext;
+            }
+            
+            // Get active tax year for client
+            if (!window.taxYearService || !window.taxYearService.getActiveTaxYear) {
+                return null;
+            }
+            
+            const activeTaxYear = window.taxYearService.getActiveTaxYear(clientId);
+            if (!activeTaxYear || !activeTaxYear.id) {
+                return null;
+            }
+            
+            // Set context
+            window.currentPractitionerTaxYearContext = activeTaxYear.id;
+            
+            // Update selector if it exists
+            const select = document.getElementById('practitionerTaxYearContextSelect');
+            if (select) {
+                select.value = activeTaxYear.id;
+            }
+            
+            return activeTaxYear.id;
+        }
+        
+        // Phase 2.5: Handle tax year context change
+        async function onTaxYearContextChange() {
+            const select = document.getElementById('practitionerTaxYearContextSelect');
+            if (!select) return;
+            
+            const selectedTaxYearId = select.value;
+            
+            // Phase 2.5: Handle selector clear/reset
+            if (!selectedTaxYearId || selectedTaxYearId === '') {
+                // Selector was cleared - reset context
+                window.currentPractitionerTaxYearContext = null;
+                
+                // Re-default to active tax year for current client if client is selected
+                const currentClientId = window.currentClientId || null;
+                if (currentClientId) {
+                    await defaultTaxYearContextForClient(currentClientId);
+                }
+                
+                return;
+            }
+            
+            window.currentPractitionerTaxYearContext = selectedTaxYearId;
+            
+            // If client details modal is open, reload data
+            const clientDetailsModal = document.getElementById('clientDetailsModal');
+            if (clientDetailsModal && !clientDetailsModal.classList.contains('hidden')) {
+                const currentClientId = window.currentClientId || null;
+                if (currentClientId) {
+                    // Reload logbooks with new tax year context
+                    const taxYear = convertTaxYearIdToObject(selectedTaxYearId);
+                    const logbooks = await loadClientLogbooks(currentClientId, taxYear);
+                    displayClientLogbooks(logbooks, currentClientId);
+                    
+                    // Reload submission state
+                    await loadClientTaxYearContext(currentClientId);
+                }
+            }
+            
+            // If expense modal is open, reload expenses
+            const expenseModal = document.getElementById('expenseModal');
+            if (expenseModal && !expenseModal.classList.contains('hidden')) {
+                const currentClientId = window.currentClientId || null;
+                if (currentClientId) {
+                    openExpenseModal(currentClientId);
+                }
+            }
+        }
+
+        // Get available tax years for selection
+        function getAvailableTaxYears() {
+            const currentYear = new Date().getFullYear();
+            const years = [];
+            // Generate tax years from 2020 to current year
+            for (let year = 2020; year <= currentYear; year++) {
+                const start = `${year}-03-01`;
+                const nextYear = year + 1;
+                const isLeapYear = new Date(nextYear, 1, 29).getDate() === 29;
+                const end = `${nextYear}-02-${isLeapYear ? '29' : '28'}`;
+                years.push({
+                    label: `${year}-${year + 1}`,
+                    start: start,
+                    end: end
+                });
+            }
+            return years.reverse(); // Most recent first
+        }
+
         // PHASE3A: Generate Annual SARS Pack (CSV + PDF + ZIP)
         async function generateAnnualSARSPack() {
             console.log('[PHASE3A] Starting Annual SARS Pack generation...');
@@ -11640,28 +12698,37 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             
             console.log('[PHASE3A] Client selected:', client.firstName, client.lastName);
             
-            // Step 2: Determine tax year (current tax year: March 1 to Feb 28/29)
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth() + 1; // 1-12
-            
-            let taxYearStart, taxYearEnd, taxYearLabel;
-            if (currentMonth >= 3) {
-                // March onwards - current year to next year
-                taxYearStart = `${currentYear}-03-01`;
-                taxYearEnd = `${currentYear + 1}-02-${new Date(currentYear + 1, 1, 29).getDate() === 29 ? '29' : '28'}`;
-                taxYearLabel = `${currentYear}-${currentYear + 1}`;
+            // Step 2: Determine tax year (use selector or fallback to current tax year)
+            const taxYearSelect = document.getElementById('practitionerTaxYearSelect');
+            let taxYear, taxYearLabel;
+            if (taxYearSelect && taxYearSelect.value) {
+                const selected = JSON.parse(taxYearSelect.value);
+                taxYear = { start: selected.start, end: selected.end };
+                taxYearLabel = selected.label;
             } else {
-                // Jan/Feb - previous year to current year
-                taxYearStart = `${currentYear - 1}-03-01`;
-                taxYearEnd = `${currentYear}-02-${new Date(currentYear, 1, 29).getDate() === 29 ? '29' : '28'}`;
-                taxYearLabel = `${currentYear - 1}-${currentYear}`;
+                // Fallback to current tax year (existing behavior)
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                const currentMonth = today.getMonth() + 1; // 1-12
+                
+                let taxYearStart, taxYearEnd;
+                if (currentMonth >= 3) {
+                    // March onwards - current year to next year
+                    taxYearStart = `${currentYear}-03-01`;
+                    taxYearEnd = `${currentYear + 1}-02-${new Date(currentYear + 1, 1, 29).getDate() === 29 ? '29' : '28'}`;
+                    taxYearLabel = `${currentYear}-${currentYear + 1}`;
+                } else {
+                    // Jan/Feb - previous year to current year
+                    taxYearStart = `${currentYear - 1}-03-01`;
+                    taxYearEnd = `${currentYear}-02-${new Date(currentYear, 1, 29).getDate() === 29 ? '29' : '28'}`;
+                    taxYearLabel = `${currentYear - 1}-${currentYear}`;
+                }
+                
+                taxYear = {
+                    start: taxYearStart,
+                    end: taxYearEnd
+                };
             }
-            
-            const taxYear = {
-                start: taxYearStart,
-                end: taxYearEnd
-            };
             
             console.log('[PHASE3A] Tax year:', taxYearLabel, taxYear);
             
@@ -11774,6 +12841,273 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             } catch (error) {
                 console.error('[PHASE3B-AUDIT] Error logging SARS export audit:', error);
                 // Don't block user - audit logging is non-critical
+            }
+        }
+
+        // Create logbook via assisted reconstruction (no route list)
+        async function createLogbookViaAssistedReconstruction(clientId, taxYear, inputMethod, inputData) {
+            // inputMethod: 'summary' or 'trip_by_trip'
+            // inputData: { totalBusinessKm, totalPrivateKm, ... } or { trips: [...] }
+            
+            let logbookEntries = [];
+            
+            if (inputMethod === 'summary') {
+                // Generate trip-level entries from summary totals
+                logbookEntries = generateEntriesFromSummary(inputData, taxYear);
+            } else {
+                // Use provided trip-by-trip data
+                logbookEntries = inputData.trips.map(trip => ({
+                    date: trip.date,
+                    from: trip.from || 'Home',
+                    to: trip.to || 'Home',
+                    openingKm: trip.openingKm || 0,
+                    closingKm: trip.closingKm || 0,
+                    businessKm: trip.businessKm || 0,
+                    privateKm: trip.privateKm || 0,
+                    purpose: trip.purpose || ''
+                }));
+            }
+            
+            // Save logbook with assisted_reconstruction method
+            const logbookData = {
+                vehicleId: inputData.vehicleId,
+                taxYear: taxYear,
+                routeListDocumentId: null, // No route list
+                logbookEntries: logbookEntries,
+                generatedAt: new Date().toISOString(),
+                generationMethod: 'assisted_reconstruction',
+                lockedForSARS: false,
+                lastReviewedByPractitioner: null,
+                meta: {
+                    totalEntries: logbookEntries.length,
+                    inputMethod: inputMethod,
+                    homeAddress: inputData.homeAddress || ''
+                }
+            };
+            
+            await window.firestoreData.addLogbook(clientId, logbookData);
+            return logbookData;
+        }
+
+        function generateEntriesFromSummary(summaryData, taxYear) {
+            // Distribute totalBusinessKm and totalPrivateKm across tax year
+            // Create daily entries with proportional distances
+            // This is a simplified distribution - practitioner can edit afterward
+            const start = new Date(taxYear.start);
+            const end = new Date(taxYear.end);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            const dailyBusinessKm = summaryData.totalBusinessKm / days;
+            const dailyPrivateKm = summaryData.totalPrivateKm / days;
+            
+            const entries = [];
+            let currentKm = summaryData.openingKm || 0;
+            const currentDate = new Date(start);
+            
+            while (currentDate <= end) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                currentKm += dailyBusinessKm + dailyPrivateKm;
+                entries.push({
+                    date: dateStr,
+                    from: 'Home',
+                    to: 'Various',
+                    openingKm: currentKm - (dailyBusinessKm + dailyPrivateKm),
+                    closingKm: currentKm,
+                    businessKm: dailyBusinessKm,
+                    privateKm: dailyPrivateKm,
+                    purpose: 'Business travel (reconstructed)'
+                });
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            return entries;
+        }
+
+        // Open assisted reconstruction modal
+        function openAssistedReconstructionModal() {
+            const clientSelect = document.getElementById('practitionerClientSelect');
+            if (!clientSelect || !clientSelect.value) {
+                alert('Please select a client first from the client list.');
+                return;
+            }
+            
+            const modal = document.getElementById('assistedReconstructionModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Populate vehicle dropdown
+            const clientId = clientSelect.value;
+            const vehicles = cleartrackData.getUserVehicles(clientId) || [];
+            const vehicleSelect = document.getElementById('reconstructionVehicleId');
+            vehicleSelect.innerHTML = vehicles.map(v => 
+                `<option value="${v.id}">${v.regNumber || v.label || 'Unknown'}</option>`
+            ).join('');
+            
+            // Reset form
+            document.getElementById('reconstructionInputMethod').value = 'summary';
+            document.getElementById('reconstructionOpeningKm').value = '';
+            document.getElementById('reconstructionTotalBusinessKm').value = '';
+            document.getElementById('reconstructionTotalPrivateKm').value = '';
+            document.getElementById('tripEntriesContainer').innerHTML = '';
+            toggleReconstructionInputMethod();
+        }
+
+        function closeAssistedReconstructionModal() {
+            const modal = document.getElementById('assistedReconstructionModal');
+            modal.classList.add('hidden');
+            restoreBodyScrolling();
+        }
+
+        function closeAssistedReconstructionModalOnOverlay(event) {
+            if (event.target.id === 'assistedReconstructionModal') {
+                closeAssistedReconstructionModal();
+            }
+        }
+
+        function toggleReconstructionInputMethod() {
+            const method = document.getElementById('reconstructionInputMethod').value;
+            const summarySection = document.getElementById('summaryInputSection');
+            const tripSection = document.getElementById('tripByTripInputSection');
+            
+            if (method === 'summary') {
+                summarySection.style.display = 'block';
+                tripSection.style.display = 'none';
+            } else {
+                summarySection.style.display = 'none';
+                tripSection.style.display = 'block';
+                if (document.getElementById('tripEntriesContainer').children.length === 0) {
+                    addTripEntry();
+                }
+            }
+        }
+
+        function addTripEntry() {
+            const container = document.getElementById('tripEntriesContainer');
+            const index = container.children.length;
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'trip-entry';
+            entryDiv.style.cssText = 'padding: 1rem; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 0.5rem;';
+            entryDiv.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem;">Date</label>
+                        <input type="date" class="trip-date" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem;">Opening Km</label>
+                        <input type="number" class="trip-opening" step="0.1" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem;">From</label>
+                        <input type="text" class="trip-from" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem;">To</label>
+                        <input type="text" class="trip-to" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem;">Business Km</label>
+                        <input type="number" class="trip-business" step="0.1" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem;">Private Km</label>
+                        <input type="number" class="trip-private" step="0.1" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.25rem; font-size: 0.875rem;">Purpose</label>
+                        <input type="text" class="trip-purpose" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 4px;">
+                    </div>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Remove</button>
+            `;
+            container.appendChild(entryDiv);
+        }
+
+        async function saveAssistedReconstruction() {
+            const clientSelect = document.getElementById('practitionerClientSelect');
+            if (!clientSelect || !clientSelect.value) {
+                alert('Please select a client first.');
+                return;
+            }
+            
+            const taxYearSelect = document.getElementById('practitionerTaxYearSelect');
+            if (!taxYearSelect || !taxYearSelect.value) {
+                alert('Please select a tax year first.');
+                return;
+            }
+            
+            const clientId = clientSelect.value;
+            const selectedTaxYear = JSON.parse(taxYearSelect.value);
+            const taxYear = { start: selectedTaxYear.start, end: selectedTaxYear.end };
+            const inputMethod = document.getElementById('reconstructionInputMethod').value;
+            
+            let inputData = {};
+            
+            if (inputMethod === 'summary') {
+                const vehicleId = document.getElementById('reconstructionVehicleId').value;
+                const openingKm = parseFloat(document.getElementById('reconstructionOpeningKm').value) || 0;
+                const totalBusinessKm = parseFloat(document.getElementById('reconstructionTotalBusinessKm').value) || 0;
+                const totalPrivateKm = parseFloat(document.getElementById('reconstructionTotalPrivateKm').value) || 0;
+                
+                if (!vehicleId) {
+                    alert('Please select a vehicle.');
+                    return;
+                }
+                
+                inputData = {
+                    vehicleId: vehicleId,
+                    openingKm: openingKm,
+                    totalBusinessKm: totalBusinessKm,
+                    totalPrivateKm: totalPrivateKm,
+                    homeAddress: ''
+                };
+            } else {
+                const vehicleId = document.getElementById('reconstructionVehicleId').value;
+                const tripEntries = Array.from(document.querySelectorAll('.trip-entry'));
+                const trips = tripEntries.map(entry => {
+                    const date = entry.querySelector('.trip-date').value;
+                    const from = entry.querySelector('.trip-from').value;
+                    const to = entry.querySelector('.trip-to').value;
+                    const openingKm = parseFloat(entry.querySelector('.trip-opening').value) || 0;
+                    const businessKm = parseFloat(entry.querySelector('.trip-business').value) || 0;
+                    const privateKm = parseFloat(entry.querySelector('.trip-private').value) || 0;
+                    const purpose = entry.querySelector('.trip-purpose').value;
+                    const closingKm = openingKm + businessKm + privateKm;
+                    
+                    return {
+                        date: date,
+                        from: from,
+                        to: to,
+                        openingKm: openingKm,
+                        closingKm: closingKm,
+                        businessKm: businessKm,
+                        privateKm: privateKm,
+                        purpose: purpose
+                    };
+                }).filter(trip => trip.date); // Filter out empty entries
+                
+                if (trips.length === 0) {
+                    alert('Please add at least one trip entry.');
+                    return;
+                }
+                
+                inputData = {
+                    vehicleId: vehicleId,
+                    trips: trips,
+                    homeAddress: ''
+                };
+            }
+            
+            try {
+                await createLogbookViaAssistedReconstruction(clientId, taxYear, inputMethod, inputData);
+                alert('Logbook created successfully!');
+                closeAssistedReconstructionModal();
+            } catch (error) {
+                console.error('Error creating logbook:', error);
+                alert('Error creating logbook: ' + error.message);
             }
         }
         
@@ -12950,6 +14284,139 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         });
         
         // Load connection requests
+        // Set up real-time listener for connection requests
+        let connectionRequestsListener = null;
+        
+        function setupConnectionRequestsListener() {
+            if (!practitioner || !practitioner.id) {
+                console.warn('[setupConnectionRequestsListener] Missing practitioner:', { practitioner, id: practitioner?.id });
+                return;
+            }
+            
+            // Remove existing listener if any
+            if (connectionRequestsListener) {
+                connectionRequestsListener();
+                connectionRequestsListener = null;
+            }
+            
+            console.log('[setupConnectionRequestsListener] Setting up listener for practitioner:', practitioner.id);
+            
+            try {
+                // Get Firestore database reference
+                const db = window.firebaseDb || (window.firebase && window.firebase.firestore && window.firebase.firestore());
+                
+                if (!db) {
+                    console.warn('[setupConnectionRequestsListener] Firestore not available, using manual load');
+                    loadConnectionRequests();
+                    return;
+                }
+                
+                // Use FirestoreDataManager's listener if available
+                if (window.firestoreData && typeof window.firestoreData.onConnectionRequests === 'function') {
+                    console.log('[setupConnectionRequestsListener] Using FirestoreDataManager listener');
+                    connectionRequestsListener = window.firestoreData.onConnectionRequests(practitioner.id, (requests) => {
+                        console.log('[setupConnectionRequestsListener] Received', requests.length, 'connection requests');
+                        renderConnectionRequests(requests);
+                    });
+                } else {
+                    // Fallback: use direct Firestore listener
+                    console.log('[setupConnectionRequestsListener] Using direct Firestore listener');
+                    connectionRequestsListener = db.collection('connectionRequests')
+                        .where('practitionerId', '==', practitioner.id)
+                        .where('status', '==', 'pending')
+                        .onSnapshot((snapshot) => {
+                            const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            console.log('[setupConnectionRequestsListener] Snapshot received,', requests.length, 'requests');
+                            console.log('[setupConnectionRequestsListener] Request IDs:', requests.map(r => r.id));
+                            renderConnectionRequests(requests);
+                        }, (error) => {
+                            console.error('[setupConnectionRequestsListener] Error:', error);
+                            console.error('[setupConnectionRequestsListener] Error details:', {
+                                code: error.code,
+                                message: error.message,
+                                practitionerId: practitioner.id
+                            });
+                            // Fallback to manual load
+                            loadConnectionRequests();
+                        });
+                }
+            } catch (error) {
+                console.error('[setupConnectionRequestsListener] Exception:', error);
+                // Fallback to manual load
+                loadConnectionRequests();
+            }
+        }
+        
+        function renderConnectionRequests(requests) {
+            const requestsList = document.getElementById('connectionRequestsList');
+            if (!requestsList) {
+                console.warn('[renderConnectionRequests] connectionRequestsList element not found');
+                return;
+            }
+            
+            if (!Array.isArray(requests) || requests.length === 0) {
+                requestsList.innerHTML = '<p style="color: #6b7280; text-align: center;">No pending connection requests.</p>';
+                return;
+            }
+            
+            // Filter out self-requests (where userId === practitionerId)
+            // This prevents practitioners from seeing requests they made to themselves
+            const validRequests = requests.filter(request => {
+                if (request.userId === request.practitionerId) {
+                    console.warn('[renderConnectionRequests] Filtered out self-request:', request.id);
+                    return false;
+                }
+                return true;
+            });
+            
+            if (validRequests.length === 0) {
+                requestsList.innerHTML = '<p style="color: #6b7280; text-align: center;">No pending connection requests.</p>';
+                return;
+            }
+            
+            console.log('[renderConnectionRequests] Rendering', validRequests.length, 'valid connection requests (filtered', requests.length - validRequests.length, 'self-requests)');
+            
+            const htmlContent = requests.map(request => {
+                const user = cleartrackData.getData().users[request.userId];
+                if (!user) {
+                    console.warn('[renderConnectionRequests] User not found for request:', request.userId);
+                    return '';
+                }
+                
+                return `
+                    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; background: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h4 style="margin: 0 0 0.25rem 0; color: #374151;">${user.firstName} ${user.lastName}</h4>
+                                <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">${user.email}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.75rem; color: #6b7280;">${new Date(request.timestamp?.toMillis?.() || request.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString()}</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">${new Date(request.timestamp?.toMillis?.() || request.timestamp?.seconds * 1000 || Date.now()).toLocaleTimeString()}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="attachment-text">
+                                <strong>Request Status:</strong> <span style="color: #f59e0b; font-weight: 600;">Pending</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                            <button onclick="approveConnectionRequest('${request.id}')" style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.875rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
+                                Approve
+                            </button>
+                            <button onclick="rejectConnectionRequest('${request.id}')" style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.875rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
+                                Reject
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).filter(Boolean).join('');
+            
+            requestsList.innerHTML = htmlContent;
+        }
+        
         async function loadConnectionRequests() {
             const requestsList = document.getElementById('connectionRequestsList');
             
@@ -12958,9 +14425,33 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
+            if (!practitioner || !practitioner.id) {
+                console.warn('[loadConnectionRequests] Practitioner not available:', practitioner);
+                requestsList.innerHTML = '<p style="color: #6b7280; text-align: center;">Loading...</p>';
+                return;
+            }
+            
             try {
-                // getConnectionRequests is async, so we need to await it
-                const requests = await cleartrackData.getConnectionRequests(practitioner.id);
+                console.log('[loadConnectionRequests] Loading connection requests for practitioner:', practitioner.id);
+                console.log('[loadConnectionRequests] cleartrackData available:', !!cleartrackData);
+                console.log('[loadConnectionRequests] firestoreData available:', !!window.firestoreData);
+                console.log('[loadConnectionRequests] firebaseDb available:', !!window.firebaseDb);
+                
+                // Try FirestoreDataManager first if available
+                let requests = [];
+                if (window.firestoreData && typeof window.firestoreData.getConnectionRequests === 'function') {
+                    console.log('[loadConnectionRequests] Using FirestoreDataManager.getConnectionRequests');
+                    requests = await window.firestoreData.getConnectionRequests(practitioner.id);
+                } else if (cleartrackData && typeof cleartrackData.getConnectionRequests === 'function') {
+                    console.log('[loadConnectionRequests] Using cleartrackData.getConnectionRequests');
+                    requests = await cleartrackData.getConnectionRequests(practitioner.id);
+                } else {
+                    console.error('[loadConnectionRequests] No getConnectionRequests function available');
+                    requestsList.innerHTML = '<p style="color: #ef4444; text-align: center;">Error: Connection requests service not available.</p>';
+                    return;
+                }
+                
+                console.log('[loadConnectionRequests] Received', requests?.length || 0, 'connection requests');
                 
                 // Ensure requests is an array
                 if (!Array.isArray(requests)) {
@@ -12970,11 +14461,33 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 }
                 
                 if (requests.length === 0) {
+                    console.log('[loadConnectionRequests] No connection requests found');
                     requestsList.innerHTML = '<p style="color: #6b7280; text-align: center;">No pending connection requests.</p>';
                     return;
                 }
                 
-                const htmlContent = requests.map(request => {
+                // Filter out self-requests (where userId === practitionerId)
+                const validRequests = requests.filter(request => {
+                    if (request.userId === request.practitionerId) {
+                        console.warn('[loadConnectionRequests] Filtered out self-request:', request.id);
+                        return false;
+                    }
+                    return true;
+                });
+                
+                if (validRequests.length === 0) {
+                    console.log('[loadConnectionRequests] No valid connection requests (all were self-requests)');
+                    requestsList.innerHTML = '<p style="color: #6b7280; text-align: center;">No pending connection requests.</p>';
+                    return;
+                }
+                
+                console.log('[loadConnectionRequests] Rendering', validRequests.length, 'valid connection requests (filtered', requests.length - validRequests.length, 'self-requests)');
+                console.log('[loadConnectionRequests] Practitioner ID:', practitioner.id);
+                console.log('[loadConnectionRequests] Request practitionerIds:', validRequests.map(r => r.practitionerId));
+                console.log('[loadConnectionRequests] Request IDs:', validRequests.map(r => r.id));
+                console.log('[loadConnectionRequests] Request userIds:', validRequests.map(r => r.userId));
+                
+                const htmlContent = validRequests.map(request => {
                     const user = cleartrackData.getData().users[request.userId];
                     if (!user) return '';
                     
@@ -13020,30 +14533,164 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Approve connection request
         async function approveConnectionRequest(requestId) {
-            const request = cleartrackData.updateConnectionRequest(requestId, 'approved');
-            
-            if (request) {
-                // Connect the user to the practitioner (now async)
-                const connectionResult = await cleartrackData.connectUserToPractitioner(request.userId, request.practitionerId);
+            try {
+                // Get the request first to extract userId and practitionerId
+                let request;
+                if (window.firebaseDb) {
+                    const requestDoc = await window.firebaseDb.collection('connectionRequests').doc(requestId).get();
+                    if (!requestDoc.exists) {
+                        alert('Connection request not found. Please refresh the page.');
+                        return;
+                    }
+                    request = { id: requestDoc.id, ...requestDoc.data() };
+                } else {
+                    request = cleartrackData.updateConnectionRequest(requestId, 'approved');
+                    if (!request) {
+                        alert('Error approving connection request. Please try again.');
+                        return;
+                    }
+                }
                 
-                if (connectionResult) {
+                const userId = request.userId;
+                const practitionerId = request.practitionerId || (typeof practitioner !== 'undefined' ? practitioner.id : null);
+                // Get current practitioner ID from auth or practitioner object
+                const currentPractitionerId = (window.firebaseAuth && window.firebaseAuth.currentUser) 
+                    ? window.firebaseAuth.currentUser.uid 
+                    : (typeof practitioner !== 'undefined' ? practitioner.id : null);
+                
+                if (!practitionerId || !currentPractitionerId) {
+                    alert('Error: Could not determine practitioner ID. Please refresh the page.');
+                    return;
+                }
+                
+                // Update connectionRequests document with approval metadata
+                if (window.firebaseDb) {
+                    const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                    await window.firebaseDb.collection('connectionRequests').doc(requestId).update({
+                        status: 'approved',
+                        approvedAt: serverTimestamp,
+                        approvedBy: currentPractitionerId,
+                        updatedAt: serverTimestamp
+                    });
+                } else {
+                    // Fallback to localStorage method
+                    cleartrackData.updateConnectionRequest(requestId, 'approved');
+                }
+                
+                // Connect the user to the practitioner
+                const connectionResult = await cleartrackData.connectUserToPractitioner(userId, practitionerId);
+                
+                if (!connectionResult) {
+                    alert('Error establishing connection. Please try again.');
+                    return;
+                }
+                
+                // Update user document with approval state
+                if (window.firebaseDb) {
+                    const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                    await window.firebaseDb.collection('users').doc(userId).update({
+                        practitionerStatus: 'approved',
+                        practitionerRejectionCount: 0, // Reset rejection count on approval
+                        currentPractitionerId: practitionerId,
+                        practitionerId: practitionerId, // Also set legacy field
+                        approvedAt: serverTimestamp,
+                        connectionStatus: 'approved', // Keep for legacy compatibility
+                        connectionResolved: true,
+                        updatedAt: serverTimestamp
+                    });
+                }
+                
                 alert('Connection request approved! The user is now connected to you.');
                 loadConnectionRequests(); // Refresh the list
-                } else {
-                    alert('Error establishing connection. Please try again.');
-                }
-            } else {
+            } catch (error) {
+                console.error('[approveConnectionRequest] Error:', error);
                 alert('Error approving connection request. Please try again.');
             }
         }
         
         // Reject connection request
-        function rejectConnectionRequest(requestId) {
-            const request = cleartrackData.updateConnectionRequest(requestId, 'rejected');
-            if (request) {
-                alert('Connection request rejected.');
+        async function rejectConnectionRequest(requestId) {
+            try {
+                console.log('[rejectConnectionRequest] Rejecting request:', requestId);
+                
+                // Get the request first to extract userId and practitionerId
+                let request;
+                if (window.firebaseDb) {
+                    const requestDoc = await window.firebaseDb.collection('connectionRequests').doc(requestId).get();
+                    if (!requestDoc.exists) {
+                        alert('Connection request not found. Please refresh the page.');
+                        return;
+                    }
+                    request = { id: requestDoc.id, ...requestDoc.data() };
+                    console.log('[rejectConnectionRequest] Request found:', { requestId: request.id, userId: request.userId, practitionerId: request.practitionerId, clientRequestId: request.clientRequestId });
+                } else {
+                    // Fallback to localStorage
+                    request = cleartrackData.updateConnectionRequest(requestId, 'rejected');
+                    if (!request) {
+                        alert('Error rejecting connection request. Please try again.');
+                        return;
+                    }
+                }
+                
+                const userId = request.userId;
+                const practitionerId = request.practitionerId || (typeof practitioner !== 'undefined' ? practitioner.id : null);
+                const clientRequestId = request.clientRequestId;
+                
+                if (!userId) {
+                    alert('Error: Could not determine user ID. Please refresh the page.');
+                    return;
+                }
+                
+                // Update connectionRequests document with rejection metadata
+                if (window.firebaseDb) {
+                    const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+                    await window.firebaseDb.collection('connectionRequests').doc(requestId).update({
+                        status: 'rejected',
+                        rejectedAt: serverTimestamp,
+                        rejectedBy: (window.firebaseAuth && window.firebaseAuth.currentUser) 
+                            ? window.firebaseAuth.currentUser.uid 
+                            : (typeof practitioner !== 'undefined' ? practitioner.id : null),
+                        updatedAt: serverTimestamp
+                    });
+                    
+                    // If clientRequestId exists, delegate to rollover handler
+                    if (clientRequestId && window.CTClientLinking && typeof window.CTClientLinking.respondToClientRequest === 'function') {
+                        try {
+                            console.log('[rejectConnectionRequest] Delegating to rollover handler for clientRequestId:', clientRequestId);
+                            await window.CTClientLinking.respondToClientRequest(clientRequestId, 'decline');
+                            alert('Connection request rejected. It will be reassigned to another practitioner.');
+                        } catch (rolloverError) {
+                            console.error('[rejectConnectionRequest] Rollover error:', rolloverError);
+                            alert('Connection request rejected, but automatic reassignment failed. Please contact support.');
+                        }
+                    } else {
+                        // No clientRequestId - legacy behavior (increment rejection count)
+                        const userDoc = await window.firebaseDb.collection('users').doc(userId).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            const currentRejectionCount = (userData.practitionerRejectionCount || 0) + 1;
+                            
+                            await window.firebaseDb.collection('users').doc(userId).update({
+                                practitionerStatus: 'rejected',
+                                practitionerRejectionCount: currentRejectionCount,
+                                lastRejectedAt: serverTimestamp,
+                                connectionStatus: 'rejected',
+                                updatedAt: serverTimestamp
+                            });
+                            
+                            console.log('[rejectConnectionRequest] User document updated with rejection count:', currentRejectionCount);
+                        }
+                        alert('Connection request rejected.');
+                    }
+                } else {
+                    // Fallback to localStorage
+                    cleartrackData.updateConnectionRequest(requestId, 'rejected');
+                    alert('Connection request rejected.');
+                }
+                
                 loadConnectionRequests(); // Refresh the list
-            } else {
+            } catch (error) {
+                console.error('[rejectConnectionRequest] Error:', error);
                 alert('Error rejecting connection request. Please try again.');
             }
         }
@@ -13177,8 +14824,19 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         // Messaging functionality
         let currentConversationClient = null;
         
-        function loadConversations() {
+        async function loadConversations() {
             if (!practitioner || !practitioner.id) {
+                return;
+            }
+            
+            // CRITICAL: Verify role before calling getConnectedUsers
+            const hasPractitionerRole = await isPractitionerRole();
+            if (!hasPractitionerRole) {
+                console.warn('[practitioner-dashboard] User is not a practitioner, skipping getConnectedUsers in loadConversations');
+                const conversationsList = document.getElementById('conversationsList');
+                if (conversationsList) {
+                    conversationsList.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 2rem;">No clients connected yet</p>';
+                }
                 return;
             }
             
@@ -13190,7 +14848,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 return;
             }
             
-            const connectedUsers = cleartrackData.getConnectedUsers(practitioner.id);
+            const connectedUsers = await cleartrackData.getConnectedUsers(practitioner.id);
             
             // Ensure connectedUsers is an array
             if (!Array.isArray(connectedUsers)) {
@@ -13227,10 +14885,31 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                                 ${lastMessage ? `
                                     <div style="font-size: 0.875rem; color: #6b7280; display: flex; align-items: center; gap: 0.5rem;">
                                         <span style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                            ${lastMessage.text.substring(0, 30)}${lastMessage.text.length > 30 ? '...' : ''}
+                                            ${(() => {
+                                                // Get message text, handling different message types and properties
+                                                const messageText = lastMessage.text || lastMessage.message || lastMessage.content || '';
+                                                if (lastMessage.type === 'voice' || lastMessage.type === 'audio') {
+                                                    return '[Voice Message]';
+                                                } else if (lastMessage.type === 'image') {
+                                                    return '[Image]';
+                                                } else if (lastMessage.type === 'file' || lastMessage.type === 'document') {
+                                                    return lastMessage.fileName ? `[${lastMessage.fileName}]` : '[File]';
+                                                } else if (messageText && typeof messageText === 'string') {
+                                                    return messageText.length > 30 ? messageText.substring(0, 30) + '...' : messageText;
+                                                } else {
+                                                    return '[Message]';
+                                                }
+                                            })()}
                                         </span>
                                         <span style="font-size: 0.75rem; color: #9ca3af;">
-                                            ${new Date(lastMessage.timestamp).toLocaleDateString()}
+                                            ${(() => {
+                                                try {
+                                                    const timestamp = lastMessage.timestamp?.toDate ? lastMessage.timestamp.toDate() : (lastMessage.timestamp ? new Date(lastMessage.timestamp) : new Date());
+                                                    return timestamp.toLocaleDateString();
+                                                } catch (e) {
+                                                    return '';
+                                                }
+                                            })()}
                                         </span>
                                     </div>
                                 ` : '<div style="font-size: 0.875rem; color: #9ca3af;">No messages yet</div>'}
@@ -13256,13 +14935,21 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         }
         
         function openConversation(clientId) {
+            // Stop previous message listener
+            if (typeof window.stopPractitionerMessageListener === 'function') {
+                window.stopPractitionerMessageListener();
+            }
+            if (typeof window.stopPractitionerMessagePollingFallback === 'function') {
+                window.stopPractitionerMessagePollingFallback();
+            }
+            
             const client = clients.find(c => c.id === clientId);
             if (!client) {
                 return;
             }
             
             currentConversationClient = client;
-            window.currentConversationClient = client; // Make it global for polling
+            window.currentConversationClient = client; // Make it global
             console.log('🖱️ Set currentConversationClient:', currentConversationClient);
             
             // Update chat header with back button for mobile
@@ -13342,8 +15029,12 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             // Load messages using the robust messaging system
             loadPractitionerMessages();
             
-            // Force refresh after a short delay to ensure messages are loaded
+            // Set up real-time message listener for this conversation
             setTimeout(() => {
+                if (typeof window.setupPractitionerMessageListener === 'function') {
+                    window.setupPractitionerMessageListener();
+                }
+                // Force refresh after a short delay to ensure messages are loaded
                 console.log('🔄 Force refreshing messages after conversation open...');
                 loadPractitionerMessages();
             }, 500);
@@ -13482,7 +15173,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 
                 html += dayMessages.map(message => {
                     const isPractitionerMessage = message.sender === 'practitioner';
-                    const messageTime = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    // Handle Firestore Timestamp objects, ISO strings, and regular Date objects
+                    const timestamp = message.timestamp?.toDate ? message.timestamp.toDate() : (message.timestamp ? new Date(message.timestamp) : new Date());
+                    const messageTime = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     
                     let content = '';
                 if (message.type === 'voice') {
@@ -13646,7 +15339,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         function groupMessagesByDate(messages) {
             const groups = {};
             messages.forEach(message => {
-                const date = new Date(message.timestamp);
+                // Handle Firestore Timestamp objects, ISO strings, and regular Date objects
+                const date = message.timestamp?.toDate ? message.timestamp.toDate() : (message.timestamp ? new Date(message.timestamp) : new Date());
                 const today = new Date();
                 const yesterday = new Date(today);
                 yesterday.setDate(yesterday.getDate() - 1);
@@ -14322,14 +16016,14 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         // Debug function to help troubleshoot document preview issues
         function debugDocumentPreview(fileData, fileName) {
             if (DEBUG) {
-                console.log('Document Preview Debug Info:');
-                console.log('File Name:', fileName);
-                console.log('File Data Type:', typeof fileData);
-                console.log('File Data Length:', fileData ? fileData.length : 'N/A');
-                console.log('File Extension:', fileName.split('.').pop().toLowerCase());
-                console.log('Is Data URL:', fileData ? fileData.startsWith('data:') : false);
-                console.log('Contains PDF:', fileData ? fileData.includes('pdf') : false);
-                console.log('MIME Type:', fileData && fileData.startsWith('data:') ? fileData.split(';')[0] : 'N/A');
+            console.log('Document Preview Debug Info:');
+            console.log('File Name:', fileName);
+            console.log('File Data Type:', typeof fileData);
+            console.log('File Data Length:', fileData ? fileData.length : 'N/A');
+            console.log('File Extension:', fileName.split('.').pop().toLowerCase());
+            console.log('Is Data URL:', fileData ? fileData.startsWith('data:') : false);
+            console.log('Contains PDF:', fileData ? fileData.includes('pdf') : false);
+            console.log('MIME Type:', fileData && fileData.startsWith('data:') ? fileData.split(';')[0] : 'N/A');
             }
         }
 
@@ -14850,7 +16544,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         function closePractitionerProfileImageModal() {
             const modal = document.getElementById('practitionerProfileImageOptionsModal');
             modal.classList.add('hidden');
-            document.body.style.overflow = '';
+            restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
         }
 
         function closePractitionerProfileImageModalOnOverlay(event) {
@@ -14952,7 +16646,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         function closePractitionerCropModal() {
             const cropModal = document.getElementById('practitionerCropModal');
             cropModal.classList.add('hidden');
-            document.body.style.overflow = '';
+            restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             
             if (practitionerCropper) {
                 practitionerCropper.destroy();
@@ -15578,7 +17272,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
             const modal = document.getElementById('markSubmittedModal');
             if (modal) {
                 modal.classList.add('hidden');
-                document.body.style.overflow = '';
+                restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
             }
             currentMarkSubmittedClientId = null;
         }
@@ -15643,29 +17337,29 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                 console.log('[PHASE3C] Server-side submission completed:', result.data);
                 
                 // Update local client data
-                client.submissionStatus = 'submitted';
-                client.submissionDate = new Date().toISOString();
+            client.submissionStatus = 'submitted';
+            client.submissionDate = new Date().toISOString();
                 client.submissionSnapshotId = result.data.snapshotId;
-                
+            
                 // Save to cleartrackData (local cache)
-                cleartrackData.updateUser(client);
-                
-                // Reload clients display to update UI
-                loadClients();
+            cleartrackData.updateUser(client);
+            
+            // Reload clients display to update UI
+            loadClients();
                 loadTaxReturns();
-                updateDashboard();
-                
-                // Show confirmation feedback
-                alert(`SARS submission for ${client.firstName} ${client.lastName} confirmed!`);
-                
-                // If checkbox was selected, show invoice prompt
-                const promptInvoice = document.getElementById('promptInvoiceCheckbox')?.checked;
-                if (promptInvoice) {
-                    alert('Reminder: Generate an invoice for this submission.');
-                    // Optionally, you could trigger a modal or redirect to invoice generation
-                }
-                
-                closeMarkSubmittedModal();
+            updateDashboard();
+            
+            // Show confirmation feedback
+            alert(`SARS submission for ${client.firstName} ${client.lastName} confirmed!`);
+            
+            // If checkbox was selected, show invoice prompt
+            const promptInvoice = document.getElementById('promptInvoiceCheckbox')?.checked;
+            if (promptInvoice) {
+                alert('Reminder: Generate an invoice for this submission.');
+                // Optionally, you could trigger a modal or redirect to invoice generation
+            }
+            
+            closeMarkSubmittedModal();
             } catch (error) {
                 console.error('[PHASE3C] Error submitting client:', error);
                 let errorMessage = 'Failed to submit client. Please try again.';
@@ -15838,26 +17532,53 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Client Linking Handlers
         function setupClientLinkingHandlers() {
-            // Load client requests
-            loadClientRequests();
-            
-            // Set up listener for client requests
+            // Set up listener for client requests first
             if (window.firebaseDb && window.firebaseAuth) {
+                // Check if user is already authenticated
+                const currentUser = window.firebaseAuth.currentUser;
+                if (currentUser) {
+                    // User is already authenticated, load requests immediately
+            loadClientRequests();
+                    setupClientRequestsListener(currentUser.uid);
+                }
+            
+                // Also listen for auth state changes (in case auth resolves later)
                 window.firebaseAuth.onAuthStateChanged((user) => {
                     if (user) {
+                        loadClientRequests();
                         setupClientRequestsListener(user.uid);
                     }
                 });
+            } else {
+                // Firebase not ready yet, wait a bit and try again
+                setTimeout(() => {
+                    setupClientLinkingHandlers();
+                }, 500);
             }
         }
         
         // Load client requests from Firestore
         async function loadClientRequests() {
             const requestsList = document.getElementById('practitioner-requests-list');
-            if (!requestsList || !window.firebaseDb || !window.firebaseAuth) return;
+            if (!requestsList) {
+                console.warn('[loadClientRequests] practitioner-requests-list element not found');
+                return;
+            }
+            
+            if (!window.firebaseDb || !window.firebaseAuth) {
+                console.warn('[loadClientRequests] Firebase not available');
+                requestsList.innerHTML = '<p class="text-muted-center">Loading...</p>';
+                return;
+            }
             
             const user = window.firebaseAuth.currentUser;
-            if (!user) return;
+            if (!user) {
+                console.warn('[loadClientRequests] No authenticated user');
+                requestsList.innerHTML = '<p class="text-muted-center">Please log in to view requests</p>';
+                return;
+            }
+            
+            console.log('[loadClientRequests] Loading client requests for practitioner:', user.uid);
             
             try {
                 // Try with orderBy first, fallback to without if index missing
@@ -15886,6 +17607,8 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                         throw indexError;
                     }
                 }
+                
+                console.log('[loadClientRequests] Found', requestsSnapshot.docs.length, 'client requests');
                 
                 if (requestsSnapshot.empty) {
                     requestsList.innerHTML = '<p class="text-muted-center">No new client requests</p>';
@@ -15918,16 +17641,48 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         
         // Set up real-time listener for client requests
         function setupClientRequestsListener(practitionerId) {
-            if (!window.firebaseDb) return;
+            if (!window.firebaseDb) {
+                console.warn('[setupClientRequestsListener] Firebase DB not available');
+                return;
+            }
             
-            window.firebaseDb.collection('clientRequests')
+            if (!practitionerId) {
+                console.warn('[setupClientRequestsListener] No practitioner ID provided');
+                return;
+            }
+            
+            try {
+                // Remove existing listener if any
+                if (window.__clientRequestsListener) {
+                    window.__clientRequestsListener();
+                    window.__clientRequestsListener = null;
+                }
+                
+                console.log('[setupClientRequestsListener] Setting up listener for practitioner:', practitionerId);
+                
+                const unsubscribe = window.firebaseDb.collection('clientRequests')
                 .where('assignedPractitionerId', '==', practitionerId)
                 .where('status', '==', 'pending')
                 .onSnapshot((snapshot) => {
+                        console.log('[setupClientRequestsListener] Snapshot received, loading client requests');
                     loadClientRequests();
                 }, (error) => {
-                    console.error('Error setting up client requests listener:', error);
-                });
+                        console.error('[setupClientRequestsListener] Error setting up listener:', error);
+                        console.error('[setupClientRequestsListener] Error details:', {
+                            code: error.code,
+                            message: error.message,
+                            practitionerId: practitionerId
+                        });
+                        // Fallback: try to load once without listener
+                        loadClientRequests();
+                    });
+                
+                window.__clientRequestsListener = unsubscribe;
+            } catch (error) {
+                console.error('[setupClientRequestsListener] Exception setting up listener:', error);
+                // Fallback: try to load once
+                loadClientRequests();
+            }
         }
         
         // Handle Accept Request
@@ -16082,6 +17837,53 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         </div>
     </div>
 
+    <!-- Assisted Reconstruction Modal -->
+    <div id="assistedReconstructionModal" class="modal-overlay hidden" onclick="closeAssistedReconstructionModalOnOverlay(event)">
+        <div class="modal" style="max-width: 700px; width: 90%;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Logbook (No Route List)</h3>
+                <button onclick="closeAssistedReconstructionModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: #6b7280;">Create a logbook for a tax year without a route list using summary totals or manual trip entry.</p>
+                
+                <label for="reconstructionInputMethod" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Input Method</label>
+                <select id="reconstructionInputMethod" onchange="toggleReconstructionInputMethod()" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    <option value="summary">Summary Totals</option>
+                    <option value="trip_by_trip">Trip-by-Trip</option>
+                </select>
+                
+                <div id="summaryInputSection">
+                    <label for="reconstructionVehicleId" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Vehicle</label>
+                    <select id="reconstructionVehicleId" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #e5e7eb; border-radius: 6px;">
+                        <!-- Populated by JavaScript -->
+                    </select>
+                    
+                    <label for="reconstructionOpeningKm" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Opening Odometer (km)</label>
+                    <input type="number" id="reconstructionOpeningKm" step="0.1" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    
+                    <label for="reconstructionTotalBusinessKm" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Total Business Km</label>
+                    <input type="number" id="reconstructionTotalBusinessKm" step="0.1" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    
+                    <label for="reconstructionTotalPrivateKm" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Total Private Km</label>
+                    <input type="number" id="reconstructionTotalPrivateKm" step="0.1" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #e5e7eb; border-radius: 6px;">
+                </div>
+                
+                <div id="tripByTripInputSection" style="display: none;">
+                    <div id="tripEntriesContainer">
+                        <!-- Trip entries will be added here -->
+                    </div>
+                    <button type="button" onclick="addTripEntry()" class="btn btn-secondary" style="margin-top: 0.5rem;">Add Trip</button>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 1.5rem;">
+                    <button onclick="closeAssistedReconstructionModal()" class="btn btn-secondary">Cancel</button>
+                    <button onclick="saveAssistedReconstruction()" class="btn btn-primary">Create Logbook</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
     <!-- Scripts -->
     <script src="messaging-service.js"></script>
@@ -16095,6 +17897,14 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         async function initializePractitionerData() {
         if (typeof practitioner !== 'undefined' && practitioner && practitioner.id) {
             console.log('✅ Practitioner object available:', practitioner);
+            
+            // CRITICAL: Verify role before calling getConnectedUsers
+            const hasPractitionerRole = await isPractitionerRole();
+            if (!hasPractitionerRole) {
+                console.warn('[practitioner-dashboard] User is not a practitioner, skipping getConnectedUsers in initializePractitionerData');
+                return;
+            }
+            
             // Store practitioner info in localStorage for messaging service
             localStorage.setItem('current_practitioner', JSON.stringify(practitioner));
             
@@ -16146,58 +17956,202 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         // Event listeners moved outside DOMContentLoaded to ensure they're always available
     </script>
     
-    <!-- Simple polling for real-time updates -->
+    <!-- Real-time message listeners for practitioner -->
     <script>
-        // Simple polling for real-time updates
-        setInterval(function() {
-            // Guard 1: Practitioner exists and has id
-            if (!window.practitioner || !window.practitioner.id) {
-                return; // Don't poll, don't log
+        // Real-time message listener management for practitioner
+        let practitionerMessageListenerUnsubscribe = null;
+        let currentListenerClientId = null;
+        let currentListenerPractitionerId = null;
+        
+        function setupPractitionerMessageListener() {
+            // Clean up existing listener
+            if (practitionerMessageListenerUnsubscribe) {
+                practitionerMessageListenerUnsubscribe();
+                practitionerMessageListenerUnsubscribe = null;
             }
             
-            // Guard 2: Messages section exists
+            // Check if practitioner exists
+            if (!window.practitioner || !window.practitioner.id) {
+                return;
+            }
+            
+            // Check if messages section exists and is visible
             const messagesSection = document.getElementById('messages');
             if (!messagesSection) {
-                return; // Don't poll, don't log
+                return;
             }
             
-            // Guard 3: Messages section is visible and active
             const isHidden = messagesSection.classList.contains('hidden') || 
                             messagesSection.hasAttribute('hidden') ||
                             window.getComputedStyle(messagesSection).display === 'none';
+            
             if (isHidden) {
-                return; // Don't poll if section is hidden
+                return; // Don't set up listener if section is hidden
             }
             
-            // Guard 4: Check if messages section is the active one
-            const allSections = document.querySelectorAll('.section');
-            let messagesIsVisible = false;
-            allSections.forEach(section => {
-                const sectionHidden = section.classList.contains('hidden') || 
-                                    section.hasAttribute('hidden') ||
-                                    window.getComputedStyle(section).display === 'none';
-                if (!sectionHidden && section.id === 'messages') {
-                    messagesIsVisible = true;
-                }
-            });
+            // Check if a client conversation is open
+            if (!window.currentConversationClient || !window.currentConversationClient.id) {
+                return; // No client selected
+            }
             
-            // Only poll if messages section is visible and active
-            if (messagesIsVisible && window.loadConversations) {
-                // Refresh conversations to update sidebar
-                window.loadConversations();
+            // Check if listener is already set up for this conversation
+            if (currentListenerClientId === window.currentConversationClient.id && 
+                currentListenerPractitionerId === window.practitioner.id) {
+                return; // Listener already active
+            }
+            
+            // Set up real-time listener for the current client conversation
+            if (window.firestoreData && typeof window.firestoreData.onMessages === 'function') {
+                // Check if firestoreData is actually ready (authenticated and has db)
+                const isReady = window.firestoreData.isAuthenticated && 
+                               typeof window.firestoreData.isAuthenticated === 'function' &&
+                               window.firestoreData.isAuthenticated() && 
+                               window.firestoreData.db !== null;
                 
-                // Load messages if a client is selected
-                if (window.currentConversationClient && window.loadPractitionerMessages) {
+                if (isReady) {
+                    try {
+                        console.log('🔔 Setting up real-time message listener for practitioner:', 
+                            window.currentConversationClient.id, window.practitioner.id);
+                        practitionerMessageListenerUnsubscribe = window.firestoreData.onMessages(
+                            window.currentConversationClient.id,
+                            window.practitioner.id,
+                            (messages) => {
+                                console.log('📨 Real-time messages received for practitioner:', messages.length);
+                                // Update UI with new messages
+                                if (typeof displayConversationMessages === 'function') {
+                                    displayConversationMessages(messages);
+                                } else if (typeof window.loadPractitionerMessages === 'function') {
+                                    window.loadPractitionerMessages();
+                                }
+                                
+                                // Refresh conversations list to update unread indicators
+                                if (typeof window.loadConversations === 'function') {
+                window.loadConversations();
+                                }
+                            }
+                        );
+                        
+                        // Verify that a real listener was set up (not just an empty function)
+                        if (practitionerMessageListenerUnsubscribe && typeof practitionerMessageListenerUnsubscribe === 'function') {
+                            // Check if it's not just an empty function by checking if it's in the listeners map
+                            const listenerKey = `messages_${window.currentConversationClient.id}_${window.practitioner.id}`;
+                            if (window.firestoreData.listeners && window.firestoreData.listeners[listenerKey]) {
+                                console.log('✅ Real-time message listener successfully set up');
+                                currentListenerClientId = window.currentConversationClient.id;
+                                currentListenerPractitionerId = window.practitioner.id;
+                                
+                                // Also load initial messages
+                                if (typeof window.loadPractitionerMessages === 'function') {
                     window.loadPractitionerMessages();
                 }
+                            } else {
+                                console.warn('[Practitioner Messages] Listener setup returned empty function, using polling fallback');
+                                startPractitionerMessagePollingFallback();
+                            }
+                        } else {
+                            console.warn('[Practitioner Messages] Listener setup failed, using polling fallback');
+                            startPractitionerMessagePollingFallback();
+                        }
+                    } catch (error) {
+                        console.error('[Practitioner Messages] Error setting up real-time listener:', error);
+                        // Fallback to polling if listener fails
+                        startPractitionerMessagePollingFallback();
+                    }
+                } else {
+                    console.warn('[Practitioner Messages] FirestoreData not ready (not authenticated or db not available), using polling fallback');
+                    console.warn('[Practitioner Messages] Auth status:', window.firestoreData.isAuthenticated ? (typeof window.firestoreData.isAuthenticated === 'function' ? window.firestoreData.isAuthenticated() : 'N/A') : 'N/A', 'DB:', !!window.firestoreData.db);
+                    startPractitionerMessagePollingFallback();
+                }
+            } else {
+                // Fallback to polling if Firestore listener not available
+                console.warn('[Practitioner Messages] Real-time listener not available, using polling fallback');
+                console.warn('[Practitioner Messages] firestoreData:', !!window.firestoreData, 'onMessages:', window.firestoreData ? typeof window.firestoreData.onMessages : 'N/A');
+                startPractitionerMessagePollingFallback();
             }
-        }, 2000); // Check every 2 seconds
+        }
+        
+        function stopPractitionerMessageListener() {
+            if (practitionerMessageListenerUnsubscribe) {
+                console.log('🔕 Stopping real-time message listener for practitioner');
+                practitionerMessageListenerUnsubscribe();
+                practitionerMessageListenerUnsubscribe = null;
+                currentListenerClientId = null;
+                currentListenerPractitionerId = null;
+            }
+        }
+        
+        // Fallback polling function (if real-time listener fails)
+        let practitionerMessagePollingInterval = null;
+        function startPractitionerMessagePollingFallback() {
+            if (practitionerMessagePollingInterval) {
+                clearInterval(practitionerMessagePollingInterval);
+            }
+            
+            practitionerMessagePollingInterval = setInterval(() => {
+                if (window.practitioner && window.practitioner.id) {
+                    const messagesSection = document.getElementById('messages');
+                    if (messagesSection && !messagesSection.classList.contains('hidden')) {
+                        if (typeof window.loadConversations === 'function') {
+                            window.loadConversations();
+                        }
+                        if (window.currentConversationClient && typeof window.loadPractitionerMessages === 'function') {
+                            window.loadPractitionerMessages();
+                        }
+                    }
+                }
+            }, 2000); // Poll every 2 seconds as fallback
+        }
+        
+        function stopPractitionerMessagePollingFallback() {
+            if (practitionerMessagePollingInterval) {
+                clearInterval(practitionerMessagePollingInterval);
+                practitionerMessagePollingInterval = null;
+            }
+        }
+        
+        // Expose functions globally
+        window.setupPractitionerMessageListener = setupPractitionerMessageListener;
+        window.stopPractitionerMessageListener = stopPractitionerMessageListener;
+        
+        // Set up listener when conversation is opened
+        const originalOpenConversation = window.openConversation;
+        if (originalOpenConversation) {
+            window.openConversation = function(clientId) {
+                // Stop previous listener
+                stopPractitionerMessageListener();
+                stopPractitionerMessagePollingFallback();
+                // Call original function
+                const result = originalOpenConversation(clientId);
+                // Set up new listener after a short delay
+                setTimeout(() => {
+                    if (typeof window.setupPractitionerMessageListener === 'function') {
+                        window.setupPractitionerMessageListener();
+                    }
+                }, 500);
+                return result;
+            };
+        }
+        
+        // Set up listener when messages section is shown
+        // Monitor for practitioner hydration and messages section visibility
+        const checkPractitionerHydration = setInterval(function() {
+            if (window.practitioner && window.practitioner.id) {
+                clearInterval(checkPractitionerHydration);
+                // Check if messages section is visible
+                const messagesSection = document.getElementById('messages');
+                if (messagesSection && !messagesSection.classList.contains('hidden')) {
+                    if (window.currentConversationClient && typeof window.setupPractitionerMessageListener === 'function') {
+                        window.setupPractitionerMessageListener();
+                    }
+                }
+            }
+        }, 500);
     </script>
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {
         // Hamburger menu removed - dashboards use bottom navigation only
-        
+
         const logoutBtn = document.getElementById("desktopLogoutBtn");
         if (logoutBtn && window.firebaseAuth) {
             logoutBtn.addEventListener("click", async () => {
@@ -16307,7 +18261,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
                     if (window.firebaseConfig) {
                         // Set guard BEFORE any async/await or SDK loading
                         window.__CT_AI_INITIALIZED__ = true;
-                        
+                            
                         try {
                             // ARCHITECTURE: This MUST use window.firebaseConfig (cleartrack-1f6c6)
                             // DO NOT initialize cleartrack-hosting or any other project here
@@ -16428,6 +18382,9 @@ ${practitioner.firstName} ${practitioner.lastName}`;
 
     <!-- My Firebase wiring -->
     <script src="firebase-config.js"></script>
+    <script src="firestore-data.js"></script>
+    <script src="js/engagement/engagement-period.service.js"></script>
+    <script src="js/tax-year/tax-year.service.js"></script>
     <script src="firebase-init.js"></script>
     <script src="js/auth-redirect-controller.js"></script>
     <script src="firebase-api.js"></script>
@@ -16482,7 +18439,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
     <script>
     document.addEventListener("DOMContentLoaded", () => {
         // Hamburger menu removed - dashboards use bottom navigation only
-        
+
         const logoutBtn = document.getElementById("desktopLogoutBtn");
         if (logoutBtn && window.firebaseAuth) {
             logoutBtn.addEventListener("click", async () => {
@@ -16662,7 +18619,7 @@ ${practitioner.firstName} ${practitioner.lastName}`;
         function closeMoreMenu() {
             document.getElementById('moreOverlay').classList.remove('active');
             document.getElementById('moreMenu').classList.remove('active');
-            document.body.style.overflow = '';
+            restoreBodyScrolling(); // Use helper to ensure all overflow properties are restored
         }
 
         function moreMenuNavigate(section) {
@@ -18315,16 +20272,16 @@ Format your response in clear, readable paragraphs.`;
                 // Verify parent exists after append
                 const parent = aiSection.parentElement;
                 if (window.CT_DEBUG) {
-                    console.log('✅ AI Assistant section found in DOM');
-                    console.log('AI Section classes:', aiSection.className);
-                    console.log('AI Section display:', window.getComputedStyle(aiSection).display);
+                console.log('✅ AI Assistant section found in DOM');
+                console.log('AI Section classes:', aiSection.className);
+                console.log('AI Section display:', window.getComputedStyle(aiSection).display);
                     console.log('AI Section parent:', parent ? (parent.id || parent.tagName || 'attached') : 'no parent');
                 }
                 return true;
             } else {
                 if (window.CT_DEBUG) {
-                    console.error('❌ AI Assistant section NOT found in DOM');
-                    console.error('Available sections:', Array.from(document.querySelectorAll('.section')).map(s => s.id));
+                console.error('❌ AI Assistant section NOT found in DOM');
+                console.error('Available sections:', Array.from(document.querySelectorAll('.section')).map(s => s.id));
                 }
                 return false;
             }

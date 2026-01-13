@@ -92,6 +92,12 @@ const firebaseApi = {
         role: finalRole // Ensure role is correct
       };
       
+      // Only set onboardingState for clients (not practitioners/admins)
+      // Practitioners are created via admin approval, admins are created manually
+      if (finalRole !== 'practitioner' && finalRole !== 'admin') {
+        userData.onboardingState = 'NEW';
+      }
+      
       // Step 3: Create user document in Firestore
       // User is automatically signed in after createUserWithEmailAndPassword
       console.log('[firebase-api] Creating user document in Firestore...');

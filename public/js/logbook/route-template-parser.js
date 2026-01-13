@@ -283,7 +283,8 @@ async function parseRouteTemplate(fileInput) {
             address,
             suburb,
             days,
-            weeks
+            weeks,
+            rowIndex: rowIdx  // Preserve template row order for visit sequence
         });
     }
 

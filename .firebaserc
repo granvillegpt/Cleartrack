@@ -16,11 +16,11 @@
     },
     "cleartrack-hosting": {
       "hosting": {
-        "production": [
-          "cleartrack-hosting"
-        ],
         "staging": [
           "cleartrack-staging"
+        ],
+        "production": [
+          "cleartrack-hosting"
         ]
       }
     },

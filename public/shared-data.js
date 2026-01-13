@@ -271,8 +271,11 @@ var CleartrackDataManager = class CleartrackDataManager {
         if (window.firebaseDb && typeof window.firebaseDb.collection === 'function') {
             try {
                 // Update user document in Firestore
+                // CRITICAL: Must set currentPractitionerId to match Firestore rules requirement
                 await window.firebaseDb.collection('users').doc(userId).set({
                     connectedPractitioner: practitionerId,
+                    currentPractitionerId: practitionerId, // Required for subcollection access
+                    practitionerId: practitionerId, // Legacy field for compatibility
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
@@ -738,12 +741,122 @@ var CleartrackDataManager = class CleartrackDataManager {
 
     // Utility methods
     generatePractitionerCode() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing chars (0, O, I, 1)
         let result = '';
         for (let i = 0; i < 8; i++) {
             result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         return result;
+    }
+    
+    // Ensure practitioner code is unique - check Firestore and modify if duplicate
+    async ensureUniquePractitionerCode(practitionerId, proposedCode) {
+        if (!window.firebaseDb) {
+            // No Firestore, can't check - return proposed code
+            return proposedCode.toUpperCase();
+        }
+        
+        try {
+            const upperCode = proposedCode.toUpperCase();
+            
+            // Check if code already exists for a different practitioner
+            const snapshot = await window.firebaseDb.collection('users')
+                .where('role', '==', 'practitioner')
+                .where('practitionerCode', '==', upperCode)
+                .limit(1)
+                .get();
+            
+            if (snapshot.empty) {
+                // Code is unique
+                return upperCode;
+            }
+            
+            // Code exists - check if it's the same practitioner
+            const existingDoc = snapshot.docs[0];
+            if (existingDoc.id === practitionerId) {
+                // Same practitioner, code is fine
+                return upperCode;
+            }
+            
+            // Code exists for different practitioner - modify it
+            console.warn('[ensureUniquePractitionerCode] Duplicate code detected, modifying:', upperCode);
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let modifiedCode = upperCode;
+            
+            // Try appending a random character
+            for (let i = 0; i < 10; i++) {
+                const randomChar = chars.charAt(Math.floor(Math.random() * chars.length));
+                const testCode = modifiedCode + randomChar;
+                
+                const testSnapshot = await window.firebaseDb.collection('users')
+                    .where('role', '==', 'practitioner')
+                    .where('practitionerCode', '==', testCode)
+                    .limit(1)
+                    .get();
+                
+                if (testSnapshot.empty) {
+                    // Found unique modified code
+                    console.log('[ensureUniquePractitionerCode] Modified code:', testCode);
+                    return testCode;
+                }
+            }
+            
+            // If we can't modify, generate completely new code
+            console.warn('[ensureUniquePractitionerCode] Could not modify code, generating new one');
+            return await this.generateUniquePractitionerCode();
+            
+        } catch (error) {
+            console.error('[ensureUniquePractitionerCode] Error checking uniqueness:', error);
+            return proposedCode.toUpperCase();
+        }
+    }
+    
+    // Generate unique practitioner code with Firestore check
+    async generateUniquePractitionerCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        let isUnique = false;
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        if (!window.firebaseDb) {
+            // No Firestore, just generate and return
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+        
+        while (!isUnique && attempts < maxAttempts) {
+            code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            try {
+                const snapshot = await window.firebaseDb.collection('users')
+                    .where('role', '==', 'practitioner')
+                    .where('practitionerCode', '==', code)
+                    .limit(1)
+                    .get();
+                
+                if (snapshot.empty) {
+                    isUnique = true;
+                } else {
+                    attempts++;
+                }
+            } catch (error) {
+                console.warn('[generateUniquePractitionerCode] Error checking uniqueness:', error);
+                // If we can't check, assume it's unique and proceed
+                isUnique = true;
+            }
+        }
+        
+        if (!isUnique) {
+            throw new Error('Failed to generate unique practitioner code after ' + maxAttempts + ' attempts');
+        }
+        
+        return code;
     }
 
     // Get all connected users for a practitioner
@@ -1127,10 +1240,20 @@ var CleartrackDataManager = class CleartrackDataManager {
     }
 
     // Connection request management - Rebuilt system
-    async sendConnectionRequest(userId, practitionerId) {
+    async sendConnectionRequest(userId, practitionerId, clientRequestId = null) {
         // Use Firestore if available, fallback to localStorage
         if (window.firestoreData && typeof window.firestoreData.sendConnectionRequest === 'function') {
-            return await window.firestoreData.sendConnectionRequest(userId, practitionerId);
+            const firestoreResult = await window.firestoreData.sendConnectionRequest(userId, practitionerId, clientRequestId);
+            // If Firestore returns an error (success: false), return it directly - don't fall back to localStorage
+            // This ensures validation errors (like self-requests) are properly shown to the user
+            if (!firestoreResult.success) {
+                return firestoreResult;
+            }
+            // If Firestore succeeded, return the result
+            if (firestoreResult.success) {
+                return firestoreResult;
+            }
+            // If Firestore is not authenticated or not available, fall through to localStorage
         }
 
         // Fallback to localStorage
@@ -1138,6 +1261,12 @@ var CleartrackDataManager = class CleartrackDataManager {
             // Validate inputs
             if (!userId || !practitionerId) {
                 return { success: false, error: 'Invalid parameters' };
+            }
+            
+            // CRITICAL: Prevent self-requests (user cannot request connection to themselves)
+            if (userId === practitionerId) {
+                console.warn('[cleartrackData] Blocked self-request:', { userId, practitionerId });
+                return { success: false, error: 'You cannot request a connection to yourself' };
             }
 
             // Get or initialize data

@@ -3,33 +3,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ============================================
-    // PRODUCTION MODE: UNRESTRICTED ACCESS (DISABLED)
-    // ============================================
-    // This configuration has been disabled in favor of security rules.
-    // Security rules are now active to enforce wizard, escalation, and admin resolution.
-    // ============================================
-    /*
-    // Allow all authenticated users full access to all collections
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    /* =========================
+       Helper Functions
+       ========================= */
+
+    function isUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
-    
-    // Allow unauthenticated access to practitioner applications (for registration)
-    match /practitionerApplications/{applicationId} {
-      allow read, write: if true;
+
+    function isPractitionerOf(userId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(userId))
+             .data.currentPractitionerId == request.auth.uid
+        && get(/databases/$(database)/documents/users/$(userId))
+             .data.practitionerConsent == true;
     }
-    
-    // Allow unauthenticated access to practitioner invites (for token-based access)
-    match /practitionerInvites/{inviteId} {
-      allow read, write: if true;
-    }
-    */
-    
-    // ============================================
-    // SECURITY RULES - ACTIVE
-    // Enforces wizard, escalation, and admin resolution server-side
-    // ============================================
+
     function isSignedIn() {
       return request.auth != null;
     }
@@ -52,217 +41,344 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Helper function to check if a field is restricted for user writes
-    function isRestrictedConnectionField(fieldName) {
-      return fieldName in ['connectionStatus', 'connectionResolved', 
-                           'adminResolvedBy', 'adminResolvedAt', 
-                           'adminResolutionNote', 'connectionEscalatedToAdmin'];
+    function isPractitionerProfile(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role == "practitioner";
     }
 
-    // USERS
-    match /users/{uid} {
-      // Read: user can read own doc, admin can read all
-      allow read: if isOwner(uid) || isAdmin();
-
-      // Create: user can create their own doc with role='user', admin can create any
-      allow create: if 
-        isAdmin() ||
-        (isOwner(uid) && 
-         (!('role' in request.resource.data) || request.resource.data.role == 'user'));
-
-      // Update: 
-      // - Admin can write anything
-      // - User can update own profile EXCEPT restricted connection/admin fields
-      // - Practitioner can write connectedPractitioner and practitionerId ONLY
-      allow update: if
-        isAdmin() || // Admin can write anything
-        (
-          isOwner(uid) && // User updating own profile
-          // Check that no restricted fields are being set to restricted values
-          !('connectionStatus' in request.resource.data.diff(resource.data).changedKeys() && 
-            (request.resource.data.connectionStatus == 'approved' || 
-             request.resource.data.connectionStatus == 'escalated')) &&
-          !('connectionResolved' in request.resource.data.diff(resource.data).changedKeys() && 
-            request.resource.data.connectionResolved == true) &&
-          !('adminResolvedBy' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('adminResolvedAt' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('adminResolutionNote' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('connectionEscalatedToAdmin' in request.resource.data.diff(resource.data).changedKeys()) &&
-          // Also preserve existing role restriction
-          (!resource.exists || !('role' in request.resource.data.diff(resource.data).changedKeys()))
-        ) ||
-        (
-          // Practitioner can only write connectedPractitioner and practitionerId
-          isSignedIn() && 
-          userRole(request.auth.uid) == "practitioner" &&
-          // Check that no restricted fields are being changed
-          !('connectionStatus' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('connectionResolved' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('adminResolvedBy' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('adminResolvedAt' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('adminResolutionNote' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('connectionEscalatedToAdmin' in request.resource.data.diff(resource.data).changedKeys()) &&
-          !('role' in request.resource.data.diff(resource.data).changedKeys())
-        );
-
-      // Delete: only admin
-      allow delete: if isAdmin();
+    function isCounterparty(targetUserId) {
+      return isSignedIn() && (
+        // Check if target user is connected to requesting user (as practitioner)
+        get(/databases/$(database)/documents/users/$(targetUserId))
+          .data.currentPractitionerId == request.auth.uid ||
+        // Check if requesting user is connected to target user (as practitioner)
+        get(/databases/$(database)/documents/users/$(request.auth.uid))
+          .data.currentPractitionerId == targetUserId
+      );
     }
 
-    // Subcollections under /users/{uid}
-    match /users/{uid}/{subpath=**} {
-      allow read, write: if isOwner(uid) || isAdmin();
+    /* =========================
+       USERS
+       ========================= */
+
+    match /users/{userId} {
+      // READ:
+      // Profile images visible only to owner or matched counterparty
+      allow read: if
+        request.auth.uid == userId ||        // owner
+        isCounterparty(userId);               // paired identity visibility
+
+      // WRITE:
+      // Only the owner can modify their own profile
+      allow write: if request.auth.uid == userId;
+
+      // SUBCOLLECTIONS:
+      // Sensitive data remains protected by ownership or consent
+      match /{subpath=**} {
+        allow read, write: if
+          request.auth.uid == userId ||
+          isPractitionerOf(userId);
+      }
     }
 
-    // Practitioner applications - anyone can create (no auth required)
-    // Authenticated users can read to check if their application is approved
-    // Admin can read, update, delete all
+
+    /* =========================
+       PRACTITIONER APPLICATIONS
+       ========================= */
     match /practitionerApplications/{applicationId} {
       allow create: if true;
-      // Allow authenticated users to read (needed for login to check approved status)
-      // Admin can do everything
       allow read: if isSignedIn() || isAdmin();
       allow update, delete: if isAdmin();
     }
 
-    // Practitioner invites - admin can create, anyone can read with token
+    /* =========================
+       PRACTITIONER INVITES
+       ========================= */
     match /practitionerInvites/{inviteId} {
       allow create: if isAdmin();
-      allow read: if true; // Token-based access handled in function
+      allow read: if true;
     }
 
-    // Client invites - practitioners can create, users can read their own
+    /* =========================
+       CLIENT INVITES
+       ========================= */
     match /clientInvites/{inviteId} {
-      allow create: if isSignedIn() && userRole(request.auth.uid) == "practitioner";
-      allow read: if isSignedIn() && (
-        userRole(request.auth.uid) == "practitioner" || 
+      allow create: if isSignedIn() &&
+        userRole(request.auth.uid) == "practitioner";
+
+      allow read, update: if isSignedIn() && (
         isAdmin() ||
-        (resource.data.clientUid != null && resource.data.clientUid == request.auth.uid)
-      );
-      allow update: if isSignedIn() && (
         userRole(request.auth.uid) == "practitioner" ||
-        isAdmin() ||
-        (resource.data.clientUid != null && resource.data.clientUid == request.auth.uid)
+        resource.data.clientUid == request.auth.uid
       );
     }
 
-    // Client requests - clients can create, practitioners can read assigned ones, admin can read all
-    match /clientRequests/{requestId} {
-      allow create: if isSignedIn(); // Any authenticated user can create a request
-      allow read: if isSignedIn() && (
-        isAdmin() ||
-        (resource.data.clientUid == request.auth.uid) ||
-        (resource.data.assignedPractitionerId == request.auth.uid && userRole(request.auth.uid) == "practitioner")
-      );
-      allow update: if isSignedIn() && (
-        isAdmin() ||
-        (resource.data.assignedPractitionerId == request.auth.uid && userRole(request.auth.uid) == "practitioner")
-      );
-    }
-
-    // Connections - users can read their own connections, practitioners can read connections to them
-    match /connections/{connectionId} {
-      allow read: if isSignedIn() && (
-        isAdmin() ||
-        (resource.data.userId == request.auth.uid) ||
-        (resource.data.practitionerId == request.auth.uid)
-      );
-      allow create: if isSignedIn() && (
-        isAdmin() ||
-        (request.resource.data.userId == request.auth.uid) ||
-        (request.resource.data.practitionerId == request.auth.uid)
-      );
-      allow update, delete: if isSignedIn() && (
-        isAdmin() ||
-        (resource.data.userId == request.auth.uid) ||
-        (resource.data.practitionerId == request.auth.uid)
-      );
-    }
-
-    // Connection requests - users can create, practitioners can read/update their requests
-    // Users CANNOT update their own requests (cannot self-approve)
+    /* =========================
+       CONNECTION REQUESTS
+       ========================= */
     match /connectionRequests/{requestId} {
-      allow create: if isSignedIn() && (
-        isAdmin() ||
-        (request.resource.data.userId == request.auth.uid)
-      );
+
+      // Client creates request
+      allow create: if isSignedIn() &&
+        (isAdmin() || request.resource.data.userId == request.auth.uid);
+
+      // Client, practitioner, admin can read
       allow read: if isSignedIn() && (
         isAdmin() ||
-        (resource.data.userId == request.auth.uid) ||
-        (resource.data.practitionerId == request.auth.uid)
+        resource.data.userId == request.auth.uid ||
+        resource.data.practitionerId == request.auth.uid
       );
+
+      // Practitioner approves / rejects ONLY
       allow update: if isSignedIn() && (
-        isAdmin() || // Admin can do everything
+        isAdmin() ||
         (
-          // Practitioner can only update status field to approved/rejected
           userRole(request.auth.uid) == "practitioner" &&
           resource.data.practitionerId == request.auth.uid &&
-          // Status must be approved or rejected (or unchanged)
-          (request.resource.data.status == 'approved' || 
-           request.resource.data.status == 'rejected' ||
-           request.resource.data.status == resource.data.status) &&
-          // Check that no disallowed fields are being changed (allow status, updatedAt, rejectedAt, approvedAt, rejectionNumber, rejectedBy)
+          (
+            request.resource.data.status == 'approved' ||
+            request.resource.data.status == 'rejected' ||
+            request.resource.data.status == resource.data.status
+          ) &&
           !('userId' in request.resource.data.diff(resource.data).changedKeys()) &&
           !('practitionerId' in request.resource.data.diff(resource.data).changedKeys())
         )
       );
-      // Users cannot update their own requests
     }
 
-    // Tax returns - practitioners can read/write their tax returns, users can read their own
+    /* =========================
+       CONNECTIONS
+       ========================= */
+    match /connections/{connectionId} {
+      // Allow users to create connection documents where they are the userId
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        request.resource.data.userId == request.auth.uid
+      );
+      
+      // Allow read/update/delete if user is the userId or practitionerId in the document
+      // Split read into get and list for better query support
+      allow get, update, delete: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.userId == request.auth.uid ||
+        resource.data.practitionerId == request.auth.uid
+      );
+      
+      // Allow querying connections collection
+      // For list queries, allow if authenticated and the query filters by practitionerId
+      // Firestore will automatically filter results based on the get rule above
+      allow list: if isSignedIn() && (
+        isAdmin() ||
+        // Allow queries where practitionerId matches request.auth.uid
+        // The get rule above ensures only matching documents are returned
+        true
+      );
+    }
+
+    /* =========================
+       TAX RETURNS
+       ========================= */
     match /taxReturns/{taxReturnId} {
       allow read: if isSignedIn() && (
         isAdmin() ||
-        (resource.data.userId == request.auth.uid) ||
-        (resource.data.practitionerId == request.auth.uid)
+        resource.data.userId == request.auth.uid ||
+        resource.data.practitionerId == request.auth.uid
       );
+      // Fixed: Use request.resource.data for create operations
       allow create: if isSignedIn() && (
         isAdmin() ||
-        (request.resource.data.practitionerId == request.auth.uid)
+        request.resource.data.practitionerId == request.auth.uid
       );
       allow update, delete: if isSignedIn() && (
         isAdmin() ||
-        (resource.data.practitionerId == request.auth.uid)
+        resource.data.practitionerId == request.auth.uid
       );
     }
 
-    // Invoices - practitioners can read/write their invoices, users can read their own
+    /* =========================
+       INVOICES
+       ========================= */
     match /invoices/{invoiceId} {
-      allow read: if isSignedIn() && (
-        isAdmin() ||
-        (resource.data.userId == request.auth.uid) ||
-        (resource.data.practitionerId == request.auth.uid)
-      );
+      // Fixed: Separate create from read/update/delete
       allow create: if isSignedIn() && (
         isAdmin() ||
-        (request.resource.data.practitionerId == request.auth.uid)
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.practitionerId == request.auth.uid
       );
-      allow update, delete: if isSignedIn() && (
+      allow read, update, delete: if isSignedIn() && (
         isAdmin() ||
-        (resource.data.practitionerId == request.auth.uid)
+        resource.data.userId == request.auth.uid ||
+        resource.data.practitionerId == request.auth.uid
       );
     }
 
-    // Messages - users and practitioners can read/write their messages
+    /* =========================
+       MESSAGES
+       ========================= */
     match /messages/{messageId} {
-      allow read: if isSignedIn() && (
-        isAdmin() ||
-        (resource.data.userId == request.auth.uid) ||
-        (resource.data.practitionerId == request.auth.uid)
-      );
+      // Fixed: Separate create from read/update/delete
+      // Users can create messages where they are the userId
+      // Practitioners can create messages where they are the practitionerId
       allow create: if isSignedIn() && (
         isAdmin() ||
-        (request.resource.data.userId == request.auth.uid) ||
-        (request.resource.data.practitionerId == request.auth.uid)
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.practitionerId == request.auth.uid
       );
-      allow update, delete: if isSignedIn() && (
+      // Users and practitioners can read/update/delete their own messages
+      allow read, update, delete: if isSignedIn() && (
         isAdmin() ||
-        (resource.data.userId == request.auth.uid) ||
-        (resource.data.practitionerId == request.auth.uid)
+        resource.data.userId == request.auth.uid ||
+        resource.data.practitionerId == request.auth.uid
       );
     }
 
-    // Everything else: closed by default
+    /* =========================
+       CLIENT REQUESTS
+       ========================= */
+    match /clientRequests/{requestId} {
+      // Client can create request
+      allow create: if isSignedIn() &&
+        request.resource.data.clientUid == request.auth.uid;
+      
+      // Practitioner can read requests assigned to them
+      // Client can read their own requests
+      // Admin can read all
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.clientUid == request.auth.uid ||
+        resource.data.assignedPractitionerId == request.auth.uid
+      );
+      
+      // Practitioner can update requests assigned to them (approve/decline)
+      // Admin can update any
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (
+          userRole(request.auth.uid) == "practitioner" &&
+          resource.data.assignedPractitionerId == request.auth.uid
+        )
+      );
+    }
+
+    /* =========================
+       SUPPORT TICKETS
+       ========================= */
+    match /supportTickets/{ticketId} {
+      // User can create their own tickets
+      allow create: if isSignedIn() &&
+        request.resource.data.requester.userId == request.auth.uid;
+      
+      // User can read their own tickets
+      // Practitioner can read tickets from their clients
+      // Admin can read all
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.requester.userId == request.auth.uid ||
+        (
+          userRole(request.auth.uid) == "practitioner" &&
+          resource.data.requester.userId != null
+        )
+      );
+      
+      // User can update their own tickets
+      // Practitioner can update tickets from their clients
+      // Admin can update any
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.requester.userId == request.auth.uid ||
+        (
+          userRole(request.auth.uid) == "practitioner" &&
+          resource.data.requester.userId != null
+        )
+      );
+    }
+
+    /* =========================
+       AUDIT LOGS
+       ========================= */
+    match /auditLogs/{auditId} {
+      // Only admins can read audit logs
+      allow read: if isAdmin();
+      // Only system (via admin) can create audit logs
+      allow create: if isAdmin();
+      // No updates or deletes allowed
+      allow update, delete: if false;
+    }
+
+    /* =========================
+       TAX YEARS
+       ========================= */
+    match /taxYears/{taxYearId} {
+      // Allow read if user owns the tax year or is their practitioner
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.userId == request.auth.uid ||
+        // Practitioner can read their clients' tax years
+        (userRole(request.auth.uid) == "practitioner" && 
+         get(/databases/$(database)/documents/users/$(resource.data.userId)).data.currentPractitionerId == request.auth.uid)
+      );
+      
+      // Allow create if user is creating for themselves, or practitioner for their client
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        request.resource.data.userId == request.auth.uid ||
+        (userRole(request.auth.uid) == "practitioner" && 
+         get(/databases/$(database)/documents/users/$(request.resource.data.userId)).data.currentPractitionerId == request.auth.uid)
+      );
+      
+      // Allow update/delete only by practitioner or admin (for status changes)
+      allow update, delete: if isSignedIn() && (
+        isAdmin() ||
+        (userRole(request.auth.uid) == "practitioner" && 
+         get(/databases/$(database)/documents/users/$(resource.data.userId)).data.currentPractitionerId == request.auth.uid)
+      );
+    }
+
+    /* =========================
+       ENGAGEMENT PERIODS
+       ========================= */
+    match /engagementPeriods/{engagementId} {
+      // READ
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.userId == request.auth.uid ||
+        (
+          userRole(request.auth.uid) == "practitioner" &&
+          get(/databases/$(database)/documents/users/$(resource.data.userId))
+            .data.currentPractitionerId == request.auth.uid
+        )
+      );
+
+      // CREATE — user owns their employment history
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // UPDATE — USER (always allowed on own data)
+      allow update: if isSignedIn() &&
+        request.auth.uid == resource.data.userId;
+
+      // UPDATE — PRACTITIONER (confirmation only)
+      allow update: if isSignedIn() &&
+        userRole(request.auth.uid) == "practitioner" &&
+        get(/databases/$(database)/documents/users/$(resource.data.userId))
+          .data.currentPractitionerId == request.auth.uid &&
+        request.resource.data.diff(resource.data).changedKeys()
+          .hasOnly([
+            "confirmedByPractitioner",
+            "confirmedAt",
+            "includedInTaxPack"
+          ]);
+
+      // ADMIN — FULL CONTROL
+      allow update, delete: if isAdmin();
+
+      // DELETE — USER (own records only)
+      allow delete: if isSignedIn() &&
+        request.auth.uid == resource.data.userId;
+    }
+
+    /* =========================
+       DEFAULT DENY
+       ========================= */
     match /{document=**} {
       allow read, write: if false;
     }

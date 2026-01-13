@@ -441,9 +441,35 @@
           status: 'pending',
           updatedAt: now
         });
+        
+        // Create new connectionRequest for the next practitioner
+        try {
+          const connectionRequestData = {
+            userId: requestData.clientUid,
+            practitionerId: nextPractitionerId,
+            clientRequestId: requestId,
+            status: 'pending',
+            timestamp: now
+          };
+          
+          await window.firebaseDb.collection('connectionRequests').add(connectionRequestData);
+          console.log('✅ New connectionRequest created for next practitioner:', nextPractitionerId);
+        } catch (connReqError) {
+          console.error('Error creating new connectionRequest:', connReqError);
+          // Don't fail the rollover if connectionRequest creation fails
+        }
       } else {
         // No practitioners available - check if this is round 2 failure
         if (roundAttempt >= 2) {
+          // Set status to ESCALATED
+          await requestRef.update({
+            assignedPractitionerId: null,
+            declinedBy,
+            roundAttempt: roundAttempt,
+            status: 'ESCALATED',
+            updatedAt: now
+          });
+          
           // Notify admin
           try {
             const adminUsersSnapshot = await window.firebaseDb.collection('users')
@@ -470,15 +496,15 @@
           } catch (adminError) {
             console.error('Error notifying admin:', adminError);
           }
+        } else {
+          await requestRef.update({
+            assignedPractitionerId: null,
+            declinedBy,
+            roundAttempt: roundAttempt,
+            status: 'unassigned',
+            updatedAt: now
+          });
         }
-
-        await requestRef.update({
-          assignedPractitionerId: null,
-          declinedBy,
-          roundAttempt: roundAttempt,
-          status: 'unassigned',
-          updatedAt: now
-        });
       }
 
       // Notify client about decline/reassignment

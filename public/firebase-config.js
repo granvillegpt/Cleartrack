@@ -30,3 +30,8 @@ const firebaseConfig = {
 // Expose config so firebase-init.js and firebase-api.js can use it
 // ALL Firebase initialization MUST use this config (cleartrack-1f6c6)
 window.firebaseConfig = firebaseConfig;
+
+// Google Maps API Key for distance calculations in logbook generation
+// Get your API key from: https://console.cloud.google.com/google/maps-apis
+// Required APIs: Geocoding API, Distance Matrix API
+window.GOOGLE_MAPS_API_KEY = "AIzaSyAughxeSc-UZZoErfa0Fb8K7gOUikO-QdQ";

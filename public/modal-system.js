@@ -35,6 +35,7 @@ window.ModalSystem = {
             modal.classList.add('hidden');
             document.body.style.overflow = '';
         }
+        return true;
     },
 
     /**

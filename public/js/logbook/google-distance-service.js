@@ -287,6 +287,23 @@ class GoogleDistanceService {
     }
 
     /**
+     * Calculates distance between any two addresses
+     * 
+     * @param {string} origin - Origin address
+     * @param {string} destination - Destination address
+     * @returns {Promise<number>} Distance in kilometers
+     * @throws {Error} If distance calculation fails
+     * 
+     * @example
+     * const service = new GoogleDistanceService(apiKey);
+     * const distance = await service.calculateDistance('123 Main St', '456 Oak Ave');
+     * // Returns: 15.5
+     */
+    async calculateDistance(origin, destination) {
+        return this._calculateDistance(origin, destination);
+    }
+
+    /**
      * Clears all caches (memory and localStorage)
      */
     clearCache() {

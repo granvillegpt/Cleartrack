@@ -2,7 +2,7 @@
 // Auto-versioning: Version is updated automatically via update-sw-version.js script
 // Format: YYYYMMDD-HHMM (updates automatically on deploy)
 // Run: node update-sw-version.js (or it runs automatically on deploy)
-const CACHE_VERSION = '20260104-1656';
+const CACHE_VERSION = '20260110-2026';
 const CACHE_NAME = `cleartrack-v${CACHE_VERSION}`;
 const STATIC_CACHE = `cleartrack-static-v${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `cleartrack-dynamic-v${CACHE_VERSION}`;
@@ -191,7 +191,8 @@ self.addEventListener('fetch', event => {
     url.pathname.includes('login.js') || 
     url.pathname.includes('dashboard-auth.js') || 
     url.pathname.includes('loading-screen.js') ||
-    url.pathname.includes('firebase-init.js')
+    url.pathname.includes('firebase-init.js') ||
+    url.pathname.includes('engagement-period.service.js')
   )) {
     event.respondWith(
       fetch(request, { 
@@ -334,10 +335,22 @@ self.addEventListener('message', event => {
     );
   }
   
-  // Add handler for skipWaiting - DISABLED to prevent auto-reload loops
-  // Service worker will activate naturally on next navigation
+  // Handler for skipWaiting - Enabled with client-side safety controls
+  // Client code controls when to send this message (with version tracking, idle detection, etc.)
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[sw] Received SKIP_WAITING message, but auto-activation disabled (no reload)');
-    // self.skipWaiting(); // Disabled to prevent auto-reload loops
+    console.log('[sw] Received SKIP_WAITING message, activating immediately...');
+    self.skipWaiting(); // Safe because client controls when to send this
+  }
+  
+  // Handler to get current version (for client-side version tracking)
+  if (event.data && event.data.type === 'GET_VERSION') {
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({ version: CACHE_VERSION });
+    } else {
+      // Fallback: respond via event.source if ports not available
+      if (event.source) {
+        event.source.postMessage({ type: 'VERSION_RESPONSE', version: CACHE_VERSION });
+      }
+    }
   }
 });

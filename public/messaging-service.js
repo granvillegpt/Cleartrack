@@ -346,16 +346,33 @@ class MessagingService {
         try {
             // First try backend API if available
             if (this.getAuthToken()) {
-                const response = await fetch(`${this.baseURL}/conversation/${userId}/read-all`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${this.getAuthToken()}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+                try {
+                    const response = await fetch(`${this.baseURL}/conversation/${userId}/read-all`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${this.getAuthToken()}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
-                if (response.ok) {
-                    return await response.json();
+                    if (response.ok) {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return await response.json();
+                        } else {
+                            // Response is not JSON, likely HTML error page
+                            console.log('API endpoint returned non-JSON response, falling back to local storage');
+                            return this.markAllMessagesAsReadLocal(userId);
+                        }
+                    } else {
+                        // Non-200 response, fallback to local storage
+                        console.log(`API endpoint returned ${response.status}, falling back to local storage`);
+                        return this.markAllMessagesAsReadLocal(userId);
+                    }
+                } catch (fetchError) {
+                    // Network or fetch error, fallback to local storage
+                    console.log('API request failed, falling back to local storage:', fetchError.message);
+                    return this.markAllMessagesAsReadLocal(userId);
                 }
             }
             

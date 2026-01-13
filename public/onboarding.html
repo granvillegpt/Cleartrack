@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearTrack Setup - Onboarding</title>
+    <script>
+        // CRITICAL: Run IMMEDIATELY to prevent loading overlay from blocking
+        // This must run before any other scripts
+        (function() {
+            'use strict';
+            function forceUnblock() {
+                // Remove loading overlays completely from DOM
+                try {
+                    const overlays = document.querySelectorAll('#globalLoadingOverlay, #loadingOverlay, .loading-overlay');
+                    overlays.forEach(overlay => {
+                        // First try to hide it
+                        overlay.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; z-index: -1 !important;';
+                        // Then remove it completely after a short delay
+                        setTimeout(() => {
+                            try {
+                                overlay.remove();
+                            } catch(e) {}
+                        }, 100);
+                    });
+                } catch(e) {}
+                
+                // Ensure scrolling works
+                try {
+                    document.documentElement.style.cssText = 'overflow-y: auto !important; overflow-x: hidden !important; height: auto !important; max-height: none !important; position: relative !important;';
+                    if (document.body) {
+                        document.body.style.cssText = 'overflow-x: hidden !important; overflow-y: auto !important; height: auto !important; max-height: none !important; position: relative !important;';
+                    }
+                } catch(e) {}
+            }
+            
+            // Run immediately
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', forceUnblock);
+            } else {
+                forceUnblock();
+            }
+            
+            // Run multiple times to catch any late-loading overlays
+            setTimeout(forceUnblock, 50);
+            setTimeout(forceUnblock, 200);
+            setTimeout(forceUnblock, 500);
+            setTimeout(forceUnblock, 1000);
+            setTimeout(forceUnblock, 2000);
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="assets/images/icon%20logo.png">
+    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* CRITICAL: Force scrolling to work - override all other styles */
+        html {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            height: auto !important;
+            max-height: none !important;
+            position: relative !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f5f7fa;
+            color: #1f2933;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            min-height: 100vh;
+            height: auto !important;
+            max-height: none !important;
+            position: relative !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        
+        /* CRITICAL: Force hide loading overlay - highest priority */
+        #globalLoadingOverlay,
+        #loadingOverlay,
+        .loading-overlay,
+        .loading-overlay.show {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            z-index: -1 !important;
+            position: fixed !important;
+        }
+        
+        /* Ensure main content is scrollable */
+        main {
+            overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
+            position: relative !important;
+        }
+        
+        /* Override any app container that might be blocking */
+        .app {
+            overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
+        }
+        
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: clamp(1.5rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem) clamp(2rem, 5vw, 3rem);
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .onboarding-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+            padding: clamp(1.25rem, 4vw, 2rem);
+            margin-bottom: 2rem;
+        }
+        
+        .onboarding-card h2 {
+            color: #0b7285;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            line-height: 1.2;
+            font-weight: 700;
+        }
+        
+        .onboarding-card > p {
+            font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+            line-height: 1.5;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+        
+        .onboarding-section {
+            margin-top: 2.5rem;
+            padding-top: 2.5rem;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .onboarding-section:first-of-type {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+        
+        .onboarding-section h3 {
+            font-size: clamp(1.25rem, 3.5vw, 1.5rem);
+            margin-bottom: 0.75rem;
+            color: #111827;
+            font-weight: 600;
+        }
+        
+        .onboarding-section > p {
+            font-size: clamp(0.9rem, 2vw, 0.95rem);
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: clamp(1.25rem, 3vw, 1.5rem);
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #334e68;
+            font-size: clamp(0.85rem, 2vw, 0.9rem);
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: clamp(0.625rem, 2vw, 0.75rem);
+            border: 1px solid #cbd2e1;
+            border-radius: 8px;
+            font-size: clamp(0.9rem, 2.5vw, 0.95rem);
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0b7285;
+            box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1);
+        }
+        
+        .role-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        @media (max-width: 480px) {
+            .role-options {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .role-option {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .role-option:hover {
+            border-color: #0b7285;
+            background: #f0fdfa;
+        }
+        
+        .role-option.selected {
+            border-color: #0b7285;
+            background: #e0f7fa;
+        }
+        
+        .role-option input[type="radio"] {
+            display: none;
+        }
+        
+        .btn {
+            padding: clamp(0.75rem, 2vw, 0.875rem) clamp(1.5rem, 4vw, 2rem);
+            border: none;
+            border-radius: 8px;
+            font-size: clamp(0.95rem, 2.5vw, 1rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #0b7285;
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            background: #095a69;
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .status-text {
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: #f3f4f6;
+            border-radius: 6px;
+            color: #374151;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .btn-group .btn {
+            width: auto;
+            min-width: 120px;
+        }
+        
+        #questionnaireSection .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        #questionnaireSection .checkbox-label {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f9fafb;
+            gap: 0.625rem;
+            width: 100%;
+        }
+        
+        #questionnaireSection .checkbox-label:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        
+        #questionnaireSection .checkbox-input {
+            width: 16px !important;
+            height: 16px !important;
+            cursor: pointer;
+            accent-color: #0b7285;
+            flex-shrink: 0;
+            margin: 0 !important;
+            display: inline-block !important;
+            vertical-align: middle;
+        }
+        
+        #questionnaireSection .checkbox-label:has(input:checked) {
+            background: #ffffff;
+            border-color: #0b7285;
+        }
+        
+        #questionnaireSection .attachment-text {
+            font-size: 0.9rem;
+            color: #374151;
+            user-select: none;
+            line-height: 1.4;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            main {
+                padding-bottom: calc(clamp(2rem, 5vw, 3rem) + 70px) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="onboarding-card">
+            <h2>Welcome to ClearTrack</h2>
+            <p>Let's get you set up in a few simple steps</p>
+            
+            <!-- Status Display (Neutral Text) -->
+            <div id="onboardingStatus" class="status-text" style="display: none;">
+                Status: <span id="statusValue">NEW</span>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            
+            <!-- Step 1: Role Selection -->
+            <div id="step1" class="step-content active onboarding-section">
+                <h3>Select Your Role</h3>
+                <p>Choose the role that best describes your work:</p>
+            
+            <div class="role-options">
+                <label class="role-option" onclick="selectRole('sales_rep', this)">
+                    <input type="radio" name="role" value="sales_rep">
+                    <div style="font-weight: 600;">Sales Representative</div>
+                </label>
+                <label class="role-option" onclick="selectRole('employee', this)">
+                    <input type="radio" name="role" value="employee">
+                    <div style="font-weight: 600;">Employee</div>
+                </label>
+                <label class="role-option" onclick="selectRole('contractor', this)">
+                    <input type="radio" name="role" value="contractor">
+                    <div style="font-weight: 600;">Contractor</div>
+                </label>
+                <label class="role-option" onclick="selectRole('business_owner', this)">
+                    <input type="radio" name="role" value="business_owner">
+                    <div style="font-weight: 600;">Business Owner</div>
+                </label>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="saveRole()" id="saveRoleBtn" disabled>Continue</button>
+            </div>
+        </div>
+        
+            <!-- Step 2: Profile Information -->
+            <div id="step2" class="step-content onboarding-section">
+                <h3>Profile Information</h3>
+                <p>Please provide some basic information:</p>
+            
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone">
+                </div>
+                
+                <div class="form-group">
+                    <label for="taxNumber">Tax Number</label>
+                    <input type="text" id="taxNumber">
+                </div>
+            </form>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+                <button class="btn btn-primary" onclick="saveProfile()" id="saveProfileBtn">Continue</button>
+            </div>
+        </div>
+        
+            <!-- Step 3: Practitioner Connection -->
+            <div id="step3" class="step-content onboarding-section">
+                <h3>Connect to Practitioner</h3>
+                <p>Do you have a practitioner code, or would you like us to find one for you? Both options require practitioner approval.</p>
+            
+            <!-- Shared Consent Checkbox (applies to both practitioner code and questionnaire paths) -->
+            <div class="form-group" style="margin-top: 1rem; margin-bottom: 1rem;">
+                <label class="checkbox-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input type="checkbox" id="onboardingConsentCheckbox" required style="width: auto; cursor: pointer;" />
+                    <span>I consent to be assigned to a practitioner.</span>
+                </label>
+                <div id="consentError" style="display:none; color:#ef4444; font-size: 0.875rem; margin-top: 0.25rem;">
+                    Consent is required to proceed.
+                </div>
+            </div>
+            
+            <!-- Option 1: Practitioner Code -->
+            <div id="practitionerCodeSection">
+                <h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.1rem; font-weight: 600; color: #111827;">I have a practitioner code</h4>
+                <div class="form-group">
+                    <label for="practitionerCode">Practitioner Code</label>
+                    <input type="text" id="practitionerCode" placeholder="Enter practitioner code" style="text-transform: uppercase;">
+                </div>
+                <p style="margin-top: 0.5rem; margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">This will send a request. Your practitioner must approve before any connection is made.</p>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="connectWithCode()" id="connectCodeBtn">Send Request</button>
+                </div>
+            </div>
+            
+            <!-- Option 2: Questionnaire -->
+            <div id="questionnaireSection" style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e5e7eb;">
+                <h4 style="margin-bottom: 0.75rem; font-size: 1.1rem; font-weight: 600; color: #111827;">Or, let us find a practitioner for you</h4>
+                <p style="margin-bottom: 1rem; color: #6b7280;">We'll help you find a practitioner. Please answer a few questions:</p>
+                
+                <div class="form-group">
+                    <label>What services do you need? (Select all that apply)</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="tax_preparation" name="clientNeeds" class="checkbox-input" />
+                            <span class="attachment-text">Tax Preparation</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="tax_planning" name="clientNeeds" class="checkbox-input" />
+                            <span class="attachment-text">Tax Planning</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="audit_support" name="clientNeeds" class="checkbox-input" />
+                            <span class="attachment-text">Audit Support</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="bookkeeping" name="clientNeeds" class="checkbox-input" />
+                            <span class="attachment-text">Bookkeeping</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientMessage">Additional Information (Optional)</label>
+                    <textarea id="clientMessage" rows="3" placeholder="Tell us about your tax needs..." class="form-control"></textarea>
+                </div>
+            
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="submitQuestionnaire()" id="submitQuestionnaireBtn">Find Practitioner</button>
+                </div>
+            </div>
+            
+            <!-- Back button at the bottom -->
+            <div class="btn-group" style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+            </div>
+        </div>
+        
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <!-- Loading Screen Utility -->
+    <script src="loading-screen.js"></script>
+    <script>
+        // CRITICAL: Force-hide loading overlay immediately on script load
+        // This runs before DOMContentLoaded to prevent blocking
+        (function() {
+            'use strict';
+            function forceHideLoading() {
+                // Hide all possible loading overlays
+                const overlays = [
+                    document.getElementById('globalLoadingOverlay'),
+                    document.getElementById('loadingOverlay'),
+                    document.querySelector('.loading-overlay')
+                ].filter(Boolean);
+                
+                overlays.forEach(overlay => {
+                    overlay.style.display = 'none';
+                    overlay.style.visibility = 'hidden';
+                    overlay.style.opacity = '0';
+                    overlay.style.pointerEvents = 'none';
+                    overlay.style.zIndex = '-1';
+                    overlay.classList.remove('show');
+                });
+                
+                // Ensure body can scroll
+                if (document.body) {
+                    document.body.style.overflow = '';
+                    document.body.style.overflowY = 'auto';
+                    document.body.style.position = '';
+                }
+                if (document.documentElement) {
+                    document.documentElement.style.overflow = '';
+                    document.documentElement.style.overflowY = 'auto';
+                }
+            }
+            
+            // Run immediately
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', forceHideLoading);
+            } else {
+                forceHideLoading();
+            }
+            
+            // Also run after a short delay to catch any late-loading overlays
+            setTimeout(forceHideLoading, 100);
+            setTimeout(forceHideLoading, 500);
+            setTimeout(forceHideLoading, 1000);
+        })();
+    </script>
+    
+    <!-- Firebase SDKs (compat) - REQUIRED for firebase-init.js -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+    
+    <!-- Firebase Config - REQUIRED for firebase-init.js -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Firebase Init - requires SDKs and config above -->
+    <script src="firebase-init.js"></script>
+    <script src="firebase-api.js"></script>
+    <script src="shared-data.js"></script>
+    <script src="firestore-data.js"></script>
+    <script src="js/client-linking.js"></script>
+    
+    <script>
+        // Initialize cleartrackData if not already available
+        if (typeof cleartrackData === 'undefined') {
+            window.cleartrackData = new CleartrackDataManager();
+        }
+        
+        // Initialize firestoreData if not already available
+        if (typeof window.initFirestoreData === 'function' && !window.firestoreData) {
+            window.initFirestoreData();
+        }
+        
+        let currentStep = 1;
+        let selectedRole = null;
+        let currentUser = null;
+        let onboardingState = 'NEW';
+        let connectionStatus = 'none';
+        let rejectionCount = 0;
+        let statusListener = null;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Force-hide loading overlay before initialization
+            const forceHideLoading = () => {
+                const overlays = [
+                    document.getElementById('globalLoadingOverlay'),
+                    document.getElementById('loadingOverlay'),
+                    document.querySelector('.loading-overlay')
+                ].filter(Boolean);
+                
+                overlays.forEach(overlay => {
+                    overlay.style.display = 'none';
+                    overlay.style.visibility = 'hidden';
+                    overlay.style.opacity = '0';
+                    overlay.style.pointerEvents = 'none';
+                    overlay.style.zIndex = '-1';
+                });
+                
+                document.body.style.overflow = '';
+                document.body.style.overflowY = 'auto';
+                document.documentElement.style.overflow = '';
+                document.documentElement.style.overflowY = 'auto';
+            };
+            
+            forceHideLoading();
+            await initializeOnboarding();
+        });
+        
+        async function initializeOnboarding() {
+            try {
+                // CRITICAL: Hide loading screen immediately to prevent blocking
+                if (window.hideLoadingScreen) {
+                    window.hideLoadingScreen();
+                }
+                
+                // Also ensure body can scroll
+                document.body.style.overflow = '';
+                document.body.style.overflowY = 'auto';
+                document.documentElement.style.overflow = '';
+                document.documentElement.style.overflowY = 'auto';
+                
+                // Remove any loading overlay that might be blocking
+                const loadingOverlay = document.getElementById('globalLoadingOverlay') || document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                    loadingOverlay.style.visibility = 'hidden';
+                    loadingOverlay.style.opacity = '0';
+                    loadingOverlay.style.pointerEvents = 'none';
+                }
+                
+                // Wait for Firebase auth
+                if (!window.firebaseAuth) {
+                    console.error('[onboarding] Firebase Auth not available');
+                    showError('Firebase is not initialized. Please refresh the page.');
+                    return;
+                }
+                
+                // Wait for auth state with timeout to prevent infinite waiting
+                await new Promise((resolve) => {
+                    if (window.firebaseAuth.currentUser) {
+                        resolve();
+                    } else {
+                        let resolved = false;
+                        const timeout = setTimeout(() => {
+                            if (!resolved) {
+                                resolved = true;
+                                console.warn('[onboarding] Auth state timeout - proceeding anyway');
+                                resolve();
+                            }
+                        }, 5000); // 5 second timeout
+                        
+                        const unsubscribe = window.firebaseAuth.onAuthStateChanged((user) => {
+                            if (!resolved) {
+                                resolved = true;
+                                clearTimeout(timeout);
+                                unsubscribe();
+                                resolve();
+                            }
+                        });
+                    }
+                });
+                
+                const user = window.firebaseAuth.currentUser;
+                
+                // CRITICAL: Check if user is a practitioner or admin - redirect immediately
+                if (user && window.firebaseDb) {
+                    try {
+                        const userDoc = await window.firebaseDb.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            const role = (userData.role || '').toLowerCase().trim();
+                            
+                            if (role === 'practitioner') {
+                                console.log('[onboarding] Practitioner detected - redirecting to practitioner dashboard');
+                                window.location.replace('/practitioner-dashboard.html');
+                                return;
+                            } else if (role === 'admin') {
+                                console.log('[onboarding] Admin detected - redirecting to admin dashboard');
+                                window.location.replace('/admin-dashboard.html');
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('[onboarding] Error checking user role:', error);
+                        // Continue with onboarding if check fails
+                    }
+                }
+                if (!user) {
+                    // Not logged in - redirect to login
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                currentUser = user;
+                
+                // Load user data from Firestore
+                await loadUserData();
+                
+                // Set up real-time listener for onboarding state
+                setupOnboardingStateListener();
+                
+                // Set up button enable/disable logic for practitioner code section
+                setupPractitionerCodeButtonLogic();
+                
+            } catch (error) {
+                console.error('[onboarding] Initialization error:', error);
+                showError('Failed to initialize. Please refresh the page.');
+            }
+        }
+        
+        function setupPractitionerCodeButtonLogic() {
+            const codeInput = document.getElementById('practitionerCode');
+            const consentCheckbox = document.getElementById('onboardingConsentCheckbox');
+            
+            if (codeInput) {
+                codeInput.addEventListener('input', updatePractitionerCodeButton);
+            }
+            
+            if (consentCheckbox) {
+                consentCheckbox.addEventListener('change', updatePractitionerCodeButton);
+            }
+            
+            // Set initial button state
+            updatePractitionerCodeButton();
+        }
+        
+        async function loadUserData() {
+            if (!window.firebaseDb || !currentUser) return;
+            
+            try {
+                const userDoc = await window.firebaseDb.collection('users').doc(currentUser.uid).get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    
+                    // Check onboarding state
+                    onboardingState = userData.onboardingState || 'NEW';
+                    connectionStatus = userData.connectionStatus || 'none';
+                    rejectionCount = userData.rejectionCount || 0;
+                    selectedRole = userData.clientRole || null;
+                    
+                    // If already active, redirect to dashboard (only if not already on dashboard)
+                    if ((onboardingState === 'ACTIVE' || connectionStatus === 'approved') && 
+                        !window.location.pathname.includes('user-dashboard')) {
+                        // Set guard to prevent redirect loops
+                        if (sessionStorage.getItem('onboarding_redirect_done')) {
+                            return;
+                        }
+                        sessionStorage.setItem('onboarding_redirect_done', 'true');
+                        window.location.href = '/user-dashboard.html';
+                        return;
+                    }
+                    
+                    // REFINED: Wizard first-access check - show wizard only for NEW/PROFILE_PENDING
+                    if (onboardingState === 'NEW' || onboardingState === 'PROFILE_PENDING') {
+                        // Show wizard
+                        if (selectedRole) {
+                            // Pre-fill form if profile data exists
+                            if (userData.firstName) document.getElementById('firstName').value = userData.firstName;
+                            if (userData.lastName) document.getElementById('lastName').value = userData.lastName;
+                            if (userData.phone) document.getElementById('phone').value = userData.phone;
+                            if (userData.taxNumber) document.getElementById('taxNumber').value = userData.taxNumber;
+                            
+                            // If profileComplete, check practitioner or show questionnaire
+                            if (userData.profileComplete === true) {
+                                const practitionerId = userData.practitionerId || userData.assignedPractitionerId;
+                                if (practitionerId) {
+                                    // Practitioner exists - should be in CONNECTION_PENDING, but show status
+                                    goToStep(3);
+                                } else {
+                                    // No practitioner - show step 3 with both options
+                                    goToStep(3);
+                                }
+                            } else {
+                                goToStep(2);
+                            }
+                        }
+                    } else if (onboardingState === 'MATCHING' || onboardingState === 'CONNECTION_PENDING') {
+                        // Skip wizard, show status only
+                        goToStep(3);
+                    }
+                    
+                    // Update status display
+                    updateStatusDisplay();
+                } else {
+                    // New user - start at step 1
+                    onboardingState = 'NEW';
+                }
+            } catch (error) {
+                console.error('[onboarding] Error loading user data:', error);
+            }
+        }
+        
+        function setupOnboardingStateListener() {
+            if (!window.firebaseDb || !currentUser) return;
+            
+            // Remove existing listener
+            if (statusListener) {
+                statusListener();
+            }
+            
+            // Set up real-time listener
+            let previousStatus = connectionStatus;
+            statusListener = window.firebaseDb.collection('users').doc(currentUser.uid)
+                .onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const newState = userData.onboardingState || 'NEW';
+                        const newStatus = userData.connectionStatus || 'none';
+                        const newRejectionCount = userData.rejectionCount || 0;
+                        
+                        // REFINED: Rejection tracking - check if escalation needed
+                        // Note: Rejection count is incremented by practitioner dashboard on rejection
+                        // This page only checks if escalation is needed
+                        if (newStatus === 'rejected' && newRejectionCount >= 3 && onboardingState !== 'ESCALATED') {
+                            // Escalate to admin after 3 rejections
+                            window.firebaseDb.collection('users').doc(currentUser.uid).update({
+                                onboardingState: 'ESCALATED'
+                            }).catch(err => console.error('[onboarding] Error escalating:', err));
+                        }
+                        
+                        // Update state
+                        onboardingState = newState;
+                        connectionStatus = newStatus;
+                        rejectionCount = userData.rejectionCount || 0;
+                        previousStatus = newStatus;
+                        
+                        // Update UI
+                        updateStatusDisplay();
+                        
+                        // If active, redirect (only if not already on dashboard and not already redirected)
+                        if ((newState === 'ACTIVE' || newStatus === 'approved') && 
+                            !window.location.pathname.includes('user-dashboard') &&
+                            !sessionStorage.getItem('onboarding_redirect_done')) {
+                            sessionStorage.setItem('onboarding_redirect_done', 'true');
+                            window.location.href = '/user-dashboard.html';
+                        }
+                    }
+                }, (error) => {
+                    console.error('[onboarding] Error in state listener:', error);
+                });
+        }
+        
+        function selectRole(role, element) {
+            selectedRole = role;
+            
+            // Update UI
+            document.querySelectorAll('.role-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            // Enable continue button
+            document.getElementById('saveRoleBtn').disabled = false;
+        }
+        
+        async function saveRole() {
+            if (!selectedRole || !currentUser) return;
+            
+            try {
+                showLoading(true);
+                
+                // Save role using existing firebaseApi.saveData
+                await window.firebaseApi.saveData('users', currentUser.uid, {
+                    clientRole: selectedRole,
+                    onboardingState: 'PROFILE_PENDING',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                onboardingState = 'PROFILE_PENDING';
+                // REMOVED: wizard UI - updateStepIndicator call
+                goToStep(2);
+                
+            } catch (error) {
+                console.error('[onboarding] Error saving role:', error);
+                showError('Failed to save role. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function saveProfile() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            
+            if (!firstName || !lastName) {
+                showError('First name and last name are required.');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                
+                const profileData = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    name: `${firstName} ${lastName}`.trim(),
+                    profileComplete: true,
+                    onboardingState: 'MATCHING',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // Add optional fields if provided
+                const phone = document.getElementById('phone').value.trim();
+                const taxNumber = document.getElementById('taxNumber').value.trim();
+                if (phone) profileData.phone = phone;
+                if (taxNumber) profileData.taxNumber = taxNumber;
+                
+                // Save profile using existing firebaseApi.saveData
+                await window.firebaseApi.saveData('users', currentUser.uid, profileData);
+                
+                onboardingState = 'MATCHING';
+                // REMOVED: wizard UI - updateStepIndicator call
+                // REMOVED: Auto-connection logic - pairing only happens after practitioner approval
+                
+                // Show step 3 with both options available
+                goToStep(3);
+                
+            } catch (error) {
+                console.error('[onboarding] Error saving profile:', error);
+                showError('Failed to save profile. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function updatePractitionerCodeButton() {
+            const codeInput = document.getElementById('practitionerCode');
+            const consentCheckbox = document.getElementById('onboardingConsentCheckbox');
+            const button = document.getElementById('connectCodeBtn');
+            
+            if (!codeInput || !consentCheckbox || !button) return;
+            
+            const codeValue = codeInput.value.trim();
+            const consentChecked = consentCheckbox.checked;
+            
+            if (codeValue && consentChecked) {
+                button.disabled = false;
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
+            } else {
+                button.disabled = true;
+                button.style.opacity = '0.5';
+                button.style.cursor = 'not-allowed';
+            }
+        }
+        
+        async function connectWithCode() {
+            try {
+                showLoading(true);
+                
+                // 1. Validate consent checkbox
+                const consentChecked = document.getElementById('onboardingConsentCheckbox').checked;
+                if (!consentChecked) {
+                    document.getElementById('consentError').style.display = 'block';
+                    showLoading(false);
+                    return;
+                }
+                document.getElementById('consentError').style.display = 'none';
+                
+                // 2. Get practitioner code
+                const practitionerCode = document.getElementById('practitionerCode').value.trim();
+                if (!practitionerCode) {
+                    showError('Please enter a practitioner code.');
+                    showLoading(false);
+                    return;
+                }
+                
+                // 3. Call createClientRequest (Cloud Function - same pipeline as questionnaire)
+                if (window.CTClientLinking && typeof window.CTClientLinking.createClientRequest === 'function') {
+                    // Use practitioner_code as needs indicator, include code in message
+                    const needs = ['practitioner_code'];
+                    const message = `Practitioner code: ${practitionerCode}`;
+                    
+                    const result = await window.CTClientLinking.createClientRequest(needs, message || null);
+                    
+                    // Capture assignedPractitionerId from result (may be null if no practitioner assigned)
+                    const assignedPractitionerId = result && result.assignedPractitionerId ? result.assignedPractitionerId : null;
+                    
+                    // 4. Update user document (NO pairing fields - only onboarding state)
+                    await window.firebaseApi.saveData('users', currentUser.uid, {
+                        onboardingState: 'PENDING_APPROVAL',
+                        matchingProfile: { needs, message },
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // 5. Show success message and redirect to dashboard
+                    showSuccess('Request sent. Waiting for practitioner approval.');
+                    
+                    // Redirect to dashboard in pending state
+                    setTimeout(() => {
+                        window.location.href = '/user-dashboard.html';
+                    }, 1500);
+                    
+                } else {
+                    showError('Request system not available. Please try again later.');
+                    showLoading(false);
+                }
+                
+            } catch (error) {
+                console.error('[onboarding] Error submitting practitioner code request:', error);
+                showError('Failed to submit. Please try again.');
+                showLoading(false);
+            }
+        }
+        
+        // REMOVED: showQuestionnaire/hideQuestionnaire - questionnaire shown automatically when no practitioner
+        
+        async function submitQuestionnaire() {
+            try {
+                showLoading(true);
+                
+                // 1. Validate consent checkbox
+                const consentChecked = document.getElementById('onboardingConsentCheckbox').checked;
+                if (!consentChecked) {
+                    document.getElementById('consentError').style.display = 'block';
+                    showLoading(false);
+                    return;
+                }
+                document.getElementById('consentError').style.display = 'none';
+                
+                // 2. Get selected needs
+                const needs = Array.from(document.querySelectorAll('input[name="clientNeeds"]:checked'))
+                    .map(cb => cb.value);
+                
+                const message = document.getElementById('clientMessage').value.trim();
+                
+                // 3. Call createClientRequest (Cloud Function - allowed, not direct Firestore query)
+                if (window.CTClientLinking && typeof window.CTClientLinking.createClientRequest === 'function') {
+                    const result = await window.CTClientLinking.createClientRequest(needs, message || null);
+                    
+                    // Capture assignedPractitionerId from result (may be null if no practitioner assigned)
+                    const assignedPractitionerId = result && result.assignedPractitionerId ? result.assignedPractitionerId : null;
+                    
+                    // 5. Update user document (NO pairing fields - only onboarding state)
+                    await window.firebaseApi.saveData('users', currentUser.uid, {
+                        onboardingState: 'PENDING_APPROVAL',
+                        matchingProfile: { needs, message },
+                        updatedAt: serverTimestamp
+                    });
+                    
+                    // 6. Show success message and redirect to dashboard
+                    showSuccess('Request sent. Waiting for practitioner approval.');
+                    
+                    // Redirect to dashboard in pending state
+                    setTimeout(() => {
+                        window.location.href = '/user-dashboard.html';
+                    }, 1500);
+                    
+                } else {
+                    showError('Questionnaire system not available. Please try again later.');
+                    showLoading(false);
+                }
+                
+            } catch (error) {
+                console.error('[onboarding] Error submitting questionnaire:', error);
+                showError('Failed to submit. Please try again.');
+                showLoading(false);
+            }
+        }
+        
+        // REMOVED: findMatchingPractitionerSimple - use CTClientLinking.createClientRequest only
+        
+        // REFINED: Neutral text status display (replaces colored banners)
+        function updateStatusDisplay() {
+            const statusEl = document.getElementById('onboardingStatus');
+            const statusValueEl = document.getElementById('statusValue');
+            if (!statusEl || !statusValueEl) return;
+            
+            let statusText = onboardingState;
+            
+            if (onboardingState === 'ACTIVE' || connectionStatus === 'approved') {
+                statusText = 'ACTIVE - Redirecting to dashboard...';
+                // Only redirect if not already on dashboard and not already redirected
+                if (!window.location.pathname.includes('user-dashboard') &&
+                    !sessionStorage.getItem('onboarding_redirect_done')) {
+                    sessionStorage.setItem('onboarding_redirect_done', 'true');
+                    setTimeout(() => {
+                        window.location.href = '/user-dashboard.html';
+                    }, 1500);
+                }
+            } else if (connectionStatus === 'escalated' || onboardingState === 'ESCALATED') {
+                statusText = 'ESCALATED - Your request has been escalated to admin. Please wait for manual assignment.';
+            } else if (connectionStatus === 'rejected') {
+                if (rejectionCount >= 3) {
+                    statusText = `Rejected (${rejectionCount}/3) - Escalated to admin`;
+                } else {
+                    statusText = `Rejected (${rejectionCount}/3) - Retrying assignment...`;
+                }
+            } else if (connectionStatus === 'pending' || onboardingState === 'CONNECTION_PENDING') {
+                statusText = 'CONNECTION_PENDING - Waiting for practitioner approval...';
+            } else if (onboardingState === 'MATCHING') {
+                statusText = 'MATCHING - Awaiting practitioner assignment...';
+            } else if (onboardingState === 'PROFILE_PENDING') {
+                statusText = 'PROFILE_PENDING';
+            } else {
+                statusText = 'NEW';
+            }
+            
+            statusValueEl.textContent = statusText;
+            statusEl.style.display = 'block';
+        }
+        
+        function goToStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            // Show target step
+            const targetStep = document.getElementById(`step${step}`);
+            if (targetStep) {
+                targetStep.classList.add('active');
+                currentStep = step;
+                // REMOVED: wizard UI - updateStepIndicator call
+            }
+        }
+        
+        // REMOVED: wizard UI - updateStepIndicator function
+        
+        function showLoading(show) {
+            if (show) {
+                if (window.showLoadingScreen) {
+                    window.showLoadingScreen('Processing...', 'Please wait');
+                }
+            } else {
+                if (window.hideLoadingScreen) {
+                    window.hideLoadingScreen();
+                }
+            }
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showSuccess(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            errorEl.style.color = '#10b981';
+            errorEl.style.backgroundColor = '#d1fae5';
+            errorEl.style.border = '1px solid #10b981';
+            errorEl.style.padding = '0.75rem';
+            errorEl.style.borderRadius = '0.375rem';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // REMOVED: colored status banners - showStatusBanner function
+        
+        // Cleanup listener on page unload
+        window.addEventListener('beforeunload', () => {
+            if (statusListener) {
+                statusListener();
+            }
+        });
+    </script>
+</body>
+</html>
+

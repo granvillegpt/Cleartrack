@@ -79,9 +79,8 @@
     console.log('[firebase-init] Firestore data layer initialized');
   }
   
-  // PHASE3D: Profile readiness helper function
+  // Profile readiness helper function
   // Checks if user has role and migration is complete (or not explicitly false)
-  // Practitioner linking is handled separately by the wizard
   function isProfileReady(user) {
     return Boolean(user && user.role && user.migrationComplete !== false);
   }
@@ -154,12 +153,18 @@
         }
       }
       
+      // CRITICAL: If already on user-dashboard, NEVER redirect (prevent infinite loops)
+      if (pathname.includes('user-dashboard')) {
+        console.log("[route] Already on user-dashboard, preventing redirect to avoid loop");
+        window.__CLEARTRACK_REDIRECTED__ = true;
+        sessionStorage.setItem('ct_redirect_done', 'true');
+        return; // Exit early, don't process any redirects
+      }
+      
       if (!userData) {
-        // No user document = unlinked client → user dashboard (wizard handles onboarding)
-        if (!pathname.includes('user-dashboard')) {
-          redirectTarget = '/user-dashboard.html';
-          console.log("[route] role: client (no doc) -> /user-dashboard.html");
-        }
+        // No user document = unlinked client → user dashboard
+        redirectTarget = '/user-dashboard.html';
+        console.log("[route] role: client (no doc) -> /user-dashboard.html");
       } else {
         // Normalize roles: "user" → "client"
         let role = userData.role || null;
@@ -167,9 +172,8 @@
           role = 'client';
         }
         
-        // PHASE3D: Use isProfileReady instead of onboardingComplete
         const profileReady = window.isProfileReady ? window.isProfileReady(userData) : Boolean(userData && userData.role);
-        console.log("[PHASE3D] Profile readiness check:", { role, profileReady, migrationComplete: userData.migrationComplete });
+        console.log("[route] Profile readiness check:", { role, profileReady, migrationComplete: userData.migrationComplete });
         
         // ROLE RESOLUTION RULES
         if (role === 'admin') {
@@ -185,13 +189,13 @@
             console.log("[PHASE3D] [route] role: practitioner -> /practitioner-dashboard.html");
           }
         } else if (role === 'client') {
-          // Client: always route to user dashboard (wizard handles incomplete profiles)
+          // Client: always route to user dashboard
           if (!pathname.includes('user-dashboard')) {
             redirectTarget = '/user-dashboard.html';
-            console.log("[PHASE3D] [route] role: client -> /user-dashboard.html (wizard handles profile completion)");
+            console.log("[route] role: client -> /user-dashboard.html");
           }
         } else {
-          // Unknown role or no role = default to user dashboard (wizard handles onboarding)
+          // Unknown role or no role = default to user dashboard
           if (!pathname.includes('user-dashboard')) {
             redirectTarget = '/user-dashboard.html';
             console.log("[PHASE3D] [route] role: unknown -> /user-dashboard.html");
@@ -227,6 +231,19 @@
   if (window.firebaseAuth && !authListenerInitialized) {
     authListenerInitialized = true;
     window.firebaseAuth.onAuthStateChanged(function(user) {
+      // CRITICAL: Check if on user-dashboard - but allow role check for practitioners/admins
+      // Only skip if we've already confirmed the user is a client
+      if (window.location.pathname.includes('user-dashboard')) {
+        // Only skip if we've confirmed they're a client (prevents infinite loops for clients)
+        if (sessionStorage.getItem('ct_user_role_confirmed') === 'client') {
+          console.log('[firebase-init] On user-dashboard (confirmed client), skipping redirect to prevent loop');
+          window.__CLEARTRACK_REDIRECTED__ = true;
+          sessionStorage.setItem('ct_redirect_done', 'true');
+          return;
+        }
+        // Otherwise, let performRoleBasedRedirect check the role and redirect if needed
+      }
+      
       if (user && sessionStorage.getItem('ct_redirect_done') !== 'true' && !window.__CLEARTRACK_REDIRECTED__) {
         performRoleBasedRedirect();
       }

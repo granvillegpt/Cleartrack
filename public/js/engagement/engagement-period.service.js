@@ -233,12 +233,14 @@
     }
   }
 
-  // Validation: Check role value
+  // Validation: Check role value - allows free-text
   function validateRole(role) {
-    const validRoles = ['employee', 'sales_rep', 'contractor', 'business_owner'];
-    if (!validRoles.includes(role)) {
-      throw new Error(`role must be one of: ${validRoles.join(', ')}`);
-    }
+    if (role === undefined) return undefined;     // means "not provided in updates"
+    if (role === null) return null;
+    const r = String(role).trim();
+    if (!r) return null;
+    if (r.length > 80) throw new Error('role must be 80 characters or less');
+    return r;
   }
 
   // Validation: Check endReason value
@@ -263,13 +265,14 @@
 
   /**
    * Create a new engagement period
-   * All validations run BEFORE Firestore write.
+   * Phase 3A Step 2: Minimal validation - only required fields and date format
    * @param {string} userId - User ID
    * @param {Object} data - Engagement period data
-   * @param {string} data.role - Role type
-   * @param {string} data.startDate - Start date (YYYY-MM-DD)
+   * @param {string} data.employerName - Employer name (required)
+   * @param {string} data.startDate - Start date (YYYY-MM-DD) (required)
+   * @param {string} [data.role] - Role type (optional)
    * @param {string|null} [data.endDate] - End date (YYYY-MM-DD) or null
-   * @param {string} [data.employerName] - Employer name (optional)
+   * @param {string} [data.endReason] - End reason (optional, required if endDate provided)
    * @param {string} [data.createdBy] - Creator type (default: 'user')
    * @param {boolean} [data.lockedByPractitioner] - Lock status (default: false)
    * @returns {Promise<Object>} Created engagement period
@@ -278,27 +281,30 @@
   async function createEngagementPeriod(userId, data) {
     const { db } = ensureFirebase();
     
-    // ========== VALIDATION PHASE (BEFORE ANY FIRESTORE WRITES) ==========
+    // ========== VALIDATION PHASE (MINIMAL - Phase 3A Step 2) ==========
     
     // Validate required fields
     if (!userId) {
       throw new Error('userId is required');
     }
-    if (!data || !data.role || !data.startDate) {
-      throw new Error('role and startDate are required');
+    if (!data || !data.employerName || !data.startDate) {
+      throw new Error('employerName and startDate are required');
     }
     
-    // Validate date format
+    // Validate date format only
     validateDateFormat(data.startDate, 'startDate');
     if (data.endDate !== null && data.endDate !== undefined) {
       validateDateFormat(data.endDate, 'endDate');
     }
     
-    // Validate date order (endDate >= startDate)
-    validateDateOrder(data.startDate, data.endDate || null);
+    // Phase 3A Step 2: Disabled complex validations
+    // - No date order check
+    // - No single active check
+    // - No overlap check
+    // - No role validation (role is optional)
     
-    // Validate field values
-    validateRole(data.role);
+    // Validate role if provided
+    const safeRole = validateRole(data.role ?? null);
     if (data.createdBy) {
       validateCreatedBy(data.createdBy);
     }
@@ -309,25 +315,17 @@
     // Determine status
     const status = data.endDate ? 'ended' : 'active';
     
-    // Validate single active engagement (if creating active engagement)
-    if (status === 'active') {
-      await validateSingleActive(userId);
-    }
-    
-    // Validate no overlapping dates (always check, even for ended engagements)
-    await validateNoOverlap(userId, data.startDate, data.endDate || null);
-    
     // ========== FIRESTORE WRITE PHASE (ALL VALIDATIONS PASSED) ==========
     
     // Prepare engagement period data
     const engagementData = {
       userId: userId,
-      role: data.role,
+      employerName: data.employerName,
+      role: safeRole,
       startDate: data.startDate,
       endDate: data.endDate || null,
       status: status,
       endReason: data.endReason || null,
-      employerName: data.employerName || undefined,
       createdBy: data.createdBy || 'user',
       lockedByPractitioner: data.lockedByPractitioner || false,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -346,6 +344,126 @@
     const doc = await docRef.get();
     
     return docToEngagementPeriod(doc);
+  }
+
+  /**
+   * Update an engagement period
+   * Updates existing document - does NOT create new document
+   * @param {string} engagementId - Engagement period ID
+   * @param {Object} updates - Fields to update
+   * @returns {Promise<void>}
+   * @throws {Error} If engagementId is missing
+   */
+  async function updateEngagementPeriod(engagementId, updates) {
+    if (!engagementId) {
+      throw new Error("engagementId is required for update");
+    }
+
+    const { db, currentUserId } = ensureFirebase();
+
+    // PRE-VALIDATION: Check document state BEFORE building payload
+    const docRef = db.collection("engagementPeriods").doc(engagementId);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      throw new Error("Employment period not found");
+    }
+    
+    const docData = doc.data();
+    
+    // Verify ownership - must match Firestore rule check
+    if (docData.userId !== currentUserId) {
+      throw new Error("You can only edit your own employment periods");
+    }
+    
+    // Verify not locked - must match Firestore rule check (backward compatibility)
+    const isLocked = docData.locked === true || docData.lockedByPractitioner === true;
+    if (isLocked) {
+      throw new Error("This employment period is locked and cannot be edited");
+    }
+
+    // Build rule-safe payload with ONLY allowed fields
+    // Allowed: employerName, role, startDate, endDate, endReason, status, updatedAt
+    // DO NOT include: userId, createdAt, createdBy, confirmedByPractitioner, confirmedAt, locked, lockedAt, lockedByPractitioner
+    const allowedUpdates = {};
+    
+    // Only assign fields that are strings/dates OR explicitly null (never undefined)
+    if (updates.employerName !== undefined) {
+      allowedUpdates.employerName = updates.employerName ? String(updates.employerName).trim() : null;
+    }
+    
+    if ('role' in updates) {
+      const validatedRole = validateRole(updates.role);
+      if (validatedRole !== undefined) {
+        allowedUpdates.role = validatedRole;
+      }
+    }
+    
+    if (updates.startDate !== undefined) {
+      allowedUpdates.startDate = updates.startDate ? String(updates.startDate) : null;
+    }
+    
+    if (updates.endDate !== undefined) {
+      allowedUpdates.endDate = updates.endDate ? String(updates.endDate) : null;
+    }
+    
+    if (updates.endReason !== undefined) {
+      allowedUpdates.endReason = updates.endReason ? String(updates.endReason).trim() : null;
+    }
+    
+    // Calculate status from endDate
+    const endDate = allowedUpdates.endDate || updates.endDate || docData.endDate;
+    allowedUpdates.status = endDate ? 'ended' : 'active';
+    
+    // Always include updatedAt timestamp
+    allowedUpdates.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+    
+    // Remove any undefined values (shouldn't happen, but safety check)
+    Object.keys(allowedUpdates).forEach(key => {
+      if (allowedUpdates[key] === undefined) {
+        delete allowedUpdates[key];
+      }
+    });
+    
+    const updatePayload = allowedUpdates;
+
+    // Final safety check: ensure we have at least one field to update (excluding updatedAt)
+    const fieldsToUpdate = Object.keys(updatePayload).filter(key => key !== 'updatedAt');
+    if (fieldsToUpdate.length === 0) {
+      throw new Error("No valid fields to update");
+    }
+
+    // DEBUG: Log what we're sending (remove in production if desired)
+    console.log('[updateEngagementPeriod] Update payload:', {
+      engagementId,
+      currentUserId,
+      docUserId: docData.userId,
+      docLocked: docData.locked,
+      updatePayload,
+      payloadKeys: Object.keys(updatePayload)
+    });
+
+    try {
+      await docRef.update(updatePayload);
+      return { success: true };
+    } catch (error) {
+      console.error('[updateEngagementPeriod] Firestore error:', {
+        code: error.code,
+        message: error.message,
+        engagementId,
+        updatePayload,
+        docState: {
+          userId: docData.userId,
+          locked: docData.locked,
+          lockedByPractitioner: docData.lockedByPractitioner
+        }
+      });
+      
+      if (error.code === 'permission-denied') {
+        throw new Error("Permission denied. Please ensure the employment period is not locked and you are the owner.");
+      }
+      throw error;
+    }
   }
 
   /**
@@ -581,6 +699,7 @@
   // Export service object
   const engagementService = {
     createEngagementPeriod,
+    updateEngagementPeriod,
     endEngagementPeriod,
     lockEngagementPeriod,
     getEngagementPeriodsForUser,

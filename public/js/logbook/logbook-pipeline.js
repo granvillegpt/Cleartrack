@@ -7,11 +7,8 @@
  * @module logbook-pipeline
  */
 
-// Import core modules
-import { parseRouteTemplate } from './route-template-parser.js';
-import { expandRoutes } from './route-expander.js';
-import { GoogleDistanceService } from './google-distance-service.js';
-import { generateLogbook } from './logbook-generator.js';
+// Access core modules from global window object (loaded as regular scripts)
+// These modules expose their functions/classes to window: parseRouteTemplate, expandRoutes, GoogleDistanceService, generateLogbook
 
 /**
  * Validates pipeline options and throws descriptive errors if invalid
@@ -128,32 +125,113 @@ function validateOptions(options) {
  * });
  * // Returns: { logbook: [...], meta: { generatedAt: '...', taxYear: {...}, currentWeek: 1, totalEntries: 150 } }
  */
-export async function runLogbookPipeline(options) {
+async function runLogbookPipeline(options) {
     // Validate all options
     validateOptions(options);
 
     try {
         // Step 1: Parse Excel template
-        const routes = await parseRouteTemplate(options.excelFile);
+        const routes = await window.parseRouteTemplate(options.excelFile);
 
         // Step 2: Expand routes into dated visits
-        const visits = expandRoutes(routes, {
+        const visits = window.expandRoutes(routes, {
             taxYear: options.taxYear,
             currentWeek: options.currentWeek,
             leaveDays: options.leaveDays || []
         });
 
         // Step 3: Calculate distances
-        const distanceService = new GoogleDistanceService(options.googleApiKey);
-        const distances = await distanceService.getDistances(
+        const distanceService = new window.GoogleDistanceService(options.googleApiKey);
+        
+        // Calculate Home → each visit (for first trip of each day)
+        const homeToVisits = await distanceService.getDistances(
             options.homeAddress,
             visits.map(v => v.address)
         );
+        
+        // Group visits by date to calculate sequential distances
+        const visitsByDate = new Map();
+        for (const visit of visits) {
+            if (!visitsByDate.has(visit.date)) {
+                visitsByDate.set(visit.date, []);
+            }
+            visitsByDate.get(visit.date).push(visit);
+        }
+        
+        // Calculate sequential distances for same-day visits
+        // For each day with multiple visits, calculate: Visit1→Visit2, Visit2→Visit3, etc., and VisitN→Home
+        const sequentialDistances = new Map();
+        
+        for (const [date, dayVisits] of visitsByDate.entries()) {
+            // Sort visits by rowIndex to maintain template order
+            dayVisits.sort((a, b) => (a.rowIndex || 999999) - (b.rowIndex || 999999));
+            
+            // Calculate distances between sequential visits
+            for (let i = 0; i < dayVisits.length - 1; i++) {
+                const fromVisit = dayVisits[i];
+                const toVisit = dayVisits[i + 1];
+                const fromAddress = fromVisit.suburb 
+                    ? `${fromVisit.address}, ${fromVisit.suburb}`
+                    : fromVisit.address;
+                const toAddress = toVisit.suburb 
+                    ? `${toVisit.address}, ${toVisit.suburb}`
+                    : toVisit.address;
+                
+                // Create a unique key for this sequential trip
+                const tripKey = `${fromVisit.address}→${toVisit.address}`;
+                
+                if (!sequentialDistances.has(tripKey)) {
+                    try {
+                        const distance = await distanceService.calculateDistance(fromAddress, toAddress);
+                        sequentialDistances.set(tripKey, distance);
+                        // Small delay to respect rate limits
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    } catch (error) {
+                        console.warn(`Failed to calculate distance from ${fromAddress} to ${toAddress}:`, error);
+                        // Fallback: use straight-line estimate or throw error
+                        throw new Error(`Failed to calculate distance between ${fromAddress} and ${toAddress}: ${error.message}`);
+                    }
+                }
+            }
+            
+            // Calculate distance from last visit back to home
+            if (dayVisits.length > 0) {
+                const lastVisit = dayVisits[dayVisits.length - 1];
+                const lastAddress = lastVisit.suburb 
+                    ? `${lastVisit.address}, ${lastVisit.suburb}`
+                    : lastVisit.address;
+                const returnKey = `${lastVisit.address}→HOME`;
+                
+                if (!sequentialDistances.has(returnKey)) {
+                    try {
+                        const distance = await distanceService.calculateDistance(lastAddress, options.homeAddress);
+                        sequentialDistances.set(returnKey, distance);
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    } catch (error) {
+                        console.warn(`Failed to calculate distance from ${lastAddress} to home:`, error);
+                        throw new Error(`Failed to calculate distance from ${lastAddress} to home: ${error.message}`);
+                    }
+                }
+            }
+        }
+        
+        // Combine all distances into a single map
+        const allDistances = new Map();
+        
+        // Add Home → visit distances
+        for (const [address, distance] of homeToVisits.entries()) {
+            allDistances.set(`HOME→${address}`, distance);
+        }
+        
+        // Add sequential visit distances
+        for (const [key, distance] of sequentialDistances.entries()) {
+            allDistances.set(key, distance);
+        }
 
         // Step 4: Generate SARS-compliant logbook
-        const logbook = generateLogbook(
+        const logbook = window.generateLogbook(
             visits,
-            distances,
+            allDistances,
             options.openingKm,
             options.homeAddress
         );

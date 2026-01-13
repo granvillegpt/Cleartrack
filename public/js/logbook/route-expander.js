@@ -124,6 +124,15 @@ function expandRoutes(routes, options) {
 
     const leaveDays = options.leaveDays || [];
 
+    // Define business purposes for random selection per visit
+    const businessPurposes = [
+        'Sales Visit',
+        'Customer Meeting',
+        'Product Promotion',
+        'Order Follow-up',
+        'Training / Demo'
+    ];
+
     // Parse tax year dates
     const start = new Date(options.taxYear.start);
     const end = new Date(options.taxYear.end);
@@ -171,11 +180,16 @@ function expandRoutes(routes, options) {
             }
 
             // This route matches this date - add visit
+            // Randomly select a reason for this specific visit
+            const randomReason = businessPurposes[Math.floor(Math.random() * businessPurposes.length)];
+            
             visits.push({
                 date: dateStr,
                 customer: route.customer,
                 address: route.address,
-                suburb: route.suburb
+                suburb: route.suburb,
+                rowIndex: route.rowIndex || 999999,  // Preserve template order (high number as fallback)
+                reason: randomReason  // Each visit gets its own random reason
             });
         }
 
